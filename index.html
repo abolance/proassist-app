@@ -530,8 +530,8 @@
         // CONFIGURACIÓN
         // ========================
         const CONFIG = {
-            CLIENT_ID: '231457973375-lu8n54s56es213oqg5r3c5huas7golbb.apps.googleusercontent.com', // 🔧 CAMBIAR POR TU CLIENT_ID
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzBJGoykjXFl6ryxEV_1-zapE34b738xJQhZ2fOznJ6nL4ZL4ko2lGhXnpYBaTU2vVCDA/exec', // 🔧 CAMBIAR POR TU SCRIPT_URL
+            CLIENT_ID: '231457973375-lu8n54s56es213oqg5r3c5huas7golbb.apps.googleusercontent.com',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzBJGoykjXFl6ryxEV_1-zapE34b738xJQhZ2fOznJ6nL4ZL4ko2lGhXnpYBaTU2vVCDA/exec',
             SCOPES: 'email profile',
             AUTO_REFRESH_INTERVAL: 300000, // 5 minutos
         };
@@ -614,21 +614,35 @@
             }
         }
 
-        function loginUser(userInfo) {
-            currentUser = userInfo;
+        async function loginUser(userInfo) {
+    		try {
+        		// **NUEVO PASO DE VERIFICACIÓN**
+        		const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
+        		const accessData = await response.json();
+
+	        	if (accessData.status === 'granted') {
+        	    		// Acceso permitido, continuamos como antes
+            			currentUser = { ...userInfo, role: accessData.role }; // Guardamos el rol          
+            			sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
             
-            // Guardar en sessionStorage
-            sessionStorage.setItem('proassist_user', JSON.stringify(userInfo));
-            
-            // Mostrar pantalla principal
-            showMainScreen();
-            
-            // Cargar datos del usuario
-            loadUserData();
-            
-            // Iniciar auto-refresh
-            startAutoRefresh();
-        }
+	            		showMainScreen();
+        	    		loadUserData();
+            			startAutoRefresh();
+
+	        	} else {
+        	    		// Acceso denegado por nuestro backend
+            			console.error('Acceso denegado:', accessData.reason);
+            			showError(`Acceso denegado: ${accessData.reason}`);
+	            		// Es importante resetear por si acaso
+        	    		resetLoginScreen(); 
+        		}
+
+	    	} catch (error) {
+        		console.error('Error de autorización:', error);
+        		showError('Ocurrió un error al verificar tus permisos.');
+	        	resetLoginScreen();
+    		}
+	}
 
         function checkExistingSession() {
             const savedUser = sessionStorage.getItem('proassist_user');
