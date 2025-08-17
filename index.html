@@ -911,7 +911,7 @@
         // ========================
         async function loadTodaysForm() {
             try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTodaysForm&email=${encodeURIComponent(currentUser.email)}`);
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${encodeURIComponent(currentUser.email)}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
