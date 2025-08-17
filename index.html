@@ -615,34 +615,46 @@
         }
 
         async function loginUser(userInfo) {
-    		try {
-        		// **NUEVO PASO DE VERIFICACIÓN**
-        		const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
-        		const accessData = await response.json();
-
-	        	if (accessData.status === 'granted') {
-        	    		// Acceso permitido, continuamos como antes
-            			currentUser = { ...userInfo, role: accessData.role }; // Guardamos el rol          
-            			sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
-            
-	            		showMainScreen();
-        	    		loadUserData();
-            			startAutoRefresh();
-
-	        	} else {
-        	    		// Acceso denegado por nuestro backend
-            			console.error('Acceso denegado:', accessData.reason);
-            			showError(`Acceso denegado: ${accessData.reason}`);
-	            		// Es importante resetear por si acaso
-        	    		resetLoginScreen(); 
-        		}
-
-	    	} catch (error) {
-        		console.error('Error de autorización:', error);
-        		showError('Ocurrió un error al verificar tus permisos.');
-	        	resetLoginScreen();
-    		}
-	}
+		    let response; // Definimos la variable aquí para poder acceder a ella en el catch
+		    try {
+		        response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
+		
+		        // NUEVA VERIFICACIÓN: Nos aseguramos de que la respuesta de red sea exitosa (código 200)
+		        if (!response.ok) {
+		            // Si no es 200 OK, lanzamos un error para que lo capture el catch
+		            throw new Error(`Error de red o de servidor: ${response.status}`);
+		        }
+		
+		        const accessData = await response.json(); // Esto solo se ejecuta si la respuesta es OK
+		
+		        if (accessData.status === 'granted') {
+		            currentUser = { ...userInfo, role: accessData.role };
+		            sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
+		            showMainScreen();
+		            loadUserData();
+		            startAutoRefresh();
+		        } else {
+		            console.error('Acceso denegado por el backend:', accessData.reason);
+		            showError(`Acceso denegado: ${accessData.reason}`);
+		            resetLoginScreen();
+		        }
+		
+		    } catch (error) {
+		        console.error('Error de autorización:', error);
+		
+		        // ESTA ES LA MAGIA: Si la petición falló, intentamos leer la respuesta como texto
+		        // para ver qué nos mandó Google en realidad (probablemente una página de error HTML).
+		        if (response) {
+		            console.log("Inspeccionando la respuesta fallida del servidor...");
+		            response.text().then(text => {
+		                console.error("El servidor respondió con este texto (que no es JSON válido):", text);
+		            });
+		        }
+		
+		        showError('Ocurrió un error al verificar tus permisos.');
+		        resetLoginScreen();
+		    }
+		}
 
         function checkExistingSession() {
             const savedUser = sessionStorage.getItem('proassist_user');
