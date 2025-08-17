@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProAssist - Mi Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        
+        /* LOGIN */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo { font-size: 3em; margin-bottom: 0.5rem; }
+        .app-name { font-size: 2em; font-weight: bold; color: #667eea; margin-bottom: 0.5rem; }
+        .subtitle { color: #666; margin-bottom: 2rem; font-size: 1.1em; }
+        
+        .google-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+        }
+        
+        .google-btn:hover {
+            background: #357ae8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+        }
+        
+        /* DASHBOARD */
+        .dashboard-screen { 
+            display: none; 
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .greeting h1 { font-size: 1.8em; color: #2c3e50; margin-bottom: 0.2rem; }
+        .time-info { color: #7f8c8d; font-size: 0.95em; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; transform: translateY(-1px); }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-secondary:hover { background: #7f8c8d; }
+        
+        /* LOADING */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #9b59b6);
+        }
+        
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-title { font-size: 1.1em; font-weight: 600; color: #2c3e50; }
+        .stat-icon { font-size: 1.5em; }
+        .stat-value { font-size: 2.5em; font-weight: bold; color: #3498db; margin-bottom: 0.5rem; }
+        .stat-label { color: #7f8c8d; font-size: 0.9em; margin-bottom: 1rem; }
+        
+        .stat-comparison {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.85em;
+        }
+        
+        .comparison-good { color: #27ae60; font-weight: 600; }
+        .comparison-average { color: #f39c12; font-weight: 600; }
+        .comparison-bad { color: #e74c3c; font-weight: 600; }
+        
+        /* MAIN CONTENT */
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .training-info {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #3498db;
+        }
+        
+        .training-date { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+        .training-time { color: #7f8c8d; margin: 0.5rem 0; }
+        .training-location { color: #7f8c8d; font-size: 0.9em; }
+        
+        .form-frame {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .sidebar-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        /* PROGRESS BAR */
+        .progress-container {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 6px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-text { color: #7f8c8d; font-size: 0.9em; }
+        
+        /* HISTORIAL */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background 0.3s ease;
+        }
+        
+        .history-item:hover {
+            background: #f8f9fa;
+            margin: 0 -1rem;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .history-item:last-child { border-bottom: none; }
+        
+        .history-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        
+        .history-date { font-weight: 500; color: #2c3e50; }
+        .history-day { font-size: 0.85em; color: #7f8c8d; }
+        
+        .history-status {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .status-completed { background: #d5f4e6; color: #27ae60; }
+        .status-missed { background: #fadbd8; color: #e74c3c; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        
+        /* ALERTS */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert-info { background: #d6eaf8; color: #2471a3; border-left: 4px solid #3498db; }
+        .alert-success { background: #d5f4e6; color: #27ae60; border-left: 4px solid #2ecc71; }
+        .alert-warning { background: #fcf3cf; color: #b7950b; border-left: 4px solid #f1c40f; }
+        .alert-error { background: #fadbd8; color: #cb4335; border-left: 4px solid #e74c3c; }
+        
+        /* MOTIVATIONAL MESSAGES */
+        .motivation-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 15px;
+        }
+        
+        .motivation-icon { font-size: 3em; margin-bottom: 1rem; }
+        .motivation-text { font-size: 1.1em; font-weight: 500; }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .container { padding: 0.5rem; }
+            .header { flex-direction: column; text-align: center; }
+            .main-content { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .form-frame { height: 400px; }
+        }
+        
+        @media (max-width: 480px) {
+            .login-card { padding: 2rem 1.5rem; }
+            .stat-card { padding: 1.5rem; }
+            .form-section { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <h3 id="loadingText">Cargando datos...</h3>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="logo">⚽</div>
+            <div class="app-name">ProAssist</div>
+            <div class="subtitle">Tu Dashboard Personal de Entrenos</div>
+            <p style="margin-bottom: 2rem; color: #666;">
+                Accede con Google para ver tus estadísticas y completar el entrenamiento de hoy
+            </p>
+            <button class="google-btn" onclick="signIn()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Iniciar Sesión con Google
+            </button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboardScreen" class="dashboard-screen">
+        <div class="container">
+            <header class="header">
+                <div class="greeting">
+                    <h1 id="greetingMessage">¡Hola!</h1>
+                    <div class="time-info" id="timeInfo">Cargando...</div>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="refreshData()">🔄 Actualizar</button>
+                    <button class="btn btn-secondary" onclick="logout()">👋 Salir</button>
+                </div>
+            </header>
+
+            <!-- ESTADÍSTICAS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Entrenamientos</span>
+                        <span class="stat-icon">🏃‍♀️</span>
+                    </div>
+                    <div class="stat-value" id="totalTrainings">0</div>
+                    <div class="stat-label">Últimos 30 días</div>
+                    <div class="stat-comparison">
+                        <span>Media equipo:</span>
+                        <span id="teamAvg" class="comparison-average">0</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Racha Actual</span>
+                        <span class="stat-icon">🔥</span>
+                    </div>
+                    <div class="stat-value" id="currentStreak">0</div>
+                    <div class="stat-label">Entrenamientos seguidos</div>
+                    <div class="stat-comparison">
+                        <span>Mejor racha:</span>
+                        <span id="bestStreak" class="comparison-good">0</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Asistencia</span>
+                        <span class="stat-icon">📊</span>
+                    </div>
+                    <div class="stat-value" id="attendanceRate">0%</div>
+                    <div class="stat-label">Últimos 30 días</div>
+                    <div class="stat-comparison">
+                        <span>Estado:</span>
+                        <span id="attendanceStatus" class="comparison-good">Excelente</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Posición</span>
+                        <span class="stat-icon">🏆</span>
+                    </div>
+                    <div class="stat-value" id="ranking">-</div>
+                    <div class="stat-label">En el equipo</div>
+                    <div class="stat-comparison">
+                        <span>Total jugadoras:</span>
+                        <span id="totalPlayers" class="comparison-average">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <div class="main-content">
+                <div class="form-section">
+                    <h2 class="section-title">📋 Entrenamiento de Hoy</h2>
+                    <div id="alertContainer"></div>
+                    <div id="trainingInfo" class="training-info" style="display: none;">
+                        <div class="training-date" id="trainingDate">Fecha</div>
+                        <div class="training-time" id="trainingTime">Horario</div>
+                        <div class="training-location" id="trainingLocation">Ubicación</div>
+                    </div>
+                    <iframe id="trainingForm" class="form-frame" style="display: none;"></iframe>
+                </div>
+
+                <div class="sidebar">
+                    <!-- PROGRESO MENSUAL -->
+                    <div class="sidebar-card">
+                        <h3 class="section-title">📈 Progreso Este Mes</h3>
+                        <div class="progress-container">
+                            <div class="progress-value" id="monthProgress">0%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">0 de 0 completados</div>
+                        </div>
+                    </div>
+
+                    <!-- MENSAJE MOTIVACIONAL -->
+                    <div class="sidebar-card" id="motivationCard" style="display: none;">
+                        <div class="motivation-card">
+                            <div class="motivation-icon" id="motivationIcon">🎯</div>
+                            <div class="motivation-text" id="motivationText">¡Sigue así!</div>
+                        </div>
+                    </div>
+
+                    <!-- HISTORIAL -->
+                    <div class="sidebar-card">
+                        <h3 class="section-title">📋 Historial Reciente</h3>
+                        <div id="historyList">
+                            <p style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                                Cargando historial...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script>
+        const CONFIG = {
+            CLIENT_ID: '231457973375-lu8n54s56es213oqg5r3c5huas7golbb.apps.googleusercontent.com',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzBJGoykjXFl6ryxEV_1-zapE34b738xJQhZ2fOznJ6nL4ZL4ko2lGhXnpYBaTU2vVCDA/exec'
+        };
+
+        let currentUser = null;
+        let userStats = null;
+
+        // INICIALIZACIÓN
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            updateTimeInfo();
+            setInterval(updateTimeInfo, 60000);
+        }
+
+        function updateTimeInfo() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString('es-ES', { 
+                weekday: 'long', day: 'numeric', month: 'long' 
+            });
+            document.getElementById('timeInfo').textContent = `${dateStr} • ${timeStr}`;
+        }
+
+        function getGreeting(name) {
+            const hour = new Date().getHours();
+            let greeting, emoji;
+            
+            if (hour >= 5 && hour < 12) {
+                greeting = "¡Buenos días"; emoji = "🌅";
+            } else if (hour >= 12 && hour < 18) {
+                greeting = "¡Buenas tardes"; emoji = "☀️";
+            } else if (hour >= 18 && hour < 22) {
+                greeting = "¡Buenas tardes"; emoji = "🌆";
+            } else {
+                greeting = "¡Buenas noches"; emoji = "🌙";
+            }
+            
+            return `${greeting}, ${name}! ${emoji}`;
+        }
+
+        // LOADING
+        function showLoading(text = 'Cargando datos...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // AUTENTICACIÓN
+        function signIn() {
+            showLoading('Iniciando sesión...');
+            
+            google.accounts.oauth2.initTokenClient({
+                client_id: CONFIG.CLIENT_ID,
+                scope: 'profile email',
+                callback: handleAuth,
+            }).requestAccessToken();
+        }
+
+        function handleAuth(response) {
+            if (response.access_token) {
+                fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                    headers: { 'Authorization': `Bearer ${response.access_token}` }
+                })
+                .then(r => r.json())
+                .then(user => initDashboard(user))
+                .catch(e => {
+                    hideLoading();
+                    showAlert('Error de autenticación', 'error');
+                });
+            } else {
+                hideLoading();
+                showAlert('Error al iniciar sesión', 'error');
+            }
+        }
+
+        function initDashboard(user) {
+            currentUser = user;
+            
+            // Cambiar pantallas
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+            
+            // Saludo personalizado
+            const name = user.given_name || user.name?.split(' ')[0] || 'Jugadora';
+            document.getElementById('greetingMessage').textContent = getGreeting(name);
+            
+            // Cargar datos
+            loadUserData();
+        }
+
+        async function loadUserData() {
+            showLoading('Cargando tu información...');
+            
+            try {
+                // Cargar estadísticas en paralelo
+                const [statsResponse, historyResponse] = await Promise.all([
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${encodeURIComponent(currentUser.email)}`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${encodeURIComponent(currentUser.email)}`)
+                ]);
+
+                const statsData = await statsResponse.json();
+                const historyData = await historyResponse.json();
+
+                if (statsData.status === 'success') {
+                    userStats = statsData.stats;
+                    updateStats(userStats);
+                    updateMotivation(userStats);
+                }
+
+                if (historyData.status === 'success') {
+                    updateHistory(historyData.history);
+                }
+
+                // Cargar formulario del día
+                await loadTodayForm();
+
+                hideLoading();
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                hideLoading();
+                showAlert('Error cargando algunos datos', 'warning');
+            }
+        }
+
+        async function loadTodayForm() {
+            try {
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${encodeURIComponent(currentUser.email)}`);
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.formUrl) {
+                    showTodayForm(data);
+                } else {
+                    showAlert('📅 No hay entrenamiento programado para hoy. ¡Disfruta tu día libre!', 'info');
+                }
+
+            } catch (error) {
+                console.error('Error cargando formulario:', error);
+                showAlert('Error cargando el formulario del día', 'warning');
+            }
+        }
+
+        function updateStats(stats) {
+            // Estadísticas básicas
+            document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
+            document.getElementById('currentStreak').textContent = stats.currentStreak || 0;
+            document.getElementById('bestStreak').textContent = stats.bestStreak || 0;
+            document.getElementById('ranking').textContent = stats.ranking || '-';
+            document.getElementById('attendanceRate').textContent = (stats.attendanceRate || 0) + '%';
+            document.getElementById('teamAvg').textContent = stats.teamAverage || 0;
+            document.getElementById('totalPlayers').textContent = stats.totalPlayers || 0;
+
+            // Estado de asistencia
+            const attendance = stats.attendanceRate || 0;
+            const attendanceEl = document.getElementById('attendanceStatus');
+            if (attendance >= 90) {
+                attendanceEl.textContent = 'Excelente';
+                attendanceEl.className = 'comparison-good';
+            } else if (attendance >= 70) {
+                attendanceEl.textContent = 'Buena';
+                attendanceEl.className = 'comparison-average';
+            } else {
+                attendanceEl.textContent = 'Mejorable';
+                attendanceEl.className = 'comparison-bad';
+            }
+
+            // Comparaciones con el equipo
+            const teamAvg = stats.teamAverage || 0;
+            const teamAvgEl = document.getElementById('teamAvg');
+            if (stats.totalTrainings > teamAvg) {
+                teamAvgEl.className = 'comparison-good';
+            } else if (stats.totalTrainings === teamAvg) {
+                teamAvgEl.className = 'comparison-average';
+            } else {
+                teamAvgEl.className = 'comparison-bad';
+            }
+
+            // Progreso mensual
+            const progress = Math.min(100, Math.round((stats.monthlyTrainings / stats.monthlyGoal) * 100)) || 0;
+            document.getElementById('monthProgress').textContent = progress + '%';
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = 
+                `${stats.monthlyTrainings || 0} de ${stats.monthlyGoal || 0} completados`;
+        }
+
+        function updateMotivation(stats) {
+            const motivationCard = document.getElementById('motivationCard');
+            const motivationIcon = document.getElementById('motivationIcon');
+            const motivationText = document.getElementById('motivationText');
+
+            let message, icon;
+
+            // Determinar mensaje motivacional
+            if (stats.currentStreak >= 5) {
+                icon = '🔥';
+                message = `¡Increíble racha de ${stats.currentStreak} entrenamientos! Eres imparable.`;
+            } else if (stats.attendanceRate >= 90) {
+                icon = '⭐';
+                message = '¡Excelente asistencia! Eres un ejemplo para el equipo.';
+            } else if (stats.ranking <= 3) {
+                icon = '🏆';
+                message = `¡Top ${stats.ranking} del equipo! Sigue dando el máximo.`;
+            } else if (stats.monthlyTrainings >= stats.monthlyGoal * 0.8) {
+                icon = '🎯';
+                message = '¡Casi alcanzas tu objetivo mensual! Un empujón más.';
+            } else if (stats.totalTrainings === 0) {
+                icon = '🌟';
+                message = '¡Bienvenida a ProAssist! Comienza tu viaje hacia la excelencia.';
+            } else {
+                icon = '💪';
+                message = 'Cada entrenamiento cuenta. ¡Tú puedes conseguirlo!';
+            }
+
+            motivationIcon.textContent = icon;
+            motivationText.textContent = message;
+            motivationCard.style.display = 'block';
+        }
+
+        function updateHistory(history) {
+            const historyContainer = document.getElementById('historyList');
+            
+            if (!history || history.length === 0) {
+                historyContainer.innerHTML = `
+                    <p style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                        Aún no tienes historial de entrenamientos
+                    </p>
+                `;
+                return;
+            }
+
+            historyContainer.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div class="history-info">
+                        <div class="history-date">${item.date}</div>
+                        <div class="history-day">${item.dayName}</div>
+                    </div>
+                    <div class="history-status status-${item.status}">
+                        ${item.status === 'completed' ? '✅ Completado' : '❌ Perdido'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showTodayForm(data) {
+            document.getElementById('trainingDate').textContent = data.trainingDate || 'Hoy';
+            document.getElementById('trainingTime').textContent = data.trainingTime || '';
+            document.getElementById('trainingLocation').textContent = data.trainingLocation || '';
+            
+            if (data.trainingLocation) {
+                document.getElementById('trainingLocation').style.display = 'block';
+            }
+            
+            document.getElementById('trainingInfo').style.display = 'block';
+            document.getElementById('trainingForm').src = data.formUrl;
+            document.getElementById('trainingForm').style.display = 'block';
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            
+            // Icono según tipo
+            let icon = '';
+            switch(type) {
+                case 'success': icon = '✅'; break;
+                case 'warning': icon = '⚠️'; break;
+                case 'error': icon = '❌'; break;
+                case 'info': icon = 'ℹ️'; break;
+                default: icon = 'ℹ️';
+            }
+            
+            alert.innerHTML = `${icon} ${message}`;
+            alertContainer.appendChild(alert);
+            
+            // Auto-remover después de 8 segundos
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 8000);
+        }
+
+        async function refreshData() {
+            if (!currentUser) return;
+            
+            showLoading('Actualizando datos...');
+            
+            try {
+                // Limpiar alertas previas
+                document.getElementById('alertContainer').innerHTML = '';
+                
+                await loadUserData();
+                showAlert('Datos actualizados correctamente', 'success');
+                
+            } catch (error) {
+                hideLoading();
+                showAlert('Error al actualizar los datos', 'error');
+            }
+        }
+
+        function logout() {
+            // Limpiar datos
+            currentUser = null;
+            userStats = null;
+            
+            // Limpiar formulario
+            document.getElementById('trainingForm').src = '';
+            
+            // Cambiar pantallas
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('dashboardScreen').style.display = 'none';
+            
+            showAlert('Sesión cerrada correctamente', 'info');
+        }
+
+        // UTILIDADES
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // EVENTOS DE TECLADO
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                e.preventDefault();
+                refreshData();
+            }
+        });
+
+        // AUTO-REFRESH cada 5 minutos
+        setInterval(() => {
+            if (currentUser && document.getElementById('dashboardScreen').style.display !== 'none') {
+                refreshData();
+            }
+        }, 300000);
+
+        // DETECCIÓN DE CONEXIÓN
+        window.addEventListener('online', () => {
+            if (currentUser) {
+                showAlert('Conexión restaurada. Actualizando datos...', 'success');
+                refreshData();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            showAlert('Sin conexión a internet. Algunos datos pueden no estar actualizados.', 'warning');
+        });
+
+        // INICIALIZACIÓN GOOGLE AUTH
+        window.onload = function() {
+            if (typeof google !== 'undefined') {
+                google.accounts.id.initialize({
+                    client_id: CONFIG.CLIENT_ID,
+                    callback: handleCredentialResponse
+                });
+            }
+        };
+    </script>
+</body>
+</html>
