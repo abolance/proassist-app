@@ -5,19 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚽ ProAssist - Mi Dashboard</title>
     <script src="https://accounts.google.com/gsi/client"></script>
+	<!-- ======================== -->
+	<!-- ESQUEMA DE COLORES CSS -->
+	<!-- ======================== -->
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
+		
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: #34495e; /* Color de la segunda imagen */
+			min-height: 100vh;
+			color: #333;
+		}
 
         .container {
             max-width: 1200px;
@@ -52,13 +55,14 @@
         }
 
         .app-title {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+			font-size: 2rem;
+			font-weight: bold;
+			margin-bottom: 10px;
+			background: linear-gradient(45deg, #3498db, #1abc9c);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
 
         .app-subtitle {
             color: #666;
@@ -67,28 +71,27 @@
         }
 
         .google-signin-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+			background: #3498db;
+			color: white;
+			border: none;
+			padding: 15px 30px;
+			border-radius: 10px;
+			font-size: 1.1rem;
+			cursor: pointer;
+			width: 100%;
+			transition: all 0.3s ease;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+		}
 
         .google-signin-btn:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+			background: #2980b9;
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+		}
 
-        /* MAIN DASHBOARD */
         .main-screen {
             display: none;
         }
@@ -117,21 +120,20 @@
         }
 
         .logout-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+			background: #e74c3c;
+			color: white;
+			border: none;
+			padding: 10px 20px;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
 
         .logout-btn:hover {
-            background: #ff3742;
-            transform: translateY(-1px);
-        }
+			background: #c0392b;
+			transform: translateY(-1px);
+		}
 
-        /* STATS GRID */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -162,18 +164,17 @@
         }
 
         .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
+			font-size: 2.5rem;
+			font-weight: bold;
+			color: #3498db;
+			margin-bottom: 10px;
+		}
 
         .stat-description {
             color: #666;
             font-size: 0.9rem;
         }
 
-        /* PROGRESS BARS */
         .progress-bar {
             width: 100%;
             height: 10px;
@@ -184,13 +185,12 @@
         }
 
         .progress-fill {
-            height: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border-radius: 5px;
-            transition: width 0.3s ease;
-        }
+			height: 100%;
+			background: linear-gradient(45deg, #3498db, #1abc9c);
+			border-radius: 5px;
+			transition: width 0.3s ease;
+		}
 
-        /* COMPARISON SECTION */
         .comparison {
             display: flex;
             justify-content: space-between;
@@ -203,17 +203,16 @@
         }
 
         .comparison-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-        }
+			font-size: 1.5rem;
+			font-weight: bold;
+			color: #3498db;
+		}
 
         .comparison-label {
             color: #666;
             font-size: 0.8rem;
         }
 
-        /* FORM SECTION */
         .form-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -246,7 +245,6 @@
             color: #666;
         }
 
-        /* HISTORY SECTION */
         .history-item {
             display: flex;
             justify-content: space-between;
@@ -286,7 +284,6 @@
             color: #721c24;
         }
 
-        /* LOADING */
         .loading {
             text-align: center;
             padding: 40px;
@@ -294,37 +291,35 @@
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
+			border: 4px solid #f3f3f3;
+			border-top: 4px solid #3498db;
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			animation: spin 1s linear infinite;
+			margin: 0 auto 20px;
+		}
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
-        /* MOTIVATIONAL MESSAGE */
-        .motivational-message {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
+		.motivational-message {
+			background: linear-gradient(45deg, #3498db, #1abc9c);
+			color: white;
+			padding: 20px;
+			border-radius: 15px;
+			margin-bottom: 20px;
+			text-align: center;
+			box-shadow: 0 5px 20px rgba(52, 152, 219, 0.2);
+		}
 
         .motivational-message h3 {
             margin-bottom: 10px;
             font-size: 1.3rem;
         }
 
-        /* RESPONSIVE */
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -353,7 +348,6 @@
             }
         }
 
-        /* AUTO-REFRESH INDICATOR */
         .refresh-indicator {
             position: fixed;
             top: 20px;
@@ -369,13 +363,34 @@
         .refresh-indicator.hidden {
             opacity: 0;
         }
+		
+		button[onclick*="load"], button[onclick*="retry"] {
+			padding: 10px 20px;
+			background: #3498db;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+		
+		button[onclick*="load"]:hover, button[onclick*="retry"]:hover {
+			background: #2980b9;
+			transform: translateY(-1px);
+		}
     </style>
 </head>
 <body>
     <!-- PANTALLA DE LOGIN -->
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
-            <div class="app-logo">⚽</div>
+            <!-- ======================== -->
+			<!-- LOGO HTML -->
+			<!-- ======================== -->
+			<!-- Reemplazar esta línea: <div class="app-logo">⚽</div> -->
+			<div class="app-logo">
+				<img src="ProAssist.png" alt="ProAssist Logo" style="width: 80px; height: 80px; margin-bottom: 15px;">
+			</div>
             <h1 class="app-title">ProAssist</h1>
             <p class="app-subtitle">Tu dashboard personal de entrenamientos</p>
             <button id="signInButton" class="google-signin-btn">
