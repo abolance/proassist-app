@@ -811,19 +811,19 @@
             }).requestAccessToken();
         }
 
-        async function handleTokenResponse(response) {
+        function handleTokenResponse(response) {
             if (response.access_token) {
-                await fetchUserInfo(response.access_token);
+                fetchUserInfo(response.access_token);
             } else {
                 showError('Error al obtener token de acceso');
                 resetLoginScreen();
             }
         }
 
-        async function handleCredentialResponse(response) {
+        function handleCredentialResponse(response) {
             // Decodificar JWT token
             const userInfo = parseJwt(response.credential);
-            await loginUser(userInfo);
+            loginUser(userInfo);
         }
 
         async function fetchUserInfo(accessToken) {
