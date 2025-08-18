@@ -378,12 +378,6 @@
 			background: #2980b9;
 			transform: translateY(-1px);
 		}
-
-* {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -933,7 +927,6 @@
 
     <!-- PANEL DE ADMINISTRADOR -->
     <div id="admin-panel" style="display: none;">
-        <body>
     <header class="header">
         <div class="logo">
             ⚽ ProAssist
@@ -1140,7 +1133,6 @@
             </div>
         </div>
     </div>
-</body>
     </div>
 
     <!-- INDICADOR DE AUTO-REFRESH -->
@@ -2196,20 +2188,7 @@
                 showAlert('Error de conexión con el backend', 'warning');
                 console.error(error);
             });
-        }
-
-	// Estado de la aplicación
-        let currentDate = new Date();
-        let selectedDate = null;
-        let trainings = {}; // {fecha: {start, end, location, notes, formId}}
-
-        // Inicializar aplicación
-        document.addEventListener('DOMContentLoaded', function() {
-            loadConfiguration();
-            renderCalendar();
-            loadTrainings();
-            updateStats();
-        });
+        }	
 
         // FUNCIONES DE PESTAÑAS
         function showTab(tabName) {
