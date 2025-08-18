@@ -378,6 +378,417 @@
 			background: #2980b9;
 			transform: translateY(-1px);
 		}
+
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .admin-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: #ecf0f1;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .tab:hover {
+            background: #d5dbdb;
+        }
+        
+        .tab.active:hover {
+            background: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+        
+        .tab-panel {
+            display: none;
+            padding: 2rem;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .calendar-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            height: 500px;
+        }
+        
+        .calendar {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .calendar-header {
+            background: #3498db;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .calendar-nav {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        
+        .calendar-nav:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+        }
+        
+        .calendar-day-header {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .calendar-day {
+            background: white;
+            min-height: 60px;
+            padding: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-day:hover {
+            background: #ecf0f1;
+        }
+        
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #aaa;
+        }
+        
+        .calendar-day.has-training {
+            background: #e8f5e8;
+            border-color: #27ae60;
+        }
+        
+        .calendar-day.selected {
+            background: #3498db;
+            color: white;
+        }
+        
+        .training-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            background: #27ae60;
+            border-radius: 50%;
+        }
+        
+        .sidebar {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #219a52;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .config-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .config-section h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .day-config {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .day-config.active {
+            border-color: #27ae60;
+            background: #e8f5e8;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .training-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .training-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .training-item:last-child {
+            border-bottom: none;
+        }
+        
+        .training-info {
+            flex: 1;
+        }
+        
+        .training-date {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .training-time {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .training-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .calendar-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -409,8 +820,8 @@
         </div>
     </div>
 
-    <!-- PANTALLA PRINCIPAL -->
-    <div id="mainScreen" class="main-screen">
+    <!-- DASHBOARD JUGADORA -->
+    <div id="player-dashboard" class="main-screen">
         <div class="container">
             <!-- HEADER CON SALUDO -->
             <div class="header">
@@ -518,6 +929,218 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- PANEL DE ADMINISTRADOR -->
+    <div id="admin-panel" style="display: none;">
+        <body>
+    <header class="header">
+        <div class="logo">
+            ⚽ ProAssist
+            <span class="admin-badge">ADMIN</span>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Todo</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('calendar')">
+                📅 Calendario
+            </button>
+            <button class="tab" onclick="showTab('config')">
+                ⚙️ Configuración
+            </button>
+            <button class="tab" onclick="showTab('stats')">
+                📊 Estadísticas
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- CALENDARIO TAB -->
+            <div id="calendar-tab" class="tab-panel active">
+                <div class="calendar-container">
+                    <div class="calendar">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" onclick="previousMonth()">‹</button>
+                            <h2 id="calendar-month"></h2>
+                            <button class="calendar-nav" onclick="nextMonth()">›</button>
+                        </div>
+                        <div class="calendar-grid" id="calendar-grid">
+                            <!-- Se genera con JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar">
+                        <h3>📝 Entreno Seleccionado</h3>
+                        <div id="training-form">
+                            <div class="form-group">
+                                <label>📅 Fecha:</label>
+                                <input type="date" id="selected-date" readonly>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>🕐 Hora Inicio:</label>
+                                <input type="time" id="start-time" value="20:45">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>🕐 Hora Fin:</label>
+                                <input type="time" id="end-time" value="22:30">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>📍 Ubicación:</label>
+                                <input type="text" id="location" placeholder="Campo de entrenamiento">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>📝 Notas:</label>
+                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
+                                <button class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
+                            </div>
+                            
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                                <button class="btn btn-primary" onclick="createForm()" style="width: 100%;">
+                                    📋 Crear Formulario
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFIGURACIÓN TAB -->
+            <div id="config-tab" class="tab-panel">
+                <div class="config-section">
+                    <h3>⚙️ Configuración por Defecto</h3>
+                    <p>Define los días y horarios habituales de entrenamiento. Esto creará automáticamente los entrenamientos para las próximas semanas.</p>
+                    
+                    <div class="days-grid">
+                        <div class="day-config" id="day-tuesday">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="enable-tuesday" onchange="toggleDay('tuesday')">
+                                <label for="enable-tuesday"><strong>Martes</strong></label>
+                            </div>
+                            <div class="time-inputs">
+                                <div>
+                                    <label>Inicio:</label>
+                                    <input type="time" id="tuesday-start" value="20:45">
+                                </div>
+                                <div>
+                                    <label>Fin:</label>
+                                    <input type="time" id="tuesday-end" value="22:30">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="day-config" id="day-thursday">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="enable-thursday" onchange="toggleDay('thursday')">
+                                <label for="enable-thursday"><strong>Jueves</strong></label>
+                            </div>
+                            <div class="time-inputs">
+                                <div>
+                                    <label>Inicio:</label>
+                                    <input type="time" id="thursday-start" value="20:45">
+                                </div>
+                                <div>
+                                    <label>Fin:</label>
+                                    <input type="time" id="thursday-end" value="22:30">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="day-config" id="day-friday">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="enable-friday" onchange="toggleDay('friday')">
+                                <label for="enable-friday"><strong>Viernes</strong></label>
+                            </div>
+                            <div class="time-inputs">
+                                <div>
+                                    <label>Inicio:</label>
+                                    <input type="time" id="friday-start" value="20:45">
+                                </div>
+                                <div>
+                                    <label>Fin:</label>
+                                    <input type="time" id="friday-end" value="22:30">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <button class="btn btn-success" onclick="generateTrainings()">
+                            🔄 Generar Próximos 4 Entrenamientos
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearAllTrainings()">
+                            🗑️ Limpiar Calendario
+                        </button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>📋 Configuración de Formularios</h3>
+                    
+                    <div class="form-group">
+                        <label>🔗 ID Formulario Base:</label>
+                        <input type="text" id="form-base-id" placeholder="1BbcDef... (ID de tu formulario base)">
+                        <small style="color: #7f8c8d;">Este formulario se duplicará para cada entreno</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📊 ID Google Sheets:</label>
+                        <input type="text" id="sheet-id" placeholder="1AbcDef... (ID de tu hoja de cálculo)">
+                        <small style="color: #7f8c8d;">Donde se guardarán las respuestas y configuración</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📧 Entry ID Campo Email:</label>
+                        <input type="text" id="email-entry" placeholder="entry.123456789">
+                        <small style="color: #7f8c8d;">Para pre-rellenar el email de la jugadora</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESTADÍSTICAS TAB -->
+            <div id="stats-tab" class="tab-panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-trainings">0</div>
+                        <div class="stat-label">Entrenamientos Programados</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-forms">0</div>
+                        <div class="stat-label">Formularios Creados</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-responses">0</div>
+                        <div class="stat-label">Respuestas Recibidas</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-players">0</div>
+                        <div class="stat-label">Jugadoras Activas</div>
+                    </div>
+                </div>
+
+                <div class="training-list">
+                    <h3 style="padding: 1rem; background: #f8f9fa; margin: 0;">📅 Próximos Entrenamientos</h3>
+                    <div id="upcoming-trainings">
+                        <!-- Se genera con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
     </div>
 
     <!-- INDICADOR DE AUTO-REFRESH -->
@@ -630,7 +1253,7 @@
 		        if (accessData.status === 'granted') {
 		            currentUser = { ...userInfo, role: accessData.role };
 		            sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
-		            showMainScreen();
+		            showPlayerDashboard();
 		            loadUserData();
 		            startAutoRefresh();
 		        } else {
@@ -660,7 +1283,7 @@
             const savedUser = sessionStorage.getItem('proassist_user');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
-                showMainScreen();
+                showPlayerDashboard();
                 loadUserData();
                 startAutoRefresh();
             }
@@ -690,11 +1313,11 @@
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('mainScreen').style.display = 'none';
             resetLoginScreen();
-        }
+        }        
 
-        function showMainScreen() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainScreen').style.display = 'block';
+	function showPlayerDashboard() {
+    	    document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('player-dashboard').style.display = 'block'; // <-- usa el id nuevo
             updateGreeting();
         }
 
@@ -1147,5 +1770,860 @@
             stopAutoRefresh();
         });
 
+	// Estado de la aplicación
+        let currentDate = new Date();
+        let selectedDate = null;
+        let trainings = {}; // {fecha: {start, end, location, notes, formId}}
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+            renderCalendar();
+            loadTrainings();
+            updateStats();
+        });
+
+        // FUNCIONES DE PESTAÑAS
+        function showTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            
+            // Mostrar pestaña seleccionada
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'stats') {
+                updateStats();
+            }
+        }
+
+        // FUNCIONES DE CALENDARIO
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Actualizar título
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('calendar-month').textContent = `${monthNames[month]} ${year}`;
+            
+            // Generar grid del calendario
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Headers de días
+            const dayHeaders = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Días del calendario
+            const current = new Date(startDate);
+            for (let i = 0; i < 42; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = current.getDate();
+                
+                const dateString = current.toISOString().split('T')[0];
+                dayElement.dataset.date = dateString;
+                
+                // Clases adicionales
+                if (current.getMonth() !== month) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                if (trainings[dateString]) {
+                    dayElement.classList.add('has-training');
+                    const indicator = document.createElement('div');
+                    indicator.className = 'training-indicator';
+                    dayElement.appendChild(indicator);
+                }
+                
+                // Event listener
+                dayElement.addEventListener('click', () => selectDate(dateString));
+                
+                grid.appendChild(dayElement);
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function selectDate(dateString) {
+            // Remover selección anterior
+            document.querySelectorAll('.calendar-day.selected').forEach(day => {
+                day.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo día
+            const dayElement = document.querySelector(`[data-date="${dateString}"]`);
+            if (dayElement) {
+                dayElement.classList.add('selected');
+            }
+            
+            selectedDate = dateString;
+            loadTrainingData(dateString);
+        }
+
+        function loadTrainingData(dateString) {
+            const training = trainings[dateString] || {};
+            
+            document.getElementById('selected-date').value = dateString;
+            document.getElementById('start-time').value = training.start || '20:45';
+            document.getElementById('end-time').value = training.end || '22:30';
+            document.getElementById('location').value = training.location || '';
+            document.getElementById('notes').value = training.notes || '';
+        }
+
+        // FUNCIONES DE ENTRENAMIENTO
+        function saveTraining() {
+            if (!selectedDate) {
+                alert('Selecciona una fecha primero');
+                return;
+            }
+            
+            const trainingData = {
+                start: document.getElementById('start-time').value,
+                end: document.getElementById('end-time').value,
+                location: document.getElementById('location').value,
+                notes: document.getElementById('notes').value,
+                formId: trainings[selectedDate]?.formId || null
+            };
+            
+            trainings[selectedDate] = trainingData;
+            renderCalendar();
+            updateStats();
+            
+            // Mostrar confirmación
+            showAlert('✅ Entrenamiento guardado correctamente', 'success');
+        }
+
+        function deleteTraining() {
+            if (!selectedDate || !trainings[selectedDate]) {
+                alert('No hay entrenamiento para eliminar');
+                return;
+            }
+            
+            if (confirm('¿Estás seguro de eliminar este entrenamiento?')) {
+                delete trainings[selectedDate];
+                renderCalendar();
+                updateStats();
+                
+                // Limpiar formulario
+                document.getElementById('start-time').value = '20:45';
+                document.getElementById('end-time').value = '22:30';
+                document.getElementById('location').value = '';
+                document.getElementById('notes').value = '';
+                
+                showAlert('🗑️ Entrenamiento eliminado', 'warning');
+            }
+        }
+
+        function createForm() {
+            if (!selectedDate || !trainings[selectedDate]) {
+                alert('Guarda el entrenamiento primero');
+                return;
+            }
+            
+            // Simular creación de formulario
+            const formId = 'form_' + selectedDate.replace(/-/g, '');
+            trainings[selectedDate].formId = formId;
+            
+            showAlert('📋 Formulario creado correctamente', 'success');
+            updateStats();
+        }
+
+        // FUNCIONES DE CONFIGURACIÓN
+        function toggleDay(day) {
+            const checkbox = document.getElementById(`enable-${day}`);
+            const dayElement = document.getElementById(`day-${day}`);
+            
+            if (checkbox.checked) {
+                dayElement.classList.add('active');
+            } else {
+                dayElement.classList.remove('active');
+            }
+        }
+
+        function generateTrainings() {
+            const days = ['tuesday', 'thursday', 'friday'];
+            const dayNumbers = { tuesday: 2, thursday: 4, friday: 5 };
+            
+            let generated = 0;
+            const today = new Date();
+            
+            // Generar para las próximas 4 semanas
+            for (let week = 0; week < 4; week++) {
+                days.forEach(day => {
+                    const checkbox = document.getElementById(`enable-${day}`);
+                    if (!checkbox.checked) return;
+                    
+                    const targetDate = new Date(today);
+                    const daysToAdd = (dayNumbers[day] - today.getDay() + 7) % 7 + (week * 7);
+                    targetDate.setDate(today.getDate() + daysToAdd);
+                    
+                    const dateString = targetDate.toISOString().split('T')[0];
+                    
+                    if (!trainings[dateString]) {
+                        trainings[dateString] = {
+                            start: document.getElementById(`${day}-start`).value,
+                            end: document.getElementById(`${day}-end`).value,
+                            location: '',
+                            notes: `Entrenamiento ${day} - Semana ${week + 1}`,
+                            formId: null
+                        };
+                        generated++;
+                    }
+                });
+            }
+            
+            renderCalendar();
+            updateStats();
+            showAlert(`🔄 ${generated} entrenamientos generados automáticamente`, 'success');
+        }
+
+        function clearAllTrainings() {
+            if (confirm('¿Estás seguro de eliminar TODOS los entrenamientos? Esta acción no se puede deshacer.')) {
+                trainings = {};
+                renderCalendar();
+                updateStats();
+                showAlert('🗑️ Todos los entrenamientos eliminados', 'warning');
+            }
+        }
+
+        // FUNCIONES DE ESTADÍSTICAS
+        function updateStats() {
+            const trainingCount = Object.keys(trainings).length;
+            const formsCount = Object.values(trainings).filter(t => t.formId).length;
+            
+            document.getElementById('stat-trainings').textContent = trainingCount;
+            document.getElementById('stat-forms').textContent = formsCount;
+            document.getElementById('stat-responses').textContent = Math.floor(Math.random() * 50); // Simulado
+            document.getElementById('stat-players').textContent = Math.floor(Math.random() * 20) + 10; // Simulado
+            
+            // Actualizar lista de próximos entrenamientos
+            updateUpcomingTrainings();
+        }
+
+        function updateUpcomingTrainings() {
+            const container = document.getElementById('upcoming-trainings');
+            container.innerHTML = '';
+            
+            // Obtener entrenamientos futuros ordenados por fecha
+            const today = new Date().toISOString().split('T')[0];
+            const futureTrainings = Object.entries(trainings)
+                .filter(([date, _]) => date >= today)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .slice(0, 5); // Solo los próximos 5
+            
+            if (futureTrainings.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
+                return;
+            }
+            
+            futureTrainings.forEach(([date, training]) => {
+                const item = document.createElement('div');
+                item.className = 'training-item';
+                
+                const formatDate = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long'
+                });
+                
+                item.innerHTML = `
+                    <div class="training-info">
+                        <div class="training-date">${formatDate}</div>
+                        <div class="training-time">${training.start} - ${training.end}</div>
+                        ${training.location ? `<div class="training-time">📍 ${training.location}</div>` : ''}
+                    </div>
+                    <div class="training-actions">
+                        ${training.formId 
+                            ? '<span style="color: #27ae60;">📋 Formulario creado</span>'
+                            : '<span style="color: #e74c3c;">⏳ Sin formulario</span>'
+                        }
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        // FUNCIONES DE PERSISTENCIA
+        function loadConfiguration() {
+            // Cargar configuración desde localStorage (temporal)
+            const savedTrainings = localStorage.getItem('proassist-trainings');
+            if (savedTrainings) {
+                trainings = JSON.parse(savedTrainings);
+            }
+            
+            const savedConfig = localStorage.getItem('proassist-config');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                document.getElementById('form-base-id').value = config.formBaseId || '';
+                document.getElementById('sheet-id').value = config.sheetId || '';
+                document.getElementById('email-entry').value = config.emailEntry || '';
+                
+                // Cargar configuración de días
+                ['tuesday', 'thursday', 'friday'].forEach(day => {
+                    if (config.defaultDays && config.defaultDays[day]) {
+                        document.getElementById(`enable-${day}`).checked = config.defaultDays[day].enabled;
+                        document.getElementById(`${day}-start`).value = config.defaultDays[day].start;
+                        document.getElementById(`${day}-end`).value = config.defaultDays[day].end;
+                        toggleDay(day);
+                    }
+                });
+            } else {
+                // Configuración por defecto
+                ['tuesday', 'thursday', 'friday'].forEach(day => {
+                    document.getElementById(`enable-${day}`).checked = true;
+                    toggleDay(day);
+                });
+            }
+        }
+
+        function loadTrainings() {
+            // Aquí se conectaría con el backend real
+            // Por ahora cargamos desde localStorage
+            renderCalendar();
+        }
+
+        function guardarConfiguracion() {
+            // Guardar entrenamientos
+            localStorage.setItem('proassist-trainings', JSON.stringify(trainings));
+            
+            // Guardar configuración
+            const config = {
+                formBaseId: document.getElementById('form-base-id').value,
+                sheetId: document.getElementById('sheet-id').value,
+                emailEntry: document.getElementById('email-entry').value,
+                defaultDays: {}
+            };
+            
+            ['tuesday', 'thursday', 'friday'].forEach(day => {
+                config.defaultDays[day] = {
+                    enabled: document.getElementById(`enable-${day}`).checked,
+                    start: document.getElementById(`${day}-start`).value,
+                    end: document.getElementById(`${day}-end`).value
+                };
+            });
+            
+            localStorage.setItem('proassist-config', JSON.stringify(config));
+            
+            // En producción, aquí enviarías los datos al backend
+            syncWithBackend();
+            
+            showAlert('💾 Configuración guardada correctamente', 'success');
+        }
+
+        function syncWithBackend() {
+            // Simular sincronización con Google Apps Script
+            console.log('Sincronizando con backend...', {
+                trainings: trainings,
+                config: JSON.parse(localStorage.getItem('proassist-config'))
+            });
+            
+            // En producción:
+            // fetch(CONFIG.SCRIPT_URL + '?action=saveConfig', {
+            //     method: 'POST',
+            //     body: JSON.stringify({trainings, config})
+            // });
+        }
+
+        // UTILIDADES
+        function showAlert(message, type) {
+            // Crear elemento de alerta
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            // Insertar al inicio del contenido activo
+            const activePanel = document.querySelector('.tab-panel.active');
+            activePanel.insertBefore(alert, activePanel.firstChild);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // FUNCIONES DE INTEGRACIÓN CON BACKEND
+        function createFormularioReal(fecha) {
+            const training = trainings[fecha];
+            if (!training) return;
+            
+            // Llamada real al backend
+            fetch(CONFIG.SCRIPT_URL + '?action=createForm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fecha: fecha,
+                    horaInicio: training.start,
+                    horaFin: training.end,
+                    ubicacion: training.location,
+                    notas: training.notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    trainings[fecha].formId = data.formId;
+                    showAlert('📋 Formulario creado en Google Forms', 'success');
+                } else {
+                    showAlert('Error creando formulario: ' + data.error, 'warning');
+                }
+            })
+            .catch(error => {
+                showAlert('Error de conexión con el backend', 'warning');
+                console.error(error);
+            });
+        }
+
+	// Estado de la aplicación
+        let currentDate = new Date();
+        let selectedDate = null;
+        let trainings = {}; // {fecha: {start, end, location, notes, formId}}
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+            renderCalendar();
+            loadTrainings();
+            updateStats();
+        });
+
+        // FUNCIONES DE PESTAÑAS
+        function showTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            
+            // Mostrar pestaña seleccionada
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'stats') {
+                updateStats();
+            }
+        }
+
+        // FUNCIONES DE CALENDARIO
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Actualizar título
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('calendar-month').textContent = `${monthNames[month]} ${year}`;
+            
+            // Generar grid del calendario
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Headers de días
+            const dayHeaders = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Días del calendario
+            const current = new Date(startDate);
+            for (let i = 0; i < 42; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = current.getDate();
+                
+                const dateString = current.toISOString().split('T')[0];
+                dayElement.dataset.date = dateString;
+                
+                // Clases adicionales
+                if (current.getMonth() !== month) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                if (trainings[dateString]) {
+                    dayElement.classList.add('has-training');
+                    const indicator = document.createElement('div');
+                    indicator.className = 'training-indicator';
+                    dayElement.appendChild(indicator);
+                }
+                
+                // Event listener
+                dayElement.addEventListener('click', () => selectDate(dateString));
+                
+                grid.appendChild(dayElement);
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function selectDate(dateString) {
+            // Remover selección anterior
+            document.querySelectorAll('.calendar-day.selected').forEach(day => {
+                day.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo día
+            const dayElement = document.querySelector(`[data-date="${dateString}"]`);
+            if (dayElement) {
+                dayElement.classList.add('selected');
+            }
+            
+            selectedDate = dateString;
+            loadTrainingData(dateString);
+        }
+
+        function loadTrainingData(dateString) {
+            const training = trainings[dateString] || {};
+            
+            document.getElementById('selected-date').value = dateString;
+            document.getElementById('start-time').value = training.start || '20:45';
+            document.getElementById('end-time').value = training.end || '22:30';
+            document.getElementById('location').value = training.location || '';
+            document.getElementById('notes').value = training.notes || '';
+        }
+
+        // FUNCIONES DE ENTRENAMIENTO
+        function saveTraining() {
+            if (!selectedDate) {
+                alert('Selecciona una fecha primero');
+                return;
+            }
+            
+            const trainingData = {
+                start: document.getElementById('start-time').value,
+                end: document.getElementById('end-time').value,
+                location: document.getElementById('location').value,
+                notes: document.getElementById('notes').value,
+                formId: trainings[selectedDate]?.formId || null
+            };
+            
+            trainings[selectedDate] = trainingData;
+            renderCalendar();
+            updateStats();
+            
+            // Mostrar confirmación
+            showAlert('✅ Entrenamiento guardado correctamente', 'success');
+        }
+
+        function deleteTraining() {
+            if (!selectedDate || !trainings[selectedDate]) {
+                alert('No hay entrenamiento para eliminar');
+                return;
+            }
+            
+            if (confirm('¿Estás seguro de eliminar este entrenamiento?')) {
+                delete trainings[selectedDate];
+                renderCalendar();
+                updateStats();
+                
+                // Limpiar formulario
+                document.getElementById('start-time').value = '20:45';
+                document.getElementById('end-time').value = '22:30';
+                document.getElementById('location').value = '';
+                document.getElementById('notes').value = '';
+                
+                showAlert('🗑️ Entrenamiento eliminado', 'warning');
+            }
+        }
+
+        function createForm() {
+            if (!selectedDate || !trainings[selectedDate]) {
+                alert('Guarda el entrenamiento primero');
+                return;
+            }
+            
+            // Simular creación de formulario
+            const formId = 'form_' + selectedDate.replace(/-/g, '');
+            trainings[selectedDate].formId = formId;
+            
+            showAlert('📋 Formulario creado correctamente', 'success');
+            updateStats();
+        }
+
+        // FUNCIONES DE CONFIGURACIÓN
+        function toggleDay(day) {
+            const checkbox = document.getElementById(`enable-${day}`);
+            const dayElement = document.getElementById(`day-${day}`);
+            
+            if (checkbox.checked) {
+                dayElement.classList.add('active');
+            } else {
+                dayElement.classList.remove('active');
+            }
+        }
+
+        function generateTrainings() {
+            const days = ['tuesday', 'thursday', 'friday'];
+            const dayNumbers = { tuesday: 2, thursday: 4, friday: 5 };
+            
+            let generated = 0;
+            const today = new Date();
+            
+            // Generar para las próximas 4 semanas
+            for (let week = 0; week < 4; week++) {
+                days.forEach(day => {
+                    const checkbox = document.getElementById(`enable-${day}`);
+                    if (!checkbox.checked) return;
+                    
+                    const targetDate = new Date(today);
+                    const daysToAdd = (dayNumbers[day] - today.getDay() + 7) % 7 + (week * 7);
+                    targetDate.setDate(today.getDate() + daysToAdd);
+                    
+                    const dateString = targetDate.toISOString().split('T')[0];
+                    
+                    if (!trainings[dateString]) {
+                        trainings[dateString] = {
+                            start: document.getElementById(`${day}-start`).value,
+                            end: document.getElementById(`${day}-end`).value,
+                            location: '',
+                            notes: `Entrenamiento ${day} - Semana ${week + 1}`,
+                            formId: null
+                        };
+                        generated++;
+                    }
+                });
+            }
+            
+            renderCalendar();
+            updateStats();
+            showAlert(`🔄 ${generated} entrenamientos generados automáticamente`, 'success');
+        }
+
+        function clearAllTrainings() {
+            if (confirm('¿Estás seguro de eliminar TODOS los entrenamientos? Esta acción no se puede deshacer.')) {
+                trainings = {};
+                renderCalendar();
+                updateStats();
+                showAlert('🗑️ Todos los entrenamientos eliminados', 'warning');
+            }
+        }
+
+        // FUNCIONES DE ESTADÍSTICAS
+        function updateStats() {
+            const trainingCount = Object.keys(trainings).length;
+            const formsCount = Object.values(trainings).filter(t => t.formId).length;
+            
+            document.getElementById('stat-trainings').textContent = trainingCount;
+            document.getElementById('stat-forms').textContent = formsCount;
+            document.getElementById('stat-responses').textContent = Math.floor(Math.random() * 50); // Simulado
+            document.getElementById('stat-players').textContent = Math.floor(Math.random() * 20) + 10; // Simulado
+            
+            // Actualizar lista de próximos entrenamientos
+            updateUpcomingTrainings();
+        }
+
+        function updateUpcomingTrainings() {
+            const container = document.getElementById('upcoming-trainings');
+            container.innerHTML = '';
+            
+            // Obtener entrenamientos futuros ordenados por fecha
+            const today = new Date().toISOString().split('T')[0];
+            const futureTrainings = Object.entries(trainings)
+                .filter(([date, _]) => date >= today)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .slice(0, 5); // Solo los próximos 5
+            
+            if (futureTrainings.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
+                return;
+            }
+            
+            futureTrainings.forEach(([date, training]) => {
+                const item = document.createElement('div');
+                item.className = 'training-item';
+                
+                const formatDate = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long'
+                });
+                
+                item.innerHTML = `
+                    <div class="training-info">
+                        <div class="training-date">${formatDate}</div>
+                        <div class="training-time">${training.start} - ${training.end}</div>
+                        ${training.location ? `<div class="training-time">📍 ${training.location}</div>` : ''}
+                    </div>
+                    <div class="training-actions">
+                        ${training.formId 
+                            ? '<span style="color: #27ae60;">📋 Formulario creado</span>'
+                            : '<span style="color: #e74c3c;">⏳ Sin formulario</span>'
+                        }
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        // FUNCIONES DE PERSISTENCIA
+        function loadConfiguration() {
+            // Cargar configuración desde localStorage (temporal)
+            const savedTrainings = localStorage.getItem('proassist-trainings');
+            if (savedTrainings) {
+                trainings = JSON.parse(savedTrainings);
+            }
+            
+            const savedConfig = localStorage.getItem('proassist-config');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                document.getElementById('form-base-id').value = config.formBaseId || '';
+                document.getElementById('sheet-id').value = config.sheetId || '';
+                document.getElementById('email-entry').value = config.emailEntry || '';
+                
+                // Cargar configuración de días
+                ['tuesday', 'thursday', 'friday'].forEach(day => {
+                    if (config.defaultDays && config.defaultDays[day]) {
+                        document.getElementById(`enable-${day}`).checked = config.defaultDays[day].enabled;
+                        document.getElementById(`${day}-start`).value = config.defaultDays[day].start;
+                        document.getElementById(`${day}-end`).value = config.defaultDays[day].end;
+                        toggleDay(day);
+                    }
+                });
+            } else {
+                // Configuración por defecto
+                ['tuesday', 'thursday', 'friday'].forEach(day => {
+                    document.getElementById(`enable-${day}`).checked = true;
+                    toggleDay(day);
+                });
+            }
+        }
+
+        function loadTrainings() {
+            // Aquí se conectaría con el backend real
+            // Por ahora cargamos desde localStorage
+            renderCalendar();
+        }
+
+        function guardarConfiguracion() {
+            // Guardar entrenamientos
+            localStorage.setItem('proassist-trainings', JSON.stringify(trainings));
+            
+            // Guardar configuración
+            const config = {
+                formBaseId: document.getElementById('form-base-id').value,
+                sheetId: document.getElementById('sheet-id').value,
+                emailEntry: document.getElementById('email-entry').value,
+                defaultDays: {}
+            };
+            
+            ['tuesday', 'thursday', 'friday'].forEach(day => {
+                config.defaultDays[day] = {
+                    enabled: document.getElementById(`enable-${day}`).checked,
+                    start: document.getElementById(`${day}-start`).value,
+                    end: document.getElementById(`${day}-end`).value
+                };
+            });
+            
+            localStorage.setItem('proassist-config', JSON.stringify(config));
+            
+            // En producción, aquí enviarías los datos al backend
+            syncWithBackend();
+            
+            showAlert('💾 Configuración guardada correctamente', 'success');
+        }
+
+        function syncWithBackend() {
+            // Simular sincronización con Google Apps Script
+            console.log('Sincronizando con backend...', {
+                trainings: trainings,
+                config: JSON.parse(localStorage.getItem('proassist-config'))
+            });
+            
+            // En producción:
+            // fetch(CONFIG.SCRIPT_URL + '?action=saveConfig', {
+            //     method: 'POST',
+            //     body: JSON.stringify({trainings, config})
+            // });
+        }
+
+        // UTILIDADES
+        function showAlert(message, type) {
+            // Crear elemento de alerta
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            // Insertar al inicio del contenido activo
+            const activePanel = document.querySelector('.tab-panel.active');
+            activePanel.insertBefore(alert, activePanel.firstChild);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // FUNCIONES DE INTEGRACIÓN CON BACKEND
+        function createFormularioReal(fecha) {
+            const training = trainings[fecha];
+            if (!training) return;
+            
+            // Llamada real al backend
+            fetch(CONFIG.SCRIPT_URL + '?action=createForm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fecha: fecha,
+                    horaInicio: training.start,
+                    horaFin: training.end,
+                    ubicacion: training.location,
+                    notas: training.notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    trainings[fecha].formId = data.formId;
+                    showAlert('📋 Formulario creado en Google Forms', 'success');
+                } else {
+                    showAlert('Error creando formulario: ' + data.error, 'warning');
+                }
+            })
+            .catch(error => {
+                showAlert('Error de conexión con el backend', 'warning');
+                console.error(error);
+            });
+        }
     </script>
 </body>
