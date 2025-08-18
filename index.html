@@ -813,7 +813,7 @@
 
         function handleTokenResponse(response) {
             if (response.access_token) {
-                fetchUserInfo(response.access_token);
+                await fetchUserInfo(response.access_token);
             } else {
                 showError('Error al obtener token de acceso');
                 resetLoginScreen();
@@ -823,7 +823,7 @@
         function handleCredentialResponse(response) {
             // Decodificar JWT token
             const userInfo = parseJwt(response.credential);
-            loginUser(userInfo);
+            await loginUser(userInfo);
         }
 
         async function fetchUserInfo(accessToken) {
@@ -836,7 +836,7 @@
                 
                 if (response.ok) {
                     const userInfo = await response.json();
-                    loginUser(userInfo);
+                    await loginUser(userInfo);
                 } else {
                     throw new Error('Error al obtener información del usuario');
                 }
@@ -863,7 +863,7 @@
 		            // --- ¡AQUÍ ESTÁ LA MAGIA! ---
 		            // Llamamos al router para que decida qué pantalla mostrar.
 					updateGreeting();
-		            showDashboardBasedOnRole(accessData.role);
+		            await showDashboardBasedOnRole(accessData.role);
 		            // -----------------------------
 		            
 		            // El auto-refresh lo iniciamos aquí globalmente, pero podríamos moverlo
@@ -894,7 +894,7 @@
 		        currentUser = JSON.parse(savedUser);
 				updateGreeting();
 		        // Usamos nuestro router también aquí para restaurar la vista correcta
-		        showDashboardBasedOnRole(currentUser.role);
+		        await showDashboardBasedOnRole(currentUser.role);
 		        startAutoRefresh();
 		    }
 		}
@@ -919,7 +919,7 @@
 		// ========================
 		// ROUTER DE VISTAS
 		// ========================
-		function showDashboardBasedOnRole(role) {
+		async function showDashboardBasedOnRole(role) {
 		    // Primero, ocultamos todas las pantallas principales para asegurar un estado limpio
 		    document.getElementById('loginScreen').style.display = 'none';
 		    document.getElementById('player-dashboard').style.display = 'none';
@@ -929,11 +929,11 @@
 		    if (role === 'ADMIN' || role === 'COACH') {
 		        document.getElementById('admin-panel').style.display = 'block';
 		        // Llamamos a la función que inicializa los datos del administrador
-		        initializeAdminPanel(); 
+		        await initializeAdminPanel(); 
 		    } else if (role === 'PLAYER') {
 		        document.getElementById('player-dashboard').style.display = 'block';
 		        // Llamamos a la función que carga los datos de la jugadora (esta ya la tienes)
-		        loadUserData(); 
+		        await loadUserData(); 
 		    } else {
 		        // En caso de que un rol desconocido intente acceder
 		        showError('Tu rol de usuario no es válido para esta aplicación.');
@@ -1337,7 +1337,7 @@
             // Crear nuevo intervalo
             refreshInterval = setInterval(() => {
                 showRefreshIndicator();
-                loadUserData();
+                await loadUserData();
             }, CONFIG.AUTO_REFRESH_INTERVAL);
         }
 
@@ -1421,7 +1421,7 @@
         // Detectar cuando el usuario regresa a la pestaña
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden && currentUser) {
-                loadUserData(); // Refrescar datos
+                await loadUserData(); // Refrescar datos
             }
         });
 
@@ -1734,13 +1734,7 @@
         }
 
         // FUNCIONES DE PERSISTENCIA
-        function loadConfiguration() {
-            // Cargar configuración desde localStorage (temporal)
-            const savedTrainings = localStorage.getItem('proassist-trainings');
-            if (savedTrainings) {
-                trainings = JSON.parse(savedTrainings);
-            }
-            
+        function loadConfiguration() {            
             const savedConfig = localStorage.getItem('proassist-config');
             if (savedConfig) {
                 const config = JSON.parse(savedConfig);
