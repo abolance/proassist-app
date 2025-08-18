@@ -9,781 +9,388 @@
 	<!-- ESQUEMA DE COLORES CSS -->
 	<!-- ======================== -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-		
-		body {
-			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			background: #34495e; /* Color de la segunda imagen */
-			min-height: 100vh;
-			color: #333;
-		}
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* LOGIN SCREEN */
-        .login-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            color: white;
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-            color: #333;
-        }
-
-        .app-logo {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-
-        .app-title {
-			font-size: 2rem;
-			font-weight: bold;
-			margin-bottom: 10px;
-			background: linear-gradient(45deg, #3498db, #1abc9c);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
-		}
-
-        .app-subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-
-        .google-signin-btn {
-			background: #3498db;
-			color: white;
-			border: none;
-			padding: 15px 30px;
-			border-radius: 10px;
-			font-size: 1.1rem;
-			cursor: pointer;
-			width: 100%;
-			transition: all 0.3s ease;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			gap: 10px;
-		}
-
-        .google-signin-btn:hover {
-			background: #2980b9;
-			transform: translateY(-2px);
-			box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
-		}
-
-        .main-screen {
-            display: none;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .greeting {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .logout-btn {
-			background: #e74c3c;
-			color: white;
-			border: none;
-			padding: 10px 20px;
-			border-radius: 8px;
-			cursor: pointer;
-			transition: all 0.3s ease;
-		}
-
-        .logout-btn:hover {
-			background: #c0392b;
-			transform: translateY(-1px);
-		}
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stat-value {
-			font-size: 2.5rem;
-			font-weight: bold;
-			color: #3498db;
-			margin-bottom: 10px;
-		}
-
-        .stat-description {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 5px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-			height: 100%;
-			background: linear-gradient(45deg, #3498db, #1abc9c);
-			border-radius: 5px;
-			transition: width 0.3s ease;
-		}
-
-        .comparison {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 15px 0;
-        }
-
-        .comparison-item {
-            text-align: center;
-        }
-
-        .comparison-value {
-			font-size: 1.5rem;
-			font-weight: bold;
-			color: #3498db;
-		}
-
-        .comparison-label {
-            color: #666;
-            font-size: 0.8rem;
-        }
-
-        .form-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-frame {
-            width: 100%;
-            min-height: 600px;
-            border: none;
-            border-radius: 10px;
-            background: white;
-        }
-
-        .no-training {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            transition: background 0.2s ease;
-        }
-
-        .history-item:hover {
-            background: #f8f9fa;
-        }
-
-        .history-item:last-child {
-            border-bottom: none;
-        }
-
-        .history-date {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .history-status {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-missed {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .spinner {
-			border: 4px solid #f3f3f3;
-			border-top: 4px solid #3498db;
-			border-radius: 50%;
-			width: 40px;
-			height: 40px;
-			animation: spin 1s linear infinite;
-			margin: 0 auto 20px;
-		}
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-		.motivational-message {
-			background: linear-gradient(45deg, #3498db, #1abc9c);
-			color: white;
-			padding: 20px;
-			border-radius: 15px;
-			margin-bottom: 20px;
-			text-align: center;
-			box-shadow: 0 5px 20px rgba(52, 152, 219, 0.2);
-		}
-
-        .motivational-message h3 {
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .user-info {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .comparison {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .app-title {
-                font-size: 1.5rem;
-            }
-
-            .greeting {
-                font-size: 1.4rem;
-            }
-        }
-
-        .refresh-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 50%;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            transition: opacity 0.3s ease;
-        }
-
-        .refresh-indicator.hidden {
-            opacity: 0;
-        }
-		
-		button[onclick*="load"], button[onclick*="retry"] {
-			padding: 10px 20px;
-			background: #3498db;
-			color: white;
-			border: none;
-			border-radius: 8px;
-			cursor: pointer;
-			transition: all 0.3s ease;
-		}
-		
-		button[onclick*="load"]:hover, button[onclick*="retry"]:hover {
-			background: #2980b9;
-			transform: translateY(-1px);
-		}
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-        
-        .header {
-            background: rgba(255,255,255,0.95);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .admin-badge {
-            background: #e74c3c;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        
-        .tabs {
-            display: flex;
-            background: white;
-            border-radius: 10px 10px 0 0;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 1rem;
-            background: #ecf0f1;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .tab.active {
-            background: white;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-        
-        .tab:hover {
-            background: #d5dbdb;
-        }
-        
-        .tab.active:hover {
-            background: white;
-        }
-        
-        .content {
-            background: white;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            min-height: 600px;
-        }
-        
-        .tab-panel {
-            display: none;
-            padding: 2rem;
-        }
-        
-        .tab-panel.active {
-            display: block;
-        }
-        
-        .calendar-container {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 2rem;
-            height: 500px;
-        }
-        
-        .calendar {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .calendar-header {
-            background: #3498db;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .calendar-nav {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2em;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.3s ease;
-        }
-        
-        .calendar-nav:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            background: #ddd;
-        }
-        
-        .calendar-day-header {
-            background: #34495e;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        
-        .calendar-day {
-            background: white;
-            min-height: 60px;
-            padding: 8px;
-            border: 1px solid transparent;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        
-        .calendar-day:hover {
-            background: #ecf0f1;
-        }
-        
-        .calendar-day.other-month {
-            background: #f8f9fa;
-            color: #aaa;
-        }
-        
-        .calendar-day.has-training {
-            background: #e8f5e8;
-            border-color: #27ae60;
-        }
-        
-        .calendar-day.selected {
-            background: #3498db;
-            color: white;
-        }
-        
-        .training-indicator {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 8px;
-            height: 8px;
-            background: #27ae60;
-            border-radius: 50%;
-        }
-        
-        .sidebar {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1.5rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-        
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #219a52;
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-        
-        .config-section {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .config-section h3 {
-            margin-bottom: 1rem;
-            color: #2c3e50;
-        }
-        
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .day-config {
-            background: white;
-            padding: 1rem;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        
-        .day-config.active {
-            border-color: #27ae60;
-            background: #e8f5e8;
-        }
-        
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .time-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #3498db;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-        
-        .training-list {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .training-item {
-            padding: 1rem;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .training-item:last-child {
-            border-bottom: none;
-        }
-        
-        .training-info {
-            flex: 1;
-        }
-        
-        .training-date {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .training-time {
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-        
-        .training-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .alert {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        
-        .alert-warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-            
-            .calendar-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .days-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+	    /* ======================================== */
+	    /* === 1. RESET Y CONFIGURACIÓN GLOBAL ==== */
+	    /* ======================================== */
+	    * {
+	        margin: 0;
+	        padding: 0;
+	        box-sizing: border-box;
+	    }
+	    
+	    body {
+	        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	        background-color: #34495e;
+	        min-height: 100vh;
+	        color: #333;
+	    }
+	
+	    /* ======================================== */
+	    /* ========= 2. LAYOUT PRINCIPAL ========== */
+	    /* ======================================== */
+	    .container {
+	        max-width: 1200px;
+	        margin: 1.5rem auto;
+	        padding: 0 1rem; /* Padding horizontal para que el contenido no toque los bordes en móvil */
+	    }
+	
+	    /* Oculta los dashboards por defecto */
+	    #player-dashboard, #admin-panel {
+	        display: none;
+	    }
+	
+	    /* ======================================== */
+	    /* ========= 3. PANTALLA DE LOGIN ========= */
+	    /* ======================================== */
+	    .login-screen {
+	        display: flex;
+	        flex-direction: column;
+	        justify-content: center;
+	        align-items: center;
+	        min-height: 100vh;
+	        text-align: center;
+	        padding: 1rem;
+	    }
+	
+	    .login-card {
+	        background: rgba(255, 255, 255, 0.95);
+	        padding: 2.5rem;
+	        border-radius: 20px;
+	        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+	        max-width: 400px;
+	        width: 100%;
+	    }
+	
+	    .app-logo img {
+	        width: 80px;
+	        height: 80px;
+	        margin-bottom: 1rem;
+	    }
+	
+	    .app-title {
+	        font-size: 2rem;
+	        font-weight: bold;
+	        margin-bottom: 0.5rem;
+	        background: linear-gradient(45deg, #3498db, #1abc9c);
+	        -webkit-background-clip: text;
+	        -webkit-text-fill-color: transparent;
+	        background-clip: text;
+	    }
+	
+	    .app-subtitle {
+	        color: #666;
+	        margin-bottom: 2rem;
+	        font-size: 1.1rem;
+	    }
+	
+	    /* ======================================== */
+	    /* ======== 4. COMPONENTES COMUNES ======== */
+	    /* ======================================== */
+	
+	    /* --- Header Unificado --- */
+	    .header {
+	        background: white;
+	        padding: 1rem 1.5rem;
+	        border-radius: 15px;
+	        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+	        display: flex;
+	        justify-content: space-between;
+	        align-items: center;
+	        margin-bottom: 1.5rem;
+	    }
+	    
+	    .logo {
+	        display: flex;
+	        align-items: center;
+	        gap: 10px;
+	        font-size: 1.4em;
+	        font-weight: bold;
+	        color: #2c3e50;
+	    }
+	
+	    .admin-badge {
+	        background: #e74c3c;
+	        color: white;
+	        padding: 4px 12px;
+	        border-radius: 15px;
+	        font-size: 0.7em;
+	    }
+	
+	    /* --- Botones Genéricos --- */
+	    .btn {
+	        padding: 10px 20px;
+	        border: none;
+	        border-radius: 8px;
+	        cursor: pointer;
+	        font-size: 14px;
+	        font-weight: bold;
+	        transition: all 0.3s ease;
+	        display: inline-flex;
+	        align-items: center;
+	        justify-content: center;
+	        gap: 8px;
+	    }
+	    .btn:hover {
+	        transform: translateY(-2px);
+	        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	    }
+	    .btn-primary { background: #3498db; color: white; }
+	    .btn-success { background: #27ae60; color: white; }
+	    .btn-danger { background: #e74c3c; color: white; }
+	    .btn-secondary { background: #95a5a6; color: white; }
+	    .btn-primary:hover { background: #2980b9; }
+	    .btn-success:hover { background: #219a52; }
+	    .btn-danger:hover { background: #c0392b; }
+	    .btn-secondary:hover { background: #7f8c8d; }
+	
+	    /* --- Tarjetas (Cards) --- */
+	    .card {
+	        background: white;
+	        border-radius: 15px;
+	        padding: 1.5rem;
+	        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+	        transition: transform 0.3s ease;
+	    }
+	    .card:hover {
+	        transform: translateY(-5px);
+	    }
+	    
+	    /* --- Formularios --- */
+	    .form-group {
+	        margin-bottom: 1rem;
+	    }
+	    .form-group label {
+	        display: block;
+	        margin-bottom: 5px;
+	        font-weight: bold;
+	        color: #2c3e50;
+	    }
+	    .form-group input, .form-group select, .form-group textarea {
+	        width: 100%;
+	        padding: 12px;
+	        border: 1px solid #ddd;
+	        border-radius: 8px;
+	        font-size: 14px;
+	    }
+	    
+	    /* --- Alertas y Carga --- */
+	    .alert {
+	        padding: 1rem;
+	        border-radius: 8px;
+	        margin-bottom: 1rem;
+	    }
+	    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+	    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+	
+	    .loading-placeholder {
+	        text-align: center;
+	        padding: 40px;
+	        color: #666;
+	    }
+	    .spinner {
+	        border: 4px solid #f3f3f3;
+	        border-top: 4px solid #3498db;
+	        border-radius: 50%;
+	        width: 40px;
+	        height: 40px;
+	        animation: spin 1s linear infinite;
+	        margin: 0 auto 1rem;
+	    }
+	    @keyframes spin {
+	        0% { transform: rotate(0deg); }
+	        100% { transform: rotate(360deg); }
+	    }
+	
+	    /* ======================================== */
+	    /* ===== 5. DASHBOARD JUGADORA (PLAYER) ==== */
+	    /* ======================================== */
+	    .stats-grid {
+	        display: grid;
+	        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	        gap: 1.5rem;
+	        margin-bottom: 1.5rem;
+	    }
+	
+	    .motivational-message {
+	        background: linear-gradient(45deg, #3498db, #1abc9c);
+	        color: white;
+	        padding: 1.5rem;
+	        border-radius: 15px;
+	        margin-bottom: 1.5rem;
+	        text-align: center;
+	        box-shadow: 0 5px 20px rgba(52, 152, 219, 0.2);
+	    }
+	    .motivational-message h3 {
+	        margin-bottom: 0.5rem;
+	        font-size: 1.3rem;
+	    }
+	
+	    .stat-title {
+	        font-size: 1.2rem;
+	        font-weight: bold;
+	        margin-bottom: 1rem;
+	        display: flex;
+	        align-items: center;
+	        gap: 10px;
+	    }
+	    .stat-value {
+	        font-size: 2.5rem;
+	        font-weight: bold;
+	        color: #3498db;
+	        margin-bottom: 0.5rem;
+	    }
+	    .stat-description {
+	        color: #666;
+	        font-size: 0.9rem;
+	    }
+	    .progress-bar {
+	        width: 100%;
+	        height: 10px;
+	        background: #e0e0e0;
+	        border-radius: 5px;
+	        margin-top: 0.5rem;
+	        overflow: hidden;
+	    }
+	    .progress-fill {
+	        height: 100%;
+	        background: linear-gradient(45deg, #3498db, #1abc9c);
+	        border-radius: 5px;
+	        transition: width 0.3s ease;
+	    }
+	    .form-frame {
+	        width: 100%;
+	        min-height: 600px;
+	        border: none;
+	        border-radius: 10px;
+	    }
+	
+	    /* ======================================== */
+	    /* ===== 6. PANEL ADMINISTRADOR (ADMIN) ===== */
+	    /* ======================================== */
+	    .admin-content {
+	        background: white;
+	        border-radius: 15px;
+	        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+	        overflow: hidden; /* Para contener los bordes redondeados */
+	    }
+	    .tabs {
+	        display: flex;
+	        background: #ecf0f1;
+	    }
+	    .tab {
+	        flex: 1;
+	        padding: 1rem;
+	        background: none;
+	        border: none;
+	        cursor: pointer;
+	        font-size: 1em;
+	        font-weight: bold;
+	        transition: all 0.3s ease;
+	        display: flex;
+	        align-items: center;
+	        justify-content: center;
+	        gap: 8px;
+	        color: #7f8c8d;
+	    }
+	    .tab.active {
+	        background: white;
+	        color: #2c3e50;
+	    }
+	    .tab:hover:not(.active) {
+	        background: #e0e6e8;
+	    }
+	    .tab-panel {
+	        display: none;
+	        padding: 1.5rem;
+	    }
+	    .tab-panel.active {
+	        display: block;
+	    }
+	
+	    .calendar-container {
+	        display: grid;
+	        grid-template-columns: 1fr 300px;
+	        gap: 1.5rem;
+	    }
+	    .calendar-header {
+	        background: #3498db;
+	        color: white;
+	        padding: 1rem;
+	        display: flex;
+	        justify-content: space-between;
+	        align-items: center;
+	        border-radius: 8px 8px 0 0;
+	    }
+	    .calendar-grid {
+	        display: grid;
+	        grid-template-columns: repeat(7, 1fr);
+	        gap: 1px;
+	        background: #ddd;
+	    }
+	    .calendar-day-header {
+	        background: #34495e;
+	        color: white;
+	        padding: 10px;
+	        text-align: center;
+	        font-weight: bold;
+	        font-size: 0.9em;
+	    }
+	    .calendar-day {
+	        background: white;
+	        min-height: 80px;
+	        padding: 8px;
+	        cursor: pointer;
+	        position: relative;
+	        transition: all 0.3s ease;
+	    }
+	    .calendar-day:hover { background: #f0f5f9; }
+	    .calendar-day.other-month { background: #f8f9fa; color: #ccc; }
+	    .calendar-day.has-training { background: #e8f5e8; }
+	    .calendar-day.selected { background: #3498db; color: white; }
+	    .training-indicator {
+	        position: absolute;
+	        bottom: 4px;
+	        right: 4px;
+	        width: 8px;
+	        height: 8px;
+	        background: #27ae60;
+	        border-radius: 50%;
+	    }
+	    .sidebar {
+	        background: #f8f9fa;
+	        border-radius: 8px;
+	        padding: 1.5rem;
+	    }
+	
+	    /* ======================================== */
+	    /* ======== 7. RESPONSIVE DESIGN ========== */
+	    /* ======================================== */
+	    @media (max-width: 992px) {
+	        .calendar-container {
+	            grid-template-columns: 1fr; /* Apila el calendario y el formulario */
+	        }
+	        .sidebar {
+	            margin-top: 1.5rem;
+	        }
+	    }
+	    
+	    @media (max-width: 768px) {
+	        .header {
+	            flex-direction: column; /* Apila logo y botones */
+	            gap: 1rem;
+	            padding: 1rem;
+	        }
+	        .logo { font-size: 1.3em; }
+	
+	        .stats-grid {
+	            grid-template-columns: 1fr; /* Una columna para las estadísticas */
+	        }
+	        
+	        .tabs {
+	            flex-direction: column; /* Apila las pestañas del admin */
+	        }
+	    }
+	</style>
 </head>
 <body>
     <!-- PANTALLA DE LOGIN -->
@@ -835,7 +442,7 @@
             <!-- ESTADÍSTICAS PRINCIPALES -->
             <div class="stats-grid">
                 <!-- ESTADÍSTICAS PERSONALES -->
-                <div class="stat-card">
+                <div class="card">
                     <div class="stat-title">
                         📊 Mis Estadísticas
                     </div>
@@ -864,7 +471,7 @@
                 </div>
 
                 <!-- COMPARACIÓN CON EQUIPO -->
-                <div class="stat-card">
+                <div class="card">
                     <div class="stat-title">
                         👥 Comparación con Equipo
                     </div>
@@ -895,7 +502,7 @@
                 </div>
 
                 <!-- HISTORIAL RECIENTE -->
-                <div class="stat-card">
+                <div class="card">
                     <div class="stat-title">
                         📅 Historial Reciente
                     </div>
@@ -909,7 +516,7 @@
             </div>
 
             <!-- FORMULARIO DEL DÍA -->
-            <div class="form-section">
+            <div class="card">
                 <div class="form-title">
                     📝 <span id="formTitle">Formulario del Día</span>
                 </div>
@@ -925,213 +532,215 @@
 
     <!-- PANEL DE ADMINISTRADOR -->
     <div id="admin-panel" style="display: none;">    
-    <div class="container">
-		<!-- HEADER UNIFICADO PARA ADMIN -->
-        <header class="header">
-            <div class="logo">
-                ⚽ ProAssist
-                <span class="admin-badge">ADMIN</span>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Todo</button>
-                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
-            </div>
-        </header>
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('calendar')">
-                📅 Calendario
-            </button>
-            <button class="tab" onclick="showTab('config')">
-                ⚙️ Configuración
-            </button>
-            <button class="tab" onclick="showTab('stats')">
-                📊 Estadísticas
-            </button>
-        </div>
-
-        <div class="content">
-            <!-- CALENDARIO TAB -->
-            <div id="calendar-tab" class="tab-panel active">
-                <div class="calendar-container">
-                    <div class="calendar">
-                        <div class="calendar-header">
-                            <button class="calendar-nav" onclick="previousMonth()">‹</button>
-                            <h2 id="calendar-month"></h2>
-                            <button class="calendar-nav" onclick="nextMonth()">›</button>
-                        </div>
-                        <div class="calendar-grid" id="calendar-grid">
-                            <!-- Se genera con JavaScript -->
-                        </div>
-                    </div>
-                    
-                    <div class="sidebar">
-                        <h3>📝 Entreno Seleccionado</h3>
-                        <div id="training-form">
-                            <div class="form-group">
-                                <label>📅 Fecha:</label>
-                                <input type="date" id="selected-date" readonly>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>🕐 Hora Inicio:</label>
-                                <input type="time" id="start-time" value="20:45">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>🕐 Hora Fin:</label>
-                                <input type="time" id="end-time" value="22:30">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>📍 Ubicación:</label>
-                                <input type="text" id="location" placeholder="Campo de entrenamiento">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>📝 Notas:</label>
-                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
-                            </div>
-                            
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
-                                <button class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
-                            </div>
-                            
-                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-                                <button class="btn btn-primary" onclick="createForm()" style="width: 100%;">
-                                    📋 Crear Formulario
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONFIGURACIÓN TAB -->
-            <div id="config-tab" class="tab-panel">
-                <div class="config-section">
-                    <h3>⚙️ Configuración por Defecto</h3>
-                    <p>Define los días y horarios habituales de entrenamiento. Esto creará automáticamente los entrenamientos para las próximas semanas.</p>
-                    
-                    <div class="days-grid">
-                        <div class="day-config" id="day-tuesday">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="enable-tuesday" onchange="toggleDay('tuesday')">
-                                <label for="enable-tuesday"><strong>Martes</strong></label>
-                            </div>
-                            <div class="time-inputs">
-                                <div>
-                                    <label>Inicio:</label>
-                                    <input type="time" id="tuesday-start" value="20:45">
-                                </div>
-                                <div>
-                                    <label>Fin:</label>
-                                    <input type="time" id="tuesday-end" value="22:30">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="day-config" id="day-thursday">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="enable-thursday" onchange="toggleDay('thursday')">
-                                <label for="enable-thursday"><strong>Jueves</strong></label>
-                            </div>
-                            <div class="time-inputs">
-                                <div>
-                                    <label>Inicio:</label>
-                                    <input type="time" id="thursday-start" value="20:45">
-                                </div>
-                                <div>
-                                    <label>Fin:</label>
-                                    <input type="time" id="thursday-end" value="22:30">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="day-config" id="day-friday">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="enable-friday" onchange="toggleDay('friday')">
-                                <label for="enable-friday"><strong>Viernes</strong></label>
-                            </div>
-                            <div class="time-inputs">
-                                <div>
-                                    <label>Inicio:</label>
-                                    <input type="time" id="friday-start" value="20:45">
-                                </div>
-                                <div>
-                                    <label>Fin:</label>
-                                    <input type="time" id="friday-end" value="22:30">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem;">
-                        <button class="btn btn-success" onclick="generateTrainings()">
-                            🔄 Generar Próximos 4 Entrenamientos
-                        </button>
-                        <button class="btn btn-secondary" onclick="clearAllTrainings()">
-                            🗑️ Limpiar Calendario
-                        </button>
-                    </div>
-                </div>
-
-                <div class="config-section">
-                    <h3>📋 Configuración de Formularios</h3>
-                    
-                    <div class="form-group">
-                        <label>🔗 ID Formulario Base:</label>
-                        <input type="text" id="form-base-id" placeholder="1BbcDef... (ID de tu formulario base)">
-                        <small style="color: #7f8c8d;">Este formulario se duplicará para cada entreno</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>📊 ID Google Sheets:</label>
-                        <input type="text" id="sheet-id" placeholder="1AbcDef... (ID de tu hoja de cálculo)">
-                        <small style="color: #7f8c8d;">Donde se guardarán las respuestas y configuración</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>📧 Entry ID Campo Email:</label>
-                        <input type="text" id="email-entry" placeholder="entry.123456789">
-                        <small style="color: #7f8c8d;">Para pre-rellenar el email de la jugadora</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ESTADÍSTICAS TAB -->
-            <div id="stats-tab" class="tab-panel">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-trainings">0</div>
-                        <div class="stat-label">Entrenamientos Programados</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-forms">0</div>
-                        <div class="stat-label">Formularios Creados</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-responses">0</div>
-                        <div class="stat-label">Respuestas Recibidas</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-players">0</div>
-                        <div class="stat-label">Jugadoras Activas</div>
-                    </div>
-                </div>
-
-                <div class="training-list">
-                    <h3 style="padding: 1rem; background: #f8f9fa; margin: 0;">📅 Próximos Entrenamientos</h3>
-                    <div id="upcoming-trainings">
-                        <!-- Se genera con JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+	    <div class="container">
+			<!-- HEADER UNIFICADO PARA ADMIN -->
+	        <header class="header">
+	            <div class="logo">
+	                ⚽ ProAssist
+	                <span class="admin-badge">ADMIN</span>
+	            </div>
+	            <div style="display: flex; gap: 10px;">
+	                <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Todo</button>
+	                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
+	            </div>
+	        </header>
+			<div class="admin-content">
+		        <div class="tabs">
+		            <button class="tab active" onclick="showTab('calendar')">
+		                📅 Calendario
+		            </button>
+		            <button class="tab" onclick="showTab('config')">
+		                ⚙️ Configuración
+		            </button>
+		            <button class="tab" onclick="showTab('stats')">
+		                📊 Estadísticas
+		            </button>
+		        </div>
+		
+		        <div class="content">
+		            <!-- CALENDARIO TAB -->
+		            <div id="calendar-tab" class="tab-panel active">
+		                <div class="calendar-container">
+		                    <div class="calendar">
+		                        <div class="calendar-header">
+		                            <button class="calendar-nav" onclick="previousMonth()">‹</button>
+		                            <h2 id="calendar-month"></h2>
+		                            <button class="calendar-nav" onclick="nextMonth()">›</button>
+		                        </div>
+		                        <div class="calendar-grid" id="calendar-grid">
+		                            <!-- Se genera con JavaScript -->
+		                        </div>
+		                    </div>
+		                    
+		                    <div class="sidebar">
+		                        <h3>📝 Entreno Seleccionado</h3>
+		                        <div id="training-form">
+		                            <div class="form-group">
+		                                <label>📅 Fecha:</label>
+		                                <input type="date" id="selected-date" readonly>
+		                            </div>
+		                            
+		                            <div class="form-group">
+		                                <label>🕐 Hora Inicio:</label>
+		                                <input type="time" id="start-time" value="20:45">
+		                            </div>
+		                            
+		                            <div class="form-group">
+		                                <label>🕐 Hora Fin:</label>
+		                                <input type="time" id="end-time" value="22:30">
+		                            </div>
+		                            
+		                            <div class="form-group">
+		                                <label>📍 Ubicación:</label>
+		                                <input type="text" id="location" placeholder="Campo de entrenamiento">
+		                            </div>
+		                            
+		                            <div class="form-group">
+		                                <label>📝 Notas:</label>
+		                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
+		                            </div>
+		                            
+		                            <div style="display: flex; gap: 10px;">
+		                                <button class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
+		                                <button class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
+		                            </div>
+		                            
+		                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+		                                <button class="btn btn-primary" onclick="createForm()" style="width: 100%;">
+		                                    📋 Crear Formulario
+		                                </button>
+		                            </div>
+		                        </div>
+		                    </div>
+		                </div>
+		            </div>
+		
+		            <!-- CONFIGURACIÓN TAB -->
+		            <div id="config-tab" class="tab-panel">
+		                <div class="config-section">
+		                    <h3>⚙️ Configuración por Defecto</h3>
+		                    <p>Define los días y horarios habituales de entrenamiento. Esto creará automáticamente los entrenamientos para las próximas semanas.</p>
+		                    
+		                    <div class="days-grid">
+		                        <div class="day-config" id="day-tuesday">
+		                            <div class="checkbox-group">
+		                                <input type="checkbox" id="enable-tuesday" onchange="toggleDay('tuesday')">
+		                                <label for="enable-tuesday"><strong>Martes</strong></label>
+		                            </div>
+		                            <div class="time-inputs">
+		                                <div>
+		                                    <label>Inicio:</label>
+		                                    <input type="time" id="tuesday-start" value="20:45">
+		                                </div>
+		                                <div>
+		                                    <label>Fin:</label>
+		                                    <input type="time" id="tuesday-end" value="22:30">
+		                                </div>
+		                            </div>
+		                        </div>
+		                        
+		                        <div class="day-config" id="day-thursday">
+		                            <div class="checkbox-group">
+		                                <input type="checkbox" id="enable-thursday" onchange="toggleDay('thursday')">
+		                                <label for="enable-thursday"><strong>Jueves</strong></label>
+		                            </div>
+		                            <div class="time-inputs">
+		                                <div>
+		                                    <label>Inicio:</label>
+		                                    <input type="time" id="thursday-start" value="20:45">
+		                                </div>
+		                                <div>
+		                                    <label>Fin:</label>
+		                                    <input type="time" id="thursday-end" value="22:30">
+		                                </div>
+		                            </div>
+		                        </div>
+		                        
+		                        <div class="day-config" id="day-friday">
+		                            <div class="checkbox-group">
+		                                <input type="checkbox" id="enable-friday" onchange="toggleDay('friday')">
+		                                <label for="enable-friday"><strong>Viernes</strong></label>
+		                            </div>
+		                            <div class="time-inputs">
+		                                <div>
+		                                    <label>Inicio:</label>
+		                                    <input type="time" id="friday-start" value="20:45">
+		                                </div>
+		                                <div>
+		                                    <label>Fin:</label>
+		                                    <input type="time" id="friday-end" value="22:30">
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
+		                    
+		                    <div style="margin-top: 1.5rem;">
+		                        <button class="btn btn-success" onclick="generateTrainings()">
+		                            🔄 Generar Próximos 4 Entrenamientos
+		                        </button>
+		                        <button class="btn btn-secondary" onclick="clearAllTrainings()">
+		                            🗑️ Limpiar Calendario
+		                        </button>
+		                    </div>
+		                </div>
+		
+		                <div class="config-section">
+		                    <h3>📋 Configuración de Formularios</h3>
+		                    
+		                    <div class="form-group">
+		                        <label>🔗 ID Formulario Base:</label>
+		                        <input type="text" id="form-base-id" placeholder="1BbcDef... (ID de tu formulario base)">
+		                        <small style="color: #7f8c8d;">Este formulario se duplicará para cada entreno</small>
+		                    </div>
+		                    
+		                    <div class="form-group">
+		                        <label>📊 ID Google Sheets:</label>
+		                        <input type="text" id="sheet-id" placeholder="1AbcDef... (ID de tu hoja de cálculo)">
+		                        <small style="color: #7f8c8d;">Donde se guardarán las respuestas y configuración</small>
+		                    </div>
+		                    
+		                    <div class="form-group">
+		                        <label>📧 Entry ID Campo Email:</label>
+		                        <input type="text" id="email-entry" placeholder="entry.123456789">
+		                        <small style="color: #7f8c8d;">Para pre-rellenar el email de la jugadora</small>
+		                    </div>
+		                </div>
+		            </div>
+		
+		            <!-- ESTADÍSTICAS TAB -->
+		            <div id="stats-tab" class="tab-panel">
+		                <div class="stats-grid">
+		                    <div class="card">
+		                        <div class="stat-value" id="stat-trainings">0</div>
+		                        <div class="stat-label">Entrenamientos Programados</div>
+		                    </div>
+		                    
+		                    <div class="card">
+		                        <div class="stat-value" id="stat-forms">0</div>
+		                        <div class="stat-label">Formularios Creados</div>
+		                    </div>
+		                    
+		                    <div class="card">
+		                        <div class="stat-value" id="stat-responses">0</div>
+		                        <div class="stat-label">Respuestas Recibidas</div>
+		                    </div>
+		                    
+		                    <div class="card">
+		                        <div class="stat-value" id="stat-players">0</div>
+		                        <div class="stat-label">Jugadoras Activas</div>
+		                    </div>
+		                </div>
+		
+		                <div class="training-list">
+		                    <h3 style="padding: 1rem; background: #f8f9fa; margin: 0;">📅 Próximos Entrenamientos</h3>
+		                    <div id="upcoming-trainings">
+		                        <!-- Se genera con JavaScript -->
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+			</div>
+	    </div>
     </div>
 
     <!-- INDICADOR DE AUTO-REFRESH -->
