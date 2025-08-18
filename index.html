@@ -777,6 +777,14 @@
 		let selectedDate = null;      // Guarda la fecha que el admin ha seleccionado (ej: '2025-08-19')
 		let trainings = {};           // Almacena los entrenamientos cargados desde el backend
 
+		// --- Función de Utilidad para Fechas ---
+		function toYYYYMMDD(date) {
+		    const anio = date.getFullYear();
+		    const mes = String(date.getMonth() + 1).padStart(2, '0'); // +1 porque los meses empiezan en 0
+		    const dia = String(date.getDate()).padStart(2, '0');
+		    return `${anio}-${mes}-${dia}`;
+		}
+
         // ========================
         // INICIALIZACIÓN
         // ========================
@@ -1482,7 +1490,7 @@
                 dayElement.className = 'calendar-day';
                 dayElement.textContent = current.getDate();
                 
-                const dateString = current.toISOString().split('T')[0];
+                const dateString = toYYYYMMDD(current); // Usamos nuestra nueva función
                 dayElement.dataset.date = dateString;
                 
                 // Clases adicionales
@@ -1676,7 +1684,7 @@
             container.innerHTML = '';
             
             // Obtener entrenamientos futuros ordenados por fecha
-            const today = new Date().toISOString().split('T')[0];
+            const today = toYYYYMMDD(new Date()); // Usamos nuestra nueva función para 'hoy'
             const futureTrainings = Object.entries(trainings)
                 .filter(([date, _]) => date >= today)
                 .sort(([a], [b]) => a.localeCompare(b))
