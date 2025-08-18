@@ -1680,48 +1680,53 @@
         }
 
         function updateUpcomingTrainings() {
-            const container = document.getElementById('upcoming-trainings');
-            container.innerHTML = '';
-            
-            // Obtener entrenamientos futuros ordenados por fecha
-            const today = toYYYYMMDD(new Date()); // Usamos nuestra nueva función para 'hoy'
-            const futureTrainings = Object.entries(trainings)
-                .filter(([date, _]) => date >= today)
-                .sort(([a], [b]) => a.localeCompare(b))
-                .slice(0, 5); // Solo los próximos 5
-            
-            if (futureTrainings.length === 0) {
-                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
-                return;
-            }
-            
-            futureTrainings.forEach(([date, training]) => {
-                const item = document.createElement('div');
-                item.className = 'training-item';
-                
-                const formatDate = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long'
-                });
-                
-                item.innerHTML = `
-                    <div class="training-info">
-                        <div class="training-date">${formatDate}</div>
-                        <div class="training-time">${training.start} - ${training.end}</div>
-                        ${training.location ? `<div class="training-time">📍 ${training.location}</div>` : ''}
-                    </div>
-                    <div class="training-actions">
-                        ${training.formId 
-                            ? '<span style="color: #27ae60;">📋 Formulario creado</span>'
-                            : '<span style="color: #e74c3c;">⏳ Sin formulario</span>'
-                        }
-                    </div>
-                `;
-                
-                container.appendChild(item);
-            });
-        }
+		    const container = document.getElementById('upcoming-trainings');
+		    container.innerHTML = ''; // Limpiamos el contenedor
+		
+		    // Verificación de seguridad: nos aseguramos de que 'trainings' exista y no esté vacío.
+		    if (!trainings || Object.keys(trainings).length === 0) {
+		        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
+		        return;
+		    }
+		
+		    const today = toYYYYMMDD(new Date());
+		    
+		    const futureTrainings = Object.entries(trainings)
+		        .filter(([date, trainingData]) => date >= today && trainingData) // Filtro más seguro
+		        .sort(([a], [b]) => a.localeCompare(b))
+		        .slice(0, 5);
+		    
+		    if (futureTrainings.length === 0) {
+		        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
+		        return;
+		    }
+		    
+		    futureTrainings.forEach(([date, training]) => {
+		        const item = document.createElement('div');
+		        item.className = 'training-item';
+		        
+		        const formatDate = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {
+		            weekday: 'long',
+		            day: 'numeric',
+		            month: 'long'
+		        });
+		        
+		        item.innerHTML = `
+		            <div class="training-info">
+		                <div class="training-date">${formatDate}</div>
+		                <div class="training-time">${training.start} - ${training.end}</div>
+		                ${training.location ? `<div class="training-time">📍 ${training.location}</div>` : ''}
+		            </div>
+		            <div class="training-actions">
+		                ${training.formId 
+		                    ? '<span style="color: #27ae60;">📋 Formulario creado</span>'
+		                    : '<span style="color: #e74c3c;">⏳ Sin formulario</span>'
+		                }
+		            </div>
+		        `;
+		        container.appendChild(item);
+		    });
+		}
 
         // FUNCIONES DE PERSISTENCIA
         function loadConfiguration() {            
