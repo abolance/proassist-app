@@ -1302,10 +1302,12 @@
         // UI NAVIGATION
         // ========================
         function showLoginScreen() {
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('mainScreen').style.display = 'none';
-            resetLoginScreen();
-        }        
+    		document.getElementById('loginScreen').style.display = 'flex';
+		    // Ocultamos AMBOS dashboards para asegurar un estado limpio
+		    document.getElementById('player-dashboard').style.display = 'none';
+		    document.getElementById('admin-panel').style.display = 'none';
+		    resetLoginScreen();
+		}        
 
 	function showPlayerDashboard() {
     	    document.getElementById('loginScreen').style.display = 'none';
