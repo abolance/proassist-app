@@ -847,7 +847,7 @@
             }
         }
 
-        async function loginUser(userInfo) {
+        function loginUser(userInfo) {
 		    let response;
 		    try {
 		        response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
@@ -863,7 +863,7 @@
 		            // --- ¡AQUÍ ESTÁ LA MAGIA! ---
 		            // Llamamos al router para que decida qué pantalla mostrar.
 					updateGreeting();
-		            await showDashboardBasedOnRole(accessData.role);
+		            showDashboardBasedOnRole(accessData.role);
 		            // -----------------------------
 		            
 		            // El auto-refresh lo iniciamos aquí globalmente, pero podríamos moverlo
@@ -888,13 +888,13 @@
 		    }
 		}
 
-        async function checkExistingSession() {
+        function checkExistingSession() {
 		    const savedUser = sessionStorage.getItem('proassist_user');
 		    if (savedUser) {
 		        currentUser = JSON.parse(savedUser);
 				updateGreeting();
 		        // Usamos nuestro router también aquí para restaurar la vista correcta
-		        await showDashboardBasedOnRole(currentUser.role);
+		        showDashboardBasedOnRole(currentUser.role);
 		        startAutoRefresh();
 		    }
 		}
@@ -1330,14 +1330,14 @@
         // ========================
         // AUTO-REFRESH
         // ========================
-        async function startAutoRefresh() {
+        function startAutoRefresh() {
             // Limpiar intervalo existente
             stopAutoRefresh();
             
             // Crear nuevo intervalo
             refreshInterval = setInterval(() => {
                 showRefreshIndicator();
-                await loadUserData();
+                loadUserData();
             }, CONFIG.AUTO_REFRESH_INTERVAL);
         }
 
@@ -1419,9 +1419,9 @@
         // ========================
         
         // Detectar cuando el usuario regresa a la pestaña
-        async document.addEventListener('visibilitychange', function() {
+        document.addEventListener('visibilitychange', function() {
             if (!document.hidden && currentUser) {
-                await loadUserData(); // Refrescar datos
+                loadUserData(); // Refrescar datos
             }
         });
 
