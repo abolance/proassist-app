@@ -811,7 +811,7 @@
             }).requestAccessToken();
         }
 
-        function handleTokenResponse(response) {
+        async function handleTokenResponse(response) {
             if (response.access_token) {
                 await fetchUserInfo(response.access_token);
             } else {
@@ -820,7 +820,7 @@
             }
         }
 
-        function handleCredentialResponse(response) {
+        async function handleCredentialResponse(response) {
             // Decodificar JWT token
             const userInfo = parseJwt(response.credential);
             await loginUser(userInfo);
@@ -888,7 +888,7 @@
 		    }
 		}
 
-        function checkExistingSession() {
+        async function checkExistingSession() {
 		    const savedUser = sessionStorage.getItem('proassist_user');
 		    if (savedUser) {
 		        currentUser = JSON.parse(savedUser);
@@ -1330,7 +1330,7 @@
         // ========================
         // AUTO-REFRESH
         // ========================
-        function startAutoRefresh() {
+        async function startAutoRefresh() {
             // Limpiar intervalo existente
             stopAutoRefresh();
             
@@ -1419,7 +1419,7 @@
         // ========================
         
         // Detectar cuando el usuario regresa a la pestaña
-        document.addEventListener('visibilitychange', function() {
+        async document.addEventListener('visibilitychange', function() {
             if (!document.hidden && currentUser) {
                 await loadUserData(); // Refrescar datos
             }
@@ -1437,19 +1437,7 @@
         window.addEventListener('beforeunload', function() {
             stopAutoRefresh();
         });
-
-	// Estado de la aplicación
-        let currentDate = new Date();
-        let selectedDate = null;
-        let trainings = {}; // {fecha: {start, end, location, notes, formId}}
-
-        // Inicializar aplicación
-        document.addEventListener('DOMContentLoaded', function() {
-            loadConfiguration();
-            renderCalendar();
-            updateStats();
-        });
-
+	
         // FUNCIONES DE PESTAÑAS
         function showTab(tabName) {
             // Ocultar todas las pestañas
