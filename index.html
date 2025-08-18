@@ -1230,56 +1230,54 @@
         }
 
         async function loginUser(userInfo) {
-		    let response; // Definimos la variable aquí para poder acceder a ella en el catch
+		    let response;
 		    try {
 		        response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
-		
-		        // NUEVA VERIFICACIÓN: Nos aseguramos de que la respuesta de red sea exitosa (código 200)
 		        if (!response.ok) {
-		            // Si no es 200 OK, lanzamos un error para que lo capture el catch
 		            throw new Error(`Error de red o de servidor: ${response.status}`);
 		        }
-		
-		        const accessData = await response.json(); // Esto solo se ejecuta si la respuesta es OK
+		        const accessData = await response.json();
 		
 		        if (accessData.status === 'granted') {
 		            currentUser = { ...userInfo, role: accessData.role };
 		            sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
-		            showPlayerDashboard();
-		            loadUserData();
-		            startAutoRefresh();
+		            
+		            // --- ¡AQUÍ ESTÁ LA MAGIA! ---
+		            // Llamamos al router para que decida qué pantalla mostrar.
+		            showDashboardBasedOnRole(accessData.role);
+		            // -----------------------------
+		            
+		            // El auto-refresh lo iniciamos aquí globalmente, pero podríamos moverlo
+		            // dentro de cada función de inicialización si quisiéramos lógicas diferentes.
+		            startAutoRefresh(); 
+		
 		        } else {
 		            console.error('Acceso denegado por el backend:', accessData.reason);
 		            showError(`Acceso denegado: ${accessData.reason}`);
 		            resetLoginScreen();
 		        }
-		
 		    } catch (error) {
 		        console.error('Error de autorización:', error);
-		
-		        // ESTA ES LA MAGIA: Si la petición falló, intentamos leer la respuesta como texto
-		        // para ver qué nos mandó Google en realidad (probablemente una página de error HTML).
 		        if (response) {
 		            console.log("Inspeccionando la respuesta fallida del servidor...");
 		            response.text().then(text => {
 		                console.error("El servidor respondió con este texto (que no es JSON válido):", text);
 		            });
 		        }
-		
 		        showError('Ocurrió un error al verificar tus permisos.');
 		        resetLoginScreen();
 		    }
 		}
 
         function checkExistingSession() {
-            const savedUser = sessionStorage.getItem('proassist_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showPlayerDashboard();
-                loadUserData();
-                startAutoRefresh();
-            }
-        }
+		    const savedUser = sessionStorage.getItem('proassist_user');
+		    if (savedUser) {
+		        currentUser = JSON.parse(savedUser);
+		        // Usamos nuestro router también aquí para restaurar la vista correcta
+		        showDashboardBasedOnRole(currentUser.role);
+		        startAutoRefresh();
+		    }
+		}
 
         function signOut() {
             // Limpiar datos
@@ -1298,6 +1296,52 @@
             }
         }
 
+		// ========================
+		// ROUTER DE VISTAS
+		// ========================
+		function showDashboardBasedOnRole(role) {
+		    // Primero, ocultamos todas las pantallas principales para asegurar un estado limpio
+		    document.getElementById('loginScreen').style.display = 'none';
+		    document.getElementById('player-dashboard').style.display = 'none';
+		    document.getElementById('admin-panel').style.display = 'none';
+		
+		    // Ahora, mostramos el panel correcto según el rol del usuario
+		    if (role === 'ADMIN' || role === 'COACH') {
+		        document.getElementById('admin-panel').style.display = 'block';
+		        // Llamamos a la función que inicializa los datos del administrador
+		        initializeAdminPanel(); 
+		    } else if (role === 'PLAYER') {
+		        document.getElementById('player-dashboard').style.display = 'block';
+		        // Llamamos a la función que carga los datos de la jugadora (esta ya la tienes)
+		        loadUserData(); 
+		    } else {
+		        // En caso de que un rol desconocido intente acceder
+		        showError('Tu rol de usuario no es válido para esta aplicación.');
+		        signOut(); // Lo deslogueamos por seguridad
+		    }
+		}
+
+		function initializeAdminPanel() {
+		    console.log("Inicializando el panel de Administrador...");
+		    // Aquí es donde cargaremos los datos del backend para el admin.
+		    // Usaremos las funciones que ya tienes del antiguo admin.html
+		    
+		    // IMPORTANTE: El script del admin tiene su propio inicializador.
+		    // Vamos a llamarlo aquí para que el calendario, etc., se carguen.
+		    // Asegúrate de que las funciones como `renderCalendar`, `loadTrainings`, etc.
+		    // estén disponibles globalmente en tu <script>.
+		    
+		    // Primero, cargamos la configuración y los entrenamientos existentes.
+		    loadConfiguration(); // Esta función ya debería existir del código del admin
+		    loadTrainings();     // Esta también
+		    
+		    // Luego, actualizamos las vistas
+		    renderCalendar();    // Dibuja el calendario
+		    updateStats();       // Actualiza la pestaña de estadísticas
+		    
+		    console.log("Panel de Administrador listo.");
+		}
+		
         // ========================
         // UI NAVIGATION
         // ========================
