@@ -850,11 +850,11 @@
         function loginUser(userInfo) {
 		    let response;
 		    try {
-		        response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
+		        response = fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
 		        if (!response.ok) {
 		            throw new Error(`Error de red o de servidor: ${response.status}`);
 		        }
-		        const accessData = await response.json();
+		        const accessData = response.json();
 		
 		        if (accessData.status === 'granted') {
 		            currentUser = { ...userInfo, role: accessData.role };
