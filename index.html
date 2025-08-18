@@ -941,25 +941,39 @@
 		    }
 		}
 
-		function initializeAdminPanel() {
+		async function initializeAdminPanel() {
 		    console.log("Inicializando el panel de Administrador...");
-		    // Aquí es donde cargaremos los datos del backend para el admin.
-		    // Usaremos las funciones que ya tienes del antiguo admin.html
 		    
-		    // IMPORTANTE: El script del admin tiene su propio inicializador.
-		    // Vamos a llamarlo aquí para que el calendario, etc., se carguen.
-		    // Asegúrate de que las funciones como `renderCalendar`, `loadTrainings`, etc.
-		    // estén disponibles globalmente en tu <script>.
+		    // Muestra un estado de carga mientras se obtienen los datos
+		    document.getElementById('calendar-month').textContent = 'Cargando datos...';
+		
+		    try {
+		        // Llama al backend para obtener todos los entrenamientos
+		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTrainings`);
+		        const data = await response.json();
+		
+		        if (data.success) {
+		            // Si la llamada es exitosa, guarda los entrenamientos en nuestra variable global
+		            trainings = data.trainings;
+		            console.log('Entrenamientos cargados:', trainings);
+		            
+		            // Ahora que tenemos los datos, renderizamos todo el panel
+		            renderCalendar();
+		            updateStats();
+		            
+		        } else {
+		            // Si el backend devuelve un error, lo mostramos
+		            showAlert('Error al cargar entrenamientos: ' + data.error, 'warning');
+		        }
+		    } catch (error) {
+		        // Si hay un error de red, también lo mostramos
+		        console.error('Error de conexión al cargar entrenamientos:', error);
+		        showAlert('Error de conexión. No se pudieron cargar los datos.', 'warning');
+		    }
 		    
-		    // Primero, cargamos la configuración y los entrenamientos existentes.
-		    loadConfiguration(); // Esta función ya debería existir del código del admin
-		    loadTrainings();     // Esta también
-		    
-		    // Luego, actualizamos las vistas
-		    renderCalendar();    // Dibuja el calendario
-		    updateStats();       // Actualiza la pestaña de estadísticas
-		    
-		    console.log("Panel de Administrador listo.");
+		    // La configuración de los campos (form base id, etc.) la podemos seguir
+		    // cargando desde localStorage por ahora, o crear otra llamada al backend más adelante.
+		    loadConfiguration();
 		}
 		
         // ========================
@@ -1433,7 +1447,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadConfiguration();
             renderCalendar();
-            loadTrainings();
             updateStats();
         });
 
@@ -1753,11 +1766,7 @@
             }
         }
 
-        function loadTrainings() {
-            // Aquí se conectaría con el backend real
-            // Por ahora cargamos desde localStorage
-            renderCalendar();
-        }
+        
 
         function guardarConfiguracion() {
             // Guardar entrenamientos
@@ -2166,13 +2175,7 @@
                     toggleDay(day);
                 });
             }
-        }
-
-        function loadTrainings() {
-            // Aquí se conectaría con el backend real
-            // Por ahora cargamos desde localStorage
-            renderCalendar();
-        }
+        }        
 
         function guardarConfiguracion() {
             // Guardar entrenamientos
