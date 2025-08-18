@@ -772,6 +772,10 @@
         // Variables globales
         let currentUser = null;
         let refreshInterval = null;
+		// --- Variables Globales para el Panel de Administrador ---
+		let currentDate = new Date(); // Controla el mes y año que muestra el calendario
+		let selectedDate = null;      // Guarda la fecha que el admin ha seleccionado (ej: '2025-08-19')
+		let trainings = {};           // Almacena los entrenamientos cargados desde el backend
 
         // ========================
         // INICIALIZACIÓN
