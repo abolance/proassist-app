@@ -928,14 +928,15 @@
     <!-- PANEL DE ADMINISTRADOR -->
     <div id="admin-panel" style="display: none;">
     <header class="header">
-        <div class="logo">
-            ⚽ ProAssist
-            <span class="admin-badge">ADMIN</span>
-        </div>
-        <div>
-            <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Todo</button>
-        </div>
-    </header>
+	    <div class="logo">
+	        ⚽ ProAssist
+	        <span class="admin-badge">ADMIN</span>
+	    </div>
+	    <div style="display: flex; gap: 10px;">
+	        <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Todo</button>
+	        <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
+	    </div>
+	</header>
 
     <div class="container">
         <div class="tabs">
