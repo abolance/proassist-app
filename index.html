@@ -816,18 +816,16 @@
 
     <!-- DASHBOARD JUGADORA -->
     <div id="player-dashboard" class="main-screen">
-        <div class="container">
-            <!-- HEADER CON SALUDO -->
-            <div class="header">
-                <div class="user-info">
-                    <div>
-                        <div id="greeting" class="greeting"></div>
-                        <div id="lastActivity" style="color: #666; font-size: 0.9rem;"></div>
-                    </div>
-                    <button id="logoutButton" class="logout-btn">Cerrar Sesión</button>
-                </div>
-            </div>
-
+		<!-- HEADER CON SALUDO -->
+		<header class="header">
+		    <div class="logo">
+		        <span id="greeting" style="font-size: 1em;"></span> <!-- Usamos el ID del saludo aquí -->
+		    </div>
+		    <div style="display: flex; gap: 10px;">
+		        <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
+		    </div>
+		</header>
+        <div class="container">            
             <!-- MENSAJE MOTIVACIONAL -->
             <div id="motivationalMessage" class="motivational-message" style="display: none;">
                 <h3 id="motivationalTitle"></h3>
