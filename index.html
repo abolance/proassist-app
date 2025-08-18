@@ -1150,6 +1150,16 @@
             AUTO_REFRESH_INTERVAL: 300000, // 5 minutos
         };
 
+		const FRASES_MOTIVACIONALES = [
+		    { title: "⚽ ¡A por Todas!", text: "El talento depende de la inspiración, pero el esfuerzo depende de cada una." },
+		    { title: "🔥 Espíritu de Equipo", text: "Juegas para el nombre en el frente de la camiseta, y se acordarán del nombre en la espalda." },
+		    { title: "🎯 Precisión y Pasión", text: "Cada entrenamiento es una oportunidad para ser mejor que ayer. ¡No la desperdicies!" },
+		    { title: "🌟 Brilla en el Campo", text: "No sueñes con el éxito. Entrena para conseguirlo. ¡Vamos!" },
+		    { title: "🏆 Mentalidad Ganadora", text: "Las campeonas no se hacen en los partidos, se hacen en los entrenamientos diarios." },
+		    { title: "💪 Fuerza y Coraje", text: "La diferencia entre lo posible y lo imposible reside en tu determinación." },
+		    { title: "🧠 Juega con Inteligencia", text: "El balón es tu amigo, el campo tu lienzo. ¡Crea tu obra de arte hoy!" }
+		];
+
         // Variables globales
         let currentUser = null;
         let refreshInterval = null;
@@ -1243,6 +1253,7 @@
 		            
 		            // --- ¡AQUÍ ESTÁ LA MAGIA! ---
 		            // Llamamos al router para que decida qué pantalla mostrar.
+					updateGreeting();
 		            showDashboardBasedOnRole(accessData.role);
 		            // -----------------------------
 		            
@@ -1272,6 +1283,7 @@
 		    const savedUser = sessionStorage.getItem('proassist_user');
 		    if (savedUser) {
 		        currentUser = JSON.parse(savedUser);
+				updateGreeting();
 		        // Usamos nuestro router también aquí para restaurar la vista correcta
 		        showDashboardBasedOnRole(currentUser.role);
 		        startAutoRefresh();
@@ -1354,8 +1366,8 @@
 
 	function showPlayerDashboard() {
     	    document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('player-dashboard').style.display = 'block'; // <-- usa el id nuevo
-            updateGreeting();
+            document.getElementById('player-dashboard').style.display = 'block'; // <-- usa el id nuevo    
+			showMotivationalMessage();
         }
 
         function resetLoginScreen() {
@@ -1422,12 +1434,7 @@
 		        const data = await response.json();
 		        // La respuesta del backend ahora es { success: true, stats: {...} }
 		        if (data.success) {
-		            updateStatsUI(data.stats);
-		            
-		            // --- ¡AQUÍ ESTÁ LA MAGIA! ---
-		            // Le pasamos las estadísticas a la función del mensaje motivacional
-		            updateMotivationalMessage(data.stats);
-		
+		            updateStatsUI(data.stats);		            		        
 		        } else {
 		            console.error('Error del servidor:', data.error);
 		            showDefaultStats();
@@ -1667,40 +1674,35 @@
         // ========================
         // MENSAJES MOTIVACIONALES
         // ========================
-        function updateMotivationalMessage(stats) {
-            const messageDiv = document.getElementById('motivationalMessage');
-            const titleEl = document.getElementById('motivationalTitle');
-            const textEl = document.getElementById('motivationalText');
-            
-            let title, text;
-            
-            // Mensajes basados en estadísticas
-            if (stats.currentStreak >= 5) {
-                title = '🔥 ¡Increíble racha!';
-                text = `Llevas ${stats.currentStreak} entrenamientos consecutivos. ¡Eres imparable!`;
-            } else if (stats.attendanceRate >= 90) {
-                title = '⭐ ¡Excelente constancia!';
-                text = `Tu asistencia del ${stats.attendanceRate}% está por encima del promedio. ¡Sigue así!`;
-            } else if (stats.attendanceRate >= 70) {
-                title = '💪 ¡Buen trabajo!';
-                text = 'Mantén el ritmo de entrenamientos para seguir mejorando tu forma física.';
-            } else if (stats.totalTrainings === 0) {
-                title = '🌟 ¡Bienvenida a ProAssist!';
-                text = 'Completa tu primer formulario de entreno y comienza tu journey fitness.';
-            } else {
-                title = '🎯 ¡Vamos por más!';
-                text = 'Cada entreno cuenta. ¡Tu próxima sesión te acerca más a tus objetivos!';
-            }
-            
-            titleEl.textContent = title;
-            textEl.textContent = text;
-            messageDiv.style.display = 'block';
-            
-            // Auto-hide después de 10 segundos
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 10000);
-        }
+		function showMotivationalMessage() {
+		    const messageDiv = document.getElementById('motivationalMessage');
+		    const titleEl = document.getElementById('motivationalTitle');
+		    const textEl = document.getElementById('motivationalText');
+		
+		    // 1. Elegir una frase aleatoria de nuestro banco de frases
+		    const randomIndex = Math.floor(Math.random() * FRASES_MOTIVACIONALES.length);
+		    const randomPhrase = FRASES_MOTIVACIONALES[randomIndex];
+		
+		    // 2. Asignar el título y el texto
+		    titleEl.textContent = randomPhrase.title;
+		    textEl.textContent = randomPhrase.text;
+		
+		    // 3. Mostrar el mensaje
+		    messageDiv.style.display = 'block';
+		
+		    // 4. Ocultarlo después de 10 segundos para no saturar
+		    setTimeout(() => {
+		        // Añadimos una transición suave para que desaparezca
+		        messageDiv.style.transition = 'opacity 0.5s';
+		        messageDiv.style.opacity = '0';
+		        // Y lo ocultamos del layout después de la transición
+		        setTimeout(() => {
+		            messageDiv.style.display = 'none';
+		            messageDiv.style.opacity = '1'; // Lo reseteamos para la próxima vez
+		            messageDiv.style.transition = '';
+		        }, 500);
+		    }, 10000);
+		}        
 
         // ========================
         // AUTO-REFRESH
