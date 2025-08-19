@@ -472,34 +472,28 @@
 
                 <!-- COMPARACIÓN CON EQUIPO -->
                 <div class="card">
-                    <div class="stat-title">
-                        👥 Comparación con Equipo
-                    </div>
-                    <div class="comparison">
-                        <div class="comparison-item">
-                            <div class="comparison-value" id="myRanking">-</div>
-                            <div class="comparison-label">Mi Posición</div>
-                        </div>
-                        <div class="comparison-item">
-                            <div class="comparison-value" id="teamAverage">-</div>
-                            <div class="comparison-label">Media Equipo</div>
-                        </div>
-                        <div class="comparison-item">
-                            <div class="comparison-value" id="currentStreak">-</div>
-                            <div class="comparison-label">Racha Actual</div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span>Tu rendimiento vs equipo</span>
-                            <span id="performanceComparison">-</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="performanceBar" class="progress-fill" style="width: 50%"></div>
-                        </div>
-                    </div>
-                </div>
+				    <div class="stat-title">
+				        👥 Comparación con Equipo
+				    </div>
+				    <div style="margin-top: 1rem;">
+				        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+				            <span>Tu Asistencia</span>
+				            <span id="myAttendanceRate">-</span>
+				        </div>
+				        <div class="progress-bar">
+				            <div id="myAttendanceProgress" class="progress-fill" style="width: 0%"></div>
+				        </div>
+				    </div>
+				    <div style="margin-top: 1.5rem;">
+				        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+				            <span>Media del Equipo</span>
+				            <span id="teamAverageRate">-</span>
+				        </div>
+				        <div class="progress-bar">
+				            <div id="teamAverageProgress" class="progress-fill" style="background: #e67e22;"></div>
+				        </div>
+				    </div>
+				</div>
 
                 <!-- HISTORIAL RECIENTE -->
                 <div class="card">
@@ -930,6 +924,7 @@
 		    } else if (role === 'PLAYER') {
 		        document.getElementById('player-dashboard').style.display = 'block';
 		        // Llamamos a la función que carga los datos de la jugadora (esta ya la tienes)
+				showMotivationalMessage();
 		        await loadUserData(); 
 		    } else {
 		        // En caso de que un rol desconocido intente acceder
@@ -994,13 +989,7 @@
 		    document.getElementById('player-dashboard').style.display = 'none';
 		    document.getElementById('admin-panel').style.display = 'none';
 		    resetLoginScreen();
-		}        
-
-	function showPlayerDashboard() {
-    	    document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('player-dashboard').style.display = 'block'; // <-- usa el id nuevo    
-			showMotivationalMessage();
-        }
+		}        		
 
         function resetLoginScreen() {
             document.getElementById('loginLoading').style.display = 'none';
@@ -1043,7 +1032,7 @@
                 await loadUserStats();
                 
                 // Cargar historial
-                //await loadUserHistory();
+                await loadUserHistory();
                 
                 // Cargar formulario del día
                 await loadTodaysForm();
