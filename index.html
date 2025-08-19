@@ -1618,26 +1618,47 @@
 		    }
 		}
 		
-        function deleteTraining() {
-            if (!selectedDate || !trainings[selectedDate]) {
-                alert('No hay entrenamiento para eliminar');
-                return;
-            }
-            
-            if (confirm('¿Estás seguro de eliminar este entrenamiento?')) {
-                delete trainings[selectedDate];
-                renderCalendar();
-                updateStats();
-                
-                // Limpiar formulario
-                document.getElementById('start-time').value = '20:45';
-                document.getElementById('end-time').value = '22:30';
-                document.getElementById('location').value = '';
-                document.getElementById('notes').value = '';
-                
-                showAlert('🗑️ Entrenamiento eliminado', 'warning');
-            }
-        }
+        async function deleteTraining() {
+		    if (!selectedDate || !trainings[selectedDate]) {
+		        showAlert('No hay un entrenamiento guardado en esta fecha para eliminar.', 'warning');
+		        return;
+		    }
+		    
+		    if (confirm(`¿Estás seguro de que quieres eliminar el entrenamiento del ${selectedDate}? Esta acción no se puede deshacer.`)) {
+		        try {
+		            // Construimos la URL con los parámetros
+		            const url = new URL(CONFIG.SCRIPT_URL);
+		            url.searchParams.append('action', 'deleteTraining');
+		            url.searchParams.append('userEmail', currentUser.email); // Seguridad
+		            url.searchParams.append('fecha', selectedDate); // La fecha a eliminar
+		
+		            console.log("Intentando eliminar con la URL:", url.toString()); // Debug
+		
+		            const response = await fetch(url);
+		            const data = await response.json();
+		
+		            if (data.success && data.result && data.result.success) {
+		                // Eliminamos el entrenamiento de nuestro objeto local
+		                delete trainings[selectedDate];
+		                
+		                // Limpiamos el formulario y redibujamos todo
+		                document.getElementById('selected-date').value = '';
+		                loadTrainingData(''); // Llama a la función que limpia el formulario
+		                
+		                renderCalendar();
+		                updateStats();
+		                
+		                showAlert(data.result.message, 'success');
+		            } else {
+		                const errorMessage = data.error || data.result?.error || "Ocurrió un error desconocido.";
+		                showAlert('Error al eliminar: ' + errorMessage, 'warning');
+		            }
+		        } catch (error) {
+		            console.error('Error de conexión al eliminar:', error);
+		            showAlert('Error de conexión. No se pudo eliminar el entrenamiento.', 'warning');
+		        }
+		    }
+		}
 
         function createForm() {
             if (!selectedDate || !trainings[selectedDate]) {
