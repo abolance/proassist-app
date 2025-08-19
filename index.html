@@ -527,7 +527,7 @@
     <!-- PANEL DE ADMINISTRADOR -->
     <div id="admin-panel" style="display: none;">  
 		<!-- NUEVO: SELECTOR DE EQUIPO PARA EL COACH -->
-	    <div id="team-selector-header" class="header" style="display: none; background-color: #1abc9c; color: white;">
+	    <div id="team-selector-header" class="header" style="display: none; margin-bottom: 1.5rem; border-radius: 15px;">
 	        <div style="display: flex; align-items: center; gap: 15px;">
 	            <label for="team-selector" style="font-weight: bold;">Selecciona un equipo para gestionar:</label>
 	            <select id="team-selector" class="btn" style="background-color: white; color: black;"></select>
@@ -874,7 +874,7 @@
 		        const accessData = await response.json();
 		
 		        if (accessData.status === 'granted') {		            
-					currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams };
+					currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams, teamMap: accessData.teamMap };
 					sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
 		            updateGreeting();
 		            await showDashboardBasedOnRole(accessData.role);
@@ -940,7 +940,8 @@
 			        currentUser.teams.forEach(teamId => {
 			            const option = document.createElement('option');
 			            option.value = teamId;
-			            option.textContent = teamId; // Usamos el ID como nombre por ahora
+						// Usamos el mapa para obtener el nombre, si no existe, usamos el ID
+					    option.textContent = currentUser.teamMap[teamId] || teamId; 			            
 			            teamSelector.appendChild(option);
 			        });
 			
