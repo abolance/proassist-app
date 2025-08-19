@@ -1581,11 +1581,17 @@
 		        // 1. Convertimos los detalles a un string JSON
 		        const detailsString = JSON.stringify(trainingDetails);
 		        
-		        // 2. Creamos la URL con los parámetros
-		        const url = new URL(CONFIG.SCRIPT_URL);
-		        url.searchParams.append('action', 'saveTraining');
-		        url.searchParams.append('userEmail', currentUser.email);
-		        url.searchParams.append('details', detailsString);
+				// 2.1. Creamos la URL base
+				const url = new URL(CONFIG.SCRIPT_URL);
+				url.searchParams.append('action', 'saveTraining');
+				url.searchParams.append('userEmail', currentUser.email);
+				
+				// 2.2. Añadimos cada pieza del entrenamiento como un parámetro simple
+				url.searchParams.append('fecha', trainingDetails.fecha);
+				url.searchParams.append('start', trainingDetails.start);
+				url.searchParams.append('end', trainingDetails.end);
+				url.searchParams.append('location', trainingDetails.location);
+				url.searchParams.append('notes', trainingDetails.notes);
 		
 		        // 3. Hacemos la petición GET a la nueva URL
 		        const response = await fetch(url); // No se necesita method, por defecto es GET
