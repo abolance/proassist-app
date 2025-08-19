@@ -525,14 +525,7 @@
     </div>
 
     <!-- PANEL DE ADMINISTRADOR -->
-    <div id="admin-panel" style="display: none;">  
-		<!-- NUEVO: SELECTOR DE EQUIPO PARA EL COACH -->
-	    <div id="team-selector-header" class="header" style="display: none; margin-bottom: 1.5rem; border-radius: 15px;">
-	        <div style="display: flex; align-items: center; gap: 15px;">
-	            <label for="team-selector" style="font-weight: bold;">Selecciona un equipo para gestionar:</label>
-	            <select id="team-selector" class="btn" style="background-color: white; color: black;"></select>
-	        </div>
-	    </div>
+    <div id="admin-panel" style="display: none;">  		
 	    <div class="container">
 			<!-- HEADER UNIFICADO PARA ADMIN -->
 	        <header class="header">
@@ -545,6 +538,13 @@
 	                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
 	            </div>
 	        </header>
+			<!-- NUEVO: SELECTOR DE EQUIPO PARA EL COACH -->
+		    <div id="team-selector-header" class="header" style="display: none; margin-bottom: 1.5rem; border-radius: 15px;">
+		        <div style="display: flex; align-items: center; gap: 15px;">
+		            <label for="team-selector" style="font-weight: bold;">Selecciona un equipo para gestionar:</label>
+		            <select id="team-selector" class="btn" style="background-color: white; color: black;"></select>
+		        </div>
+		    </div>
 			<div class="admin-content">
 		        <div class="tabs">
 		            <button class="tab active" onclick="showTab('calendar')">
