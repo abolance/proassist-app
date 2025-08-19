@@ -1066,41 +1066,53 @@
 		    }
 		}
 
-        function updateStatsUI(stats) {
-            // Estadísticas principales
-            document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
-            document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-            document.getElementById('currentStreak').textContent = stats.currentStreak || 0;
-            document.getElementById('myRanking').textContent = `#${stats.ranking || '-'}`;
-            
-            // Barras de progreso
-            const attendanceProgress = Math.min(100, stats.attendanceRate || 0);
-            document.getElementById('attendanceProgress').style.width = `${attendanceProgress}%`;
-            
-            const monthlyProgress = Math.min(100, ((stats.monthlyTrainings || 0) / (stats.monthlyGoal || 1)) * 100);
-            document.getElementById('monthlyProgressBar').style.width = `${monthlyProgress}%`;
-            document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 12}`;
-            
-            // Actualizar última actividad
-            if (stats.lastActivity) {
-                const lastDate = new Date(stats.lastActivity);
-                const formattedDate = lastDate.toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                });
-                document.getElementById('lastActivity').textContent = `Último entreno: ${formattedDate}`;
-            }
-        }
+		function updateStatsUI(stats) {
+		    // --- SECCIÓN DE "MIS ESTADÍSTICAS" (Esto ya estaba bien) ---
+		    document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
+		    document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+		    
+		    const attendanceProgress = Math.min(100, stats.attendanceRate || 0);
+		    document.getElementById('attendanceProgress').style.width = `${attendanceProgress}%`;
+		    
+		    const monthlyProgress = Math.min(100, ((stats.monthlyTrainings || 0) / (stats.monthlyGoal || 1)) * 100);
+		    document.getElementById('monthlyProgressBar').style.width = `${monthlyProgress}%`;
+		    document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`;
+		
+		    // --- SECCIÓN DE "COMPARACIÓN CON EQUIPO" (Aquí está la corrección) ---
+		    // Rellenamos los nuevos campos que creamos
+		    document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+		    document.getElementById('myAttendanceProgress').style.width = `${attendanceProgress}%`;
+		    
+		    // El 'teamAverageRate' y 'teamAverageProgress' los dejaremos para cuando activemos la lógica de equipo.
+		    // Las siguientes líneas son las que causaban el error. Las eliminamos:
+		    // document.getElementById('currentStreak').textContent = stats.currentStreak || 0; // <-- ELIMINADA
+		    // document.getElementById('myRanking').textContent = `#${stats.ranking || '-'}`;      // <-- ELIMINADA
+		    
+		    // Actualizar última actividad
+		    if (stats.lastActivity) {
+		        const lastDate = new Date(stats.lastActivity);
+		        const formattedDate = lastDate.toLocaleDateString('es-ES', {
+		            day: 'numeric', month: 'long', year: 'numeric'
+		        });
+		        document.getElementById('lastActivity').textContent = `Último entreno: ${formattedDate}`;
+		    }
+		}
 
-        function showDefaultStats() {
-            document.getElementById('totalTrainings').textContent = '0';
-            document.getElementById('attendanceRate').textContent = '0%';
-            document.getElementById('currentStreak').textContent = '0';
-            document.getElementById('myRanking').textContent = '-';
-            document.getElementById('monthlyProgress').textContent = '0/12';
-            document.getElementById('lastActivity').textContent = 'Datos no disponibles';
-        }
+		function showDefaultStats() {
+		    document.getElementById('totalTrainings').textContent = '0';
+		    document.getElementById('attendanceRate').textContent = '0%';
+		    document.getElementById('monthlyProgress').textContent = '0/0';
+		    
+		    // Nuevos campos de comparación
+		    document.getElementById('myAttendanceRate').textContent = '0%';
+		    document.getElementById('teamAverageRate').textContent = '-'; // Aún no tenemos este dato
+		    
+		    // Las siguientes líneas causaban el error. Las eliminamos:
+		    // document.getElementById('currentStreak').textContent = '0'; // <-- ELIMINADA
+		    // document.getElementById('myRanking').textContent = '-';     // <-- ELIMINADA
+		    
+		    document.getElementById('lastActivity').textContent = 'Aún no hay actividad registrada';
+		}        
 
         async function loadTeamComparison() {
             try {
