@@ -525,7 +525,14 @@
     </div>
 
     <!-- PANEL DE ADMINISTRADOR -->
-    <div id="admin-panel" style="display: none;">    
+    <div id="admin-panel" style="display: none;">  
+		<!-- NUEVO: SELECTOR DE EQUIPO PARA EL COACH -->
+	    <div id="team-selector-header" class="header" style="display: none; background-color: #1abc9c; color: white;">
+	        <div style="display: flex; align-items: center; gap: 15px;">
+	            <label for="team-selector" style="font-weight: bold;">Selecciona un equipo para gestionar:</label>
+	            <select id="team-selector" class="btn" style="background-color: white; color: black;"></select>
+	        </div>
+	    </div>
 	    <div class="container">
 			<!-- HEADER UNIFICADO PARA ADMIN -->
 	        <header class="header">
@@ -866,9 +873,9 @@
 		
 		        const accessData = await response.json();
 		
-		        if (accessData.status === 'granted') {
-		            currentUser = { ...userInfo, role: accessData.role };
-		            sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
+		        if (accessData.status === 'granted') {		            
+					currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams };
+					sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
 		            updateGreeting();
 		            await showDashboardBasedOnRole(accessData.role);
 		            startAutoRefresh(); 
@@ -918,11 +925,44 @@
 		    document.getElementById('admin-panel').style.display = 'none';
 		
 		    // Ahora, mostramos el panel correcto según el rol del usuario
-		    if (role === 'ADMIN' || role === 'COACH') {
-		        document.getElementById('admin-panel').style.display = 'block';
-		        // Llamamos a la función que inicializa los datos del administrador
-		        await initializeAdminPanel(); 
-		    } else if (role === 'PLAYER') {
+		   if (role === 'ADMIN' || role === 'COACH') {
+			    document.getElementById('admin-panel').style.display = 'block';
+			
+			    const teamSelectorHeader = document.getElementById('team-selector-header');
+			    const teamSelector = document.getElementById('team-selector');
+			    teamSelector.innerHTML = ''; // Limpiamos opciones antiguas
+			
+			    // currentUser.teams ahora existe gracias al cambio en loginUser
+			    if (currentUser.teams && currentUser.teams.length > 1) {
+			        // Si el usuario tiene MÁS DE UN equipo, mostramos el selector
+			        teamSelectorHeader.style.display = 'flex';
+			        
+			        currentUser.teams.forEach(teamId => {
+			            const option = document.createElement('option');
+			            option.value = teamId;
+			            option.textContent = teamId; // Usamos el ID como nombre por ahora
+			            teamSelector.appendChild(option);
+			        });
+			
+			        // Añadimos un listener para que al cambiar de equipo, se recarguen los datos
+			        teamSelector.onchange = () => {
+			            const selectedTeamId = teamSelector.value;
+			            initializeAdminPanel(selectedTeamId);
+			        };
+			
+			        // Cargamos los datos del primer equipo de la lista por defecto
+			        initializeAdminPanel(currentUser.teams[0]);
+			
+			    } else if (currentUser.teams && currentUser.teams.length === 1) {
+			        // Si solo tiene UN equipo, no mostramos el selector y cargamos sus datos directamente
+			        teamSelectorHeader.style.display = 'none';
+			        initializeAdminPanel(currentUser.teams[0]);
+			    } else {
+			        // Si no tiene equipos asignados, mostramos un error
+			        showAlert('No tienes equipos asignados. Contacta con un administrador.', 'warning');
+			    }
+			    
+			} else if (role === 'PLAYER') {
 		        document.getElementById('player-dashboard').style.display = 'block';
 		        // Llamamos a la función que carga los datos de la jugadora (esta ya la tienes)
 				showMotivationalMessage();
@@ -934,16 +974,20 @@
 		    }
 		}
 
-		async function initializeAdminPanel() {
-		    console.log("Inicializando el panel de Administrador...");
-			trainings = {}; // Reseteamos los datos para evitar "fantasmas"
+		async function initializeAdminPanel(teamId) {
+			if (!teamId) {
+		        console.error("initializeAdminPanel fue llamado sin un teamId.");
+		        return;
+		    }
+		    console.log(`Inicializando panel para el equipo: ${teamId}...`);		    
+			trainings = {}; // Reseteamos los datos para evitar "fantasmas"			
 		    
 		    // Muestra un estado de carga mientras se obtienen los datos
 		    document.getElementById('calendar-month').textContent = 'Cargando datos...';
 		
 		    try {
 		        // Llama al backend para obtener todos los entrenamientos
-		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTrainings`);
+				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTrainings&teamId=${teamId}`);
 		        const data = await response.json();
 		
 		        if (data.success) {
