@@ -945,6 +945,7 @@
 
 		async function initializeAdminPanel() {
 		    console.log("Inicializando el panel de Administrador...");
+			trainings = {}; // Reseteamos los datos para evitar "fantasmas"
 		    
 		    // Muestra un estado de carga mientras se obtienen los datos
 		    document.getElementById('calendar-month').textContent = 'Cargando datos...';
@@ -976,6 +977,17 @@
 		    // La configuración de los campos (form base id, etc.) la podemos seguir
 		    // cargando desde localStorage por ahora, o crear otra llamada al backend más adelante.
 		    loadConfiguration();
+
+			// --- RESTAURAMOS LA PESTAÑA ACTIVA ---
+		    const activeTab = sessionStorage.getItem('proassist_active_tab');
+		    if (activeTab) {
+		        // Buscamos el botón de la pestaña y lo "clickamos" para restaurar el estado
+		        // Usamos un querySelector para encontrar el botón que llama a la función con el nombre de la pestaña
+		        const tabButton = document.querySelector(`.tab[onclick="showTab('${activeTab}')"]`);
+		        if (tabButton) {
+		            tabButton.click();
+		        }
+		    }
 		}
 		
         // ========================
@@ -1446,13 +1458,17 @@
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
             
-            // Mostrar pestaña seleccionada
-            event.target.classList.add('active');
-            document.getElementById(tabName + '-tab').classList.add('active');
+            // Usamos event.currentTarget para asegurarnos de que es el botón
+    		const clickedTab = event.currentTarget;
+			clickedTab.classList.add('active');
+    		document.getElementById(tabName + '-tab').classList.add('active');			
             
             if (tabName === 'stats') {
                 updateStats();
             }
+
+			// --- GUARDAMOS LA PESTAÑA ACTIVA ---
+    		sessionStorage.setItem('proassist_active_tab', tabName);
         }
 
         // FUNCIONES DE CALENDARIO
