@@ -1665,19 +1665,51 @@
 		    }
 		}
 
-        function createForm() {
-            if (!selectedDate || !trainings[selectedDate]) {
-                alert('Guarda el entrenamiento primero');
-                return;
-            }
-            
-            // Simular creación de formulario
-            const formId = 'form_' + selectedDate.replace(/-/g, '');
-            trainings[selectedDate].formId = formId;
-            
-            showAlert('📋 Formulario creado correctamente', 'success');
-            updateStats();
-        }
+        async function createForm() {
+		    if (!selectedDate || !trainings[selectedDate]) {
+		        showAlert('Primero debes guardar los detalles del entrenamiento para esta fecha.', 'warning');
+		        return;
+		    }
+		
+		    if (trainings[selectedDate].formId) {
+		        if (!confirm('Ya existe un formulario para este día. ¿Quieres crear uno nuevo y reemplazar el anterior?')) {
+		            return;
+		        }
+		    }
+		
+		    const trainingDetails = trainings[selectedDate];
+		    const createFormButton = event.currentTarget;
+		    createFormButton.disabled = true;
+		    createFormButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Creando...';
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'createForm'); // <-- Acción correcta
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('fecha', selectedDate);
+		        url.searchParams.append('start', trainingDetails.start);
+		        url.searchParams.append('end', trainingDetails.end);
+		        url.searchParams.append('location', trainingDetails.location);
+		        url.searchParams.append('notes', trainingDetails.notes);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.formId) {
+		            trainings[selectedDate].formId = data.formId;
+		            updateStats();
+		            showAlert('¡Formulario creado y enlazado correctamente!', 'success');
+		        } else {
+		            showAlert('Error al crear el formulario: ' + data.error, 'warning');
+		        }
+		    } catch (error) {
+		        console.error('Error de conexión al crear formulario:', error);
+		        showAlert('Error de conexión. No se pudo crear el formulario.', 'warning');
+		    } finally {
+		        createFormButton.disabled = false;
+		        createFormButton.innerHTML = '📋 Crear Formulario';
+		    }
+		}
 
         // FUNCIONES DE CONFIGURACIÓN
         function toggleDay(day) {
