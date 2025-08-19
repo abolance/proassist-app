@@ -1591,15 +1591,20 @@
 		        const response = await fetch(url); // No se necesita method, por defecto es GET
 		
 		        const data = await response.json();
-		
-		        if (data.result.success) {
-		            trainings[selectedDate] = trainingDetails;
-		            renderCalendar();
-		            updateStats();
-		            showAlert(data.result.message, 'success');
-		        } else {
-		            showAlert('Error al guardar: ' + data.result.error, 'warning');
-		        }
+				// Primero, comprobamos si la respuesta general del backend fue exitosa.
+				// Luego, nos aseguramos de que el objeto 'result' existe.
+				// Y finalmente, comprobamos si la operación específica de guardado fue exitosa.
+				if (data.success && data.result && data.result.success) {
+				    trainings[selectedDate] = trainingDetails;
+				    renderCalendar();
+				    updateStats();
+				    showAlert(data.result.message, 'success');
+				} else {
+				    // Si cualquiera de las condiciones anteriores falla, mostramos el mensaje de error.
+				    // Usamos data.error para el error general, o data.result.error para el específico.
+				    const errorMessage = data.error || data.result?.error || "Ocurrió un error desconocido.";
+				    showAlert('Error al guardar: ' + errorMessage, 'warning');
+				}
 		    } catch (error) {
 		        console.error('Error de conexión al guardar:', error);
 		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
