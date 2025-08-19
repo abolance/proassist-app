@@ -910,12 +910,7 @@
             stopAutoRefresh();
             
             // Mostrar pantalla de login
-            showLoginScreen();
-            
-            // Desconectar de Google
-            if (typeof google !== 'undefined' && google.accounts.oauth2) {
-                google.accounts.oauth2.revoke(currentUser?.access_token || '');
-            }
+            showLoginScreen();            
         }
 
 		// ========================
