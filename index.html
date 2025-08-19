@@ -1576,8 +1576,6 @@
 		    };
 		
 		    try {
-		        // --- CAMBIO CLAVE AQUÍ: CONSTRUIMOS UNA URL EN LUGAR DE UN BODY ---
-		        
 		        // 1. Convertimos los detalles a un string JSON
 		        const detailsString = JSON.stringify(trainingDetails);
 		        
@@ -1592,6 +1590,9 @@
 				url.searchParams.append('end', trainingDetails.end);
 				url.searchParams.append('location', trainingDetails.location);
 				url.searchParams.append('notes', trainingDetails.notes);
+
+				console.log("Intentando llamar a la siguiente URL:");
+        		console.log(url.toString());
 		
 		        // 3. Hacemos la petición GET a la nueva URL
 		        const response = await fetch(url); // No se necesita method, por defecto es GET
