@@ -1567,9 +1567,8 @@
 		        return;
 		    }
 		    
-		    // 1. Recopilamos los datos del formulario
 		    const trainingDetails = {
-		        fecha: selectedDate, // Ya la tenemos en formato 'YYYY-MM-DD'
+		        fecha: selectedDate,
 		        start: document.getElementById('start-time').value,
 		        end: document.getElementById('end-time').value,
 		        location: document.getElementById('location').value,
@@ -1577,28 +1576,26 @@
 		    };
 		
 		    try {
-		        // 2. Enviamos los datos al backend
-		        const response = await fetch(CONFIG.SCRIPT_URL, {
-		            method: 'POST',
-		            headers: { 'Content-Type': 'application/json' },
-		            body: JSON.stringify({
-		                action: 'saveTraining',
-		                details: trainingDetails,
-						userEmail: currentUser.email // --- AÑADIMOS EL EMAIL PARA LA VERIFICACIÓN ---
-		            })
-		        });
+		        // --- CAMBIO CLAVE AQUÍ: CONSTRUIMOS UNA URL EN LUGAR DE UN BODY ---
+		        
+		        // 1. Convertimos los detalles a un string JSON
+		        const detailsString = JSON.stringify(trainingDetails);
+		        
+		        // 2. Creamos la URL con los parámetros
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'saveTraining');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('details', detailsString);
+		
+		        // 3. Hacemos la petición GET a la nueva URL
+		        const response = await fetch(url); // No se necesita method, por defecto es GET
 		
 		        const data = await response.json();
 		
 		        if (data.result.success) {
-		            // 3. Si todo va bien, actualizamos la UI al instante
-		            // Actualizamos nuestro objeto local 'trainings' para no tener que recargar
 		            trainings[selectedDate] = trainingDetails;
-		            
-		            // Redibujamos el calendario y las estadísticas para reflejar el cambio
 		            renderCalendar();
 		            updateStats();
-		            
 		            showAlert(data.result.message, 'success');
 		        } else {
 		            showAlert('Error al guardar: ' + data.result.error, 'warning');
@@ -1608,7 +1605,7 @@
 		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
 		    }
 		}
-
+		
         function deleteTraining() {
             if (!selectedDate || !trainings[selectedDate]) {
                 alert('No hay entrenamiento para eliminar');
