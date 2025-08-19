@@ -1583,7 +1583,8 @@
 		            headers: { 'Content-Type': 'application/json' },
 		            body: JSON.stringify({
 		                action: 'saveTraining',
-		                details: trainingDetails
+		                details: trainingDetails,
+						userEmail: currentUser.email // --- AÑADIMOS EL EMAIL PARA LA VERIFICACIÓN ---
 		            })
 		        });
 		
