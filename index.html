@@ -1243,32 +1243,36 @@
             }
         }
 
-        function showFormUI(formData) {
-            const container = document.getElementById('formContainer');
-            const title = document.getElementById('formTitle');
-            
-            // Actualizar título con información del entreno
-            if (formData.trainingInfo) {
-                const info = formData.trainingInfo;
-                title.innerHTML = `📝 Entreno de Hoy - ${info.time || '20:45-22:30'} 📍 ${info.location || 'Pabellón'}`;
-            }
-            
-            // Mostrar iframe del formulario
-            container.innerHTML = `
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
-                        ℹ️ Tu email ya está pre-rellenado. Solo completa el resto de campos.
-                    </p>
-                </div>
-                <iframe 
-                    src="${formData.formUrl}" 
-                    class="form-frame"
-                    onload="handleFormLoad()"
-                    onerror="handleFormError()">
-                </iframe>
-            `;
-        }
-
+		function showFormUI(formData) {
+		    const container = document.getElementById('formContainer');
+		    const title = document.getElementById('formTitle');
+		    
+		    // Mantenemos la lógica de actualizar el título, si existe la información
+		    if (formData.trainingInfo) { // Suponiendo que el backend puede enviar esta info
+		        const info = formData.trainingInfo;
+		        title.innerHTML = `📝 Entreno de Hoy - ${info.time || ''} 📍 ${info.location || ''}`;
+		    } else {
+		        title.innerHTML = `📝 Formulario del Día`;
+		    }
+		    
+		    // --- ESTE ES EL CAMBIO CLAVE ---
+		    // En lugar de un iframe, creamos un botón grande y atractivo.
+		    container.innerHTML = `
+		        <div style="text-align: center; padding: 30px;">
+		            <h3 style="margin-bottom: 10px;">¡Listo para el próximo entreno!</h3>
+		            <p style="color: #666; margin-bottom: 25px;">
+		                Por favor, completa el formulario de control antes de la sesión.
+		            </p>
+		            <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">
+		                📋 Abrir Formulario
+		            </a>
+		            <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">
+		                (Se abrirá en una nueva pestaña)
+		            </p>
+		        </div>
+		    `;
+		}
+		
         function showNoTrainingUI(message) {
             const container = document.getElementById('formContainer');
             const title = document.getElementById('formTitle');
