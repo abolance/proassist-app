@@ -602,12 +602,12 @@
 		                            </div>
 		                            
 		                            <div style="display: flex; gap: 10px;">
-		                                <button class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
-		                                <button class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
+		                                <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
+		                                <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
 		                            </div>
 		                            
 		                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-		                                <button class="btn btn-primary" onclick="createForm()" style="width: 100%;">
+		                                <button id="create-form-btn" class="btn btn-primary" onclick="createForm()" style="width: 100%;">
 		                                    📋 Crear Formulario
 		                                </button>
 		                            </div>
@@ -1602,20 +1602,48 @@
         }
 
 		function loadTrainingData(dateString) {
+		    // Obtenemos referencias a los botones y campos una sola vez
+		    const formInputs = [
+		        document.getElementById('start-time'),
+		        document.getElementById('end-time'),
+		        document.getElementById('location'),
+		        document.getElementById('notes')
+		    ];
+		    const actionButtons = [
+		        document.getElementById('save-training-btn'), // <-- Daremos IDs a los botones
+		        document.getElementById('delete-training-btn'),
+		        document.getElementById('create-form-btn')
+		    ];
+		
+		    // Primero, habilitamos todo por si acaso
+		    formInputs.forEach(input => input.disabled = false);
+		    actionButtons.forEach(btn => btn.disabled = false);
+		
 		    const training = trainings[dateString] || {};
 		    
-		    let displayDate = 'dd/mm/aaaa'; // Placeholder
+		    let displayDate = 'dd/mm/aaaa';
 		    if (dateString) {
 		        const parts = dateString.split('-');
 		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 		    }
 		    document.getElementById('selected-date').value = displayDate;
 		    
-		    document.getElementById('start-time').value = training.start || '20:45';
-		    document.getElementById('end-time').value = training.end || '22:30';
-		    document.getElementById('location').value = training.location || '';
-		    document.getElementById('notes').value = training.notes || '';
-		}		
+		    formInputs[0].value = training.start || '20:45';
+		    formInputs[1].value = training.end || '22:30';
+		    formInputs[2].value = training.location || '';
+		    formInputs[3].value = training.notes || '';
+		    
+		    // --- LÓGICA PARA DESHABILITAR ---
+		    if (dateString) {
+		        const today = toYYYYMMDD(new Date());
+		        if (dateString < today) {
+		            // Si la fecha seleccionada es anterior a hoy, deshabilitamos todo
+		            formInputs.forEach(input => input.disabled = true);
+		            actionButtons.forEach(btn => btn.disabled = true);
+		            showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
+		        }
+		    }
+		}
         
         // FUNCIONES DE ENTRENAMIENTO
         async function saveTraining() {
@@ -1682,40 +1710,35 @@
 		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
 		    }
 		}
-		
-        async function deleteTraining() {
+
+		async function deleteTraining() {
 		    if (!selectedDate || !trainings[selectedDate]) {
-		        showAlert('No hay un entrenamiento guardado en esta fecha para eliminar.', 'warning');
+		        showAlert('No hay un entrenamiento seleccionado para eliminar.', 'warning');
 		        return;
 		    }
+		
+		    // Obtenemos el equipo seleccionado
+		    const selectedTeamId = document.getElementById('team-selector').value;
 		    
-		    if (confirm(`¿Estás seguro de que quieres eliminar el entrenamiento del ${selectedDate}? Esta acción no se puede deshacer.`)) {
+		    if (confirm(`¿Estás seguro de que quieres eliminar el entrenamiento del ${selectedDate} para el equipo ${selectedTeamId}?`)) {
 		        try {
-		            // Construimos la URL con los parámetros
 		            const url = new URL(CONFIG.SCRIPT_URL);
 		            url.searchParams.append('action', 'deleteTraining');
 		            url.searchParams.append('userEmail', currentUser.email); // Seguridad
-		            url.searchParams.append('fecha', selectedDate); // La fecha a eliminar
-		
-		            console.log("Intentando eliminar con la URL:", url.toString()); // Debug
+		            url.searchParams.append('fecha', selectedDate);
+		            url.searchParams.append('teamId', selectedTeamId);
 		
 		            const response = await fetch(url);
 		            const data = await response.json();
 		
 		            if (data.success && data.result && data.result.success) {
-		                // Eliminamos el entrenamiento de nuestro objeto local
 		                delete trainings[selectedDate];
-		                
-		                // Limpiamos el formulario y redibujamos todo
-		                document.getElementById('selected-date').value = '';
-		                loadTrainingData(''); // Llama a la función que limpia el formulario
-		                
+		                loadTrainingData(''); // Limpia el formulario
 		                renderCalendar();
 		                updateStats();
-		                
 		                showAlert(data.result.message, 'success');
 		            } else {
-		                const errorMessage = data.error || data.result?.error || "Ocurrió un error desconocido.";
+		                const errorMessage = data.error || data.result?.error || "Error desconocido.";
 		                showAlert('Error al eliminar: ' + errorMessage, 'warning');
 		            }
 		        } catch (error) {
@@ -1723,7 +1746,7 @@
 		            showAlert('Error de conexión. No se pudo eliminar el entrenamiento.', 'warning');
 		        }
 		    }
-		}
+		}        
 
         async function createForm() {
 		    if (!selectedDate || !trainings[selectedDate]) {
