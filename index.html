@@ -575,7 +575,7 @@
 		                    
 		                    <div class="sidebar">
 		                        <h3>📝 Entreno Seleccionado</h3>
-		                        <div id="training-form">
+		                        <div id="training-details-form">
 		                            <div class="form-group">
 		                                <label>📅 Fecha:</label>
 		                                <input type="text" id="selected-date" readonly>
@@ -1599,20 +1599,32 @@
         }
 
 		function loadTrainingData(dateString) {
-		    // Obtenemos referencias a los elementos una sola vez
-		    const formInputs = [
-		        document.getElementById('start-time'),
-		        document.getElementById('end-time'),
-		        document.getElementById('location'),
-		        document.getElementById('notes')
-		    ];
-		    // Referenciamos el contenedor de los botones para ocultarlo/mostrarlo
+		    // Obtenemos referencias a los elementos
+		    const trainingForm = document.getElementById('training-details-form');
 		    const buttonContainer = document.getElementById('action-buttons-container');
 		    
-		    // Primero, reseteamos todo a un estado visible y editable
-		    formInputs.forEach(input => input.disabled = false);
-		    if (buttonContainer) buttonContainer.style.display = 'block';
+		    // --- LÓGICA PRINCIPAL ---
+		    const today = toYYYYMMDD(new Date());
+		    const isPastDate = dateString && dateString < today;
+		    const hasTraining = dateString && trainings[dateString];
 		
+		    // 1. Reseteamos la visibilidad
+		    trainingForm.style.display = 'block';
+		    buttonContainer.style.display = 'block';
+		
+		    // 2. Comprobamos las condiciones para ocultar
+		    if (isPastDate && !hasTraining) {
+		        // Es una fecha pasada Y NO había entreno -> Ocultamos todo
+		        trainingForm.style.display = 'none';
+		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
+		    } else if (isPastDate && hasTraining) {
+		        // Es una fecha pasada Y SÍ había entreno -> Mostramos datos, ocultamos botones
+		        trainingForm.style.display = 'block';
+		        buttonContainer.style.display = 'none';
+		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
+		    }
+		
+		    // 3. Rellenamos los datos (esto solo se verá si el formulario está visible)
 		    const training = trainings[dateString] || {};
 		    
 		    let displayDate = 'dd/mm/aaaa';
@@ -1621,23 +1633,15 @@
 		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 		    }
 		    document.getElementById('selected-date').value = displayDate;
-		    
-		    formInputs[0].value = training.start || '20:45';
-		    formInputs[1].value = training.end || '22:30';
-		    formInputs[2].value = training.location || '';
-		    formInputs[3].value = training.notes || '';
-		    
-		    // --- LÓGICA PARA OCULTAR ---
-		    if (dateString) {
-		        const today = toYYYYMMDD(new Date());
-		        if (dateString < today) {
-		            // Si la fecha seleccionada es anterior a hoy, deshabilitamos los inputs y OCULTAMOS los botones
-		            formInputs.forEach(input => input.disabled = true);
-		            if (buttonContainer) buttonContainer.style.display = 'none';
-		            showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
-		        }
-		    }
-		}		
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		
+		    // 4. Deshabilitamos los inputs si la fecha es pasada (protección extra)
+		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+		    formInputs.forEach(input => input.disabled = isPastDate);
+		}				
         
         // FUNCIONES DE ENTRENAMIENTO
         async function saveTraining() {
