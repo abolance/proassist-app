@@ -1086,35 +1086,37 @@
         // ========================
         // CARGAR DATOS DEL USUARIO
         // ========================
-        async function loadUserData() {
-            if (!currentUser || !currentUser.email) {
-                showError('No hay información de usuario disponible');
-                return;
-            }
-
-            try {
-                // Cargar estadísticas del usuario
-                await loadUserStats();
-                
-                // Cargar historial
-                await loadUserHistory();
-                
-                // Cargar formulario del día
-                await loadTodaysForm();
-                
-                // Cargar estadísticas del equipo para comparación
-                //await loadTeamComparison();
-                
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                showError('Error al cargar los datos del usuario');
-            }
-        }
-
-        async function loadUserStats() {
+		async function loadUserData() {
+		    if (!currentUser || !currentUser.email) {
+		        showError('No hay información de usuario disponible');
+		        return;
+		    }
+		
+		    // --- CLAVE: OBTENEMOS EL ID DEL EQUIPO DE LA JUGADORA ---
+		    // Asumimos que una jugadora solo pertenece a un equipo, así que cogemos el primero de la lista.
+		    const playerTeamId = currentUser.teams[0];
+		    if (!playerTeamId) {
+		        showError("No estás asignada a ningún equipo. Contacta con tu entrenador.");
+		        return;
+		    }
+		
+		    try {
+		        // Pasamos el teamId a las funciones que lo necesitan
+		        await loadUserStats(playerTeamId); 
+		        await loadUserHistory(playerTeamId);
+		        await loadTodaysForm(playerTeamId);
+		        
+		    } catch (error) {
+		        console.error('Error cargando datos de la jugadora:', error);
+		        showError('Error al cargar los datos del usuario');
+		    }
+		}
+        		
+        async function loadUserStats(teamId) {
 		    try {
 		        // Usamos la acción correcta del backend que creamos como placeholder
-		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${encodeURIComponent(currentUser.email)}`);
+		        //const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${encodeURIComponent(currentUser.email)}`);
+				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`);
 		        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 		        
 		        const data = await response.json();
@@ -1223,9 +1225,11 @@
 		// ========================
         // HISTORIAL DE ENTRENAMIENTOS
         // ========================
-        async function loadUserHistory() {
+        async function loadUserHistory(teamId) {
             try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${encodeURIComponent(currentUser.email)}&limit=5`);
+				// Creamos un placeholder para que no falle
+		        document.getElementById('historyList').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><p>Aún no tienes entrenamientos registrados.</p></div>';
+		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}&limit=5`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
@@ -1292,9 +1296,9 @@
         // ========================
         // FORMULARIO DEL DÍA
         // ========================
-        async function loadTodaysForm() {
+        async function loadTodaysForm(teamId) {
             try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${encodeURIComponent(currentUser.email)}`);
+				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${currentUser.email}&teamId=${teamId}`);                
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
