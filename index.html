@@ -746,7 +746,7 @@
 					        
 					        <div class="form-group" style="max-width: 400px;">
 					            <label for="player-selector">Selecciona una jugadora:</label>
-					            <select id="player-selector" class="btn" style="width: 100%; justify-content: start;">
+					            <select id="player-selector" class="btn" style="width: 100%; justify-content: start;" onchange="onPlayerSelected()">
 					                <option value="">-- Cargar jugadoras --</option>
 					            </select>
 					        </div>
@@ -2105,6 +2105,62 @@
                 showAlert('Error de conexión con el backend', 'warning');
                 console.error(error);
             });
-        }	                                                                                                                               
+        }
+
+		/**
+		 * Se activa cuando el entrenador selecciona una jugadora del desplegable.
+		 * Carga y muestra las estadísticas de esa jugadora.
+		 */
+		async function onPlayerSelected() {
+		    const playerSelector = document.getElementById('player-selector');
+		    const selectedEmail = playerSelector.value;
+		    const statsContainer = document.getElementById('individual-player-stats');
+		
+		    if (!selectedEmail) {
+		        statsContainer.style.display = 'none'; // Oculta el contenedor si no hay selección
+		        return;
+		    }
+		
+		    statsContainer.style.display = 'grid'; // Muestra el contenedor
+		    statsContainer.innerHTML = '<div class="card"><div class="spinner"></div><p>Cargando estadísticas...</p></div>'; // Muestra carga
+		
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getPlayerStats');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('playerEmail', selectedEmail);
+		        url.searchParams.append('teamId', selectedTeamId);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success) {
+		            const stats = data.stats;
+		            // Dibujamos las tarjetas de estadísticas individuales
+		            statsContainer.innerHTML = `
+		                <div class="card">
+		                    <div class="stat-value">${stats.attendanceRate}%</div>
+		                    <div class="stat-label">Tasa de Asistencia</div>
+		                </div>
+		                <div class="card">
+		                    <div class="stat-value">${stats.attendedCount} / ${stats.totalResponses}</div>
+		                    <div class="stat-label">Respuestas Afirmativas</div>
+		                </div>
+		                <div class="card">
+		                    <div class="stat-value">${stats.lastResponse}</div>
+		                    <div class="stat-label">Última Respuesta</div>
+		                </div>
+		            `;
+		        } else {
+		            statsContainer.innerHTML = `<div class="alert alert-warning">No se pudieron cargar las estadísticas de la jugadora.</div>`;
+		        }
+		
+		    } catch (error) {
+		        console.error("Error al cargar stats de jugadora:", error);
+		        statsContainer.innerHTML = `<div class="alert alert-warning">Error de conexión.</div>`;
+		    }
+		}
     </script>
 </body>
