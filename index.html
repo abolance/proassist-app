@@ -1601,16 +1601,23 @@
             loadTrainingData(dateString);
         }
 
-        function loadTrainingData(dateString) {
-            const training = trainings[dateString] || {};
-            
-            document.getElementById('selected-date').value = dateString;
-            document.getElementById('start-time').value = training.start || '20:45';
-            document.getElementById('end-time').value = training.end || '22:30';
-            document.getElementById('location').value = training.location || '';
-            document.getElementById('notes').value = training.notes || '';
-        }
-
+		function loadTrainingData(dateString) {
+		    const training = trainings[dateString] || {};
+		    
+		    // Formateamos la fecha YYYY-MM-DD a DD/MM/YYYY para mostrarla
+		    let displayDate = '';
+		    if (dateString) {
+		        const parts = dateString.split('-');
+		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+		    }
+		    document.getElementById('selected-date').value = displayDate;
+		    
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		}
+        
         // FUNCIONES DE ENTRENAMIENTO
         async function saveTraining() {
 		    if (!selectedDate) {
