@@ -613,7 +613,7 @@
 			                            </div>
 			                            
 			                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-			                                <button id="create-form-btn" class="btn btn-primary" onclick="createForm()" style="width: 100%;">
+			                                <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="width: 100%;">
 			                                    📋 Preparar Formulario de Asistencia
 			                                </button>
 			                            </div>
@@ -1771,49 +1771,42 @@
 		    }
 		}        
 
-        async function createForm() {
+        async function prepareForm() {
 		    if (!selectedDate || !trainings[selectedDate]) {
-		        showAlert('Primero debes guardar los detalles del entrenamiento para esta fecha.', 'warning');
+		        showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
 		        return;
 		    }
 		
-		    if (trainings[selectedDate].formId) {
-		        if (!confirm('Ya existe un formulario para este día. ¿Quieres crear uno nuevo y reemplazar el anterior?')) {
-		            return;
-		        }
-		    }
-		
 		    const trainingDetails = trainings[selectedDate];
-		    const createFormButton = event.currentTarget;
-		    createFormButton.disabled = true;
-		    createFormButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Creando...';
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		    const prepareButton = event.currentTarget;
+		
+		    prepareButton.disabled = true;
+		    prepareButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Preparando...';
 		
 		    try {
 		        const url = new URL(CONFIG.SCRIPT_URL);
-		        url.searchParams.append('action', 'createForm'); // <-- Acción correcta
+		        url.searchParams.append('action', 'prepareForm');
 		        url.searchParams.append('userEmail', currentUser.email);
-		        url.searchParams.append('fecha', selectedDate);
-		        url.searchParams.append('start', trainingDetails.start);
-		        url.searchParams.append('end', trainingDetails.end);
-		        url.searchParams.append('location', trainingDetails.location);
-		        url.searchParams.append('notes', trainingDetails.notes);
+		        url.searchParams.append('teamId', selectedTeamId);
+		        // Enviamos todos los detalles como un único string JSON
+		        url.searchParams.append('details', JSON.stringify(trainingDetails));
 		
 		        const response = await fetch(url);
 		        const data = await response.json();
 		
-		        if (data.success && data.formId) {
-		            trainings[selectedDate].formId = data.formId;
-		            //updateStats();
-		            showAlert('¡Formulario creado y enlazado correctamente!', 'success');
+		        if (data.success && data.result.success) {
+		            showAlert(data.result.message, 'success');
 		        } else {
-		            showAlert('Error al crear el formulario: ' + data.error, 'warning');
+		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
+		            showAlert('Error al preparar el formulario: ' + errorMessage, 'warning');
 		        }
 		    } catch (error) {
-		        console.error('Error de conexión al crear formulario:', error);
-		        showAlert('Error de conexión. No se pudo crear el formulario.', 'warning');
+		        console.error('Error de conexión al preparar formulario:', error);
+		        showAlert('Error de conexión. No se pudo preparar el formulario.', 'warning');
 		    } finally {
-		        createFormButton.disabled = false;
-		        createFormButton.innerHTML = '📋 Crear Formulario';
+		        prepareButton.disabled = false;
+		        prepareButton.innerHTML = '📋 Preparar Formulario de Asistencia';
 		    }
 		}
 
