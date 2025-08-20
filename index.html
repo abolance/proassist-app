@@ -601,6 +601,11 @@
 		                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
 		                            </div>
 
+									<div class="form-group">
+									    <label>📄 PDF de la Sesión (Opcional):</label>
+									    <input type="text" id="pdf-id" placeholder="Pega aquí el ID o enlace del archivo de Drive">
+									</div>
+
 									<div id="action-buttons-container">
 			                            <div style="display: flex; gap: 10px;">
 			                                <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
@@ -1654,6 +1659,7 @@
 		    document.getElementById('end-time').value = training.end || '22:30';
 		    document.getElementById('location').value = training.location || '';
 		    document.getElementById('notes').value = training.notes || '';
+			document.getElementById('pdf-id').value = training.pdfId || '';
 		
 		    // 4. Deshabilitamos los inputs si la fecha es pasada (protección extra)
 		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
@@ -1681,6 +1687,7 @@
 		        end: document.getElementById('end-time').value,
 		        location: document.getElementById('location').value,
 		        notes: document.getElementById('notes').value,
+				pdfId: document.getElementById('pdf-id').value
 		    };
 		
 		    try {
@@ -1699,6 +1706,7 @@
 				url.searchParams.append('end', trainingDetails.end);
 				url.searchParams.append('location', trainingDetails.location);
 				url.searchParams.append('notes', trainingDetails.notes);
+				url.searchParams.append('pdfId', trainingDetails.pdfId);
 
 				console.log("Intentando guardar con URL:", url.toString()); // Debug
 		
