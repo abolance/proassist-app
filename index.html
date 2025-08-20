@@ -1017,7 +1017,7 @@
 		            
 		            // Ahora que tenemos los datos, renderizamos todo el panel
 		            renderCalendar();
-		            updateStats();
+		            //updateStats();
 		            
 		        } else {
 		            // Si el backend devuelve un error, lo mostramos
@@ -1529,7 +1529,7 @@
     		document.getElementById(tabName + '-tab').classList.add('active');			
             
             if (tabName === 'stats') {
-                updateStats();
+                //updateStats();
             }
 
 			// --- GUARDAMOS LA PESTAÑA ACTIVA ---
@@ -1720,7 +1720,7 @@
 				if (data.success && data.result && data.result.success) {
 				    trainings[selectedDate] = trainingDetails;
 				    renderCalendar();
-				    updateStats();
+				    //updateStats();
 				    showAlert(data.result.message, 'success');
 				} else {
 				    // Si cualquiera de las condiciones anteriores falla, mostramos el mensaje de error.
@@ -1758,7 +1758,7 @@
 		                delete trainings[selectedDate];
 		                loadTrainingData(''); // Limpia el formulario
 		                renderCalendar();
-		                updateStats();
+		                //updateStats();
 		                showAlert(data.result.message, 'success');
 		            } else {
 		                const errorMessage = data.error || data.result?.error || "Error desconocido.";
@@ -1803,7 +1803,7 @@
 		
 		        if (data.success && data.formId) {
 		            trainings[selectedDate].formId = data.formId;
-		            updateStats();
+		            //updateStats();
 		            showAlert('¡Formulario creado y enlazado correctamente!', 'success');
 		        } else {
 		            showAlert('Error al crear el formulario: ' + data.error, 'warning');
@@ -1862,7 +1862,7 @@
             }
             
             renderCalendar();
-            updateStats();
+            //updateStats();
             showAlert(`🔄 ${generated} entrenamientos generados automáticamente`, 'success');
         }
 
@@ -1870,24 +1870,73 @@
             if (confirm('¿Estás seguro de eliminar TODOS los entrenamientos? Esta acción no se puede deshacer.')) {
                 trainings = {};
                 renderCalendar();
-                updateStats();
+                //updateStats();
                 showAlert('🗑️ Todos los entrenamientos eliminados', 'warning');
             }
         }
 
         // FUNCIONES DE ESTADÍSTICAS
-        function updateStats() {
-            const trainingCount = Object.keys(trainings).length;
-            const formsCount = Object.values(trainings).filter(t => t.formId).length;
-            
-            document.getElementById('stat-trainings').textContent = trainingCount;
-            document.getElementById('stat-forms').textContent = formsCount;
-            document.getElementById('stat-responses').textContent = Math.floor(Math.random() * 50); // Simulado
-            document.getElementById('stat-players').textContent = Math.floor(Math.random() * 20) + 10; // Simulado
-            
-            // Actualizar lista de próximos entrenamientos
-            updateUpcomingTrainings();
-        }
+        /**
+		 * Carga y muestra TODAS las estadísticas del panel de admin/coach para un equipo.
+		 * Esta función se llamará al cambiar de pestaña a "Estadísticas".
+		 */
+		async function loadAdminStats(teamId) {
+		    if (!teamId) return;
+		
+		    // Muestra placeholders de carga
+		    document.getElementById('stat-avg-attendance').textContent = '...';
+		    document.getElementById('stat-total-trainings').textContent = '...';
+		    document.getElementById('stat-upcoming-trainings').textContent = '...';
+		    document.getElementById('stat-total-players').textContent = '...';
+		    document.getElementById('player-selector').innerHTML = '<option>Cargando...</option>';
+		
+		    try {
+		        // 1. Cargar estadísticas generales del equipo
+		        let response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamStats&teamId=${teamId}&userEmail=${currentUser.email}`);
+		        let data = await response.json();
+		        if (data.success) {
+		            document.getElementById('stat-avg-attendance').textContent = `${data.stats.avgAttendance}%`;
+		            document.getElementById('stat-total-trainings').textContent = data.stats.totalTrainings;
+		            document.getElementById('stat-upcoming-trainings').textContent = data.stats.upcomingTrainings;
+		            document.getElementById('stat-total-players').textContent = data.stats.totalPlayers;
+		        }
+		
+		        // 2. Cargar la lista de jugadoras
+		        response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayersByTeam&teamId=${teamId}&userEmail=${currentUser.email}`);
+		        data = await response.json();
+		        if (data.success) {
+		            const playerSelector = document.getElementById('player-selector');
+		            playerSelector.innerHTML = '<option value="">-- Selecciona una jugadora --</option>'; // Opción por defecto
+		            data.players.forEach(player => {
+		                const option = document.createElement('option');
+		                option.value = player.email;
+		                option.textContent = player.name;
+		                playerSelector.appendChild(option);
+		            });
+		        }
+		
+		    } catch (error) {
+		        console.error("Error al cargar estadísticas del admin:", error);
+		        showAlert('No se pudieron cargar las estadísticas del equipo.', 'warning');
+		    }
+		}
+		
+		// Modificamos showTab para que llame a la nueva función
+		function showTab(tabName) {
+		    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+		    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+		    
+		    const clickedTab = event.currentTarget;
+		    clickedTab.classList.add('active');
+		    document.getElementById(tabName + '-tab').classList.add('active');
+		    
+		    if (tabName === 'stats') {
+		        const selectedTeamId = document.getElementById('team-selector').value;
+		        loadAdminStats(selectedTeamId); // Llama a la nueva función
+		    }
+		    
+		    sessionStorage.setItem('proassist_active_tab', tabName);
+		}
 
         function updateUpcomingTrainings() {
 		    const container = document.getElementById('upcoming-trainings');
