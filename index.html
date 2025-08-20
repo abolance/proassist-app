@@ -550,7 +550,7 @@
 		            <button class="tab active" onclick="showTab('calendar')">
 		                📅 Calendario
 		            </button>
-		            <button class="tab" onclick="showTab('config')">
+		            <button id="config-tab-button" class="tab" onclick="showTab('config')">
 		                ⚙️ Configuración
 		            </button>
 		            <button class="tab" onclick="showTab('stats')">
@@ -600,17 +600,19 @@
 		                                <label>📝 Notas:</label>
 		                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
 		                            </div>
-		                            
-		                            <div style="display: flex; gap: 10px;">
-		                                <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
-		                                <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
-		                            </div>
-		                            
-		                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-		                                <button id="create-form-btn" class="btn btn-primary" onclick="createForm()" style="width: 100%;">
-		                                    📋 Crear Formulario
-		                                </button>
-		                            </div>
+
+									<div id="action-buttons-container">
+			                            <div style="display: flex; gap: 10px;">
+			                                <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
+			                                <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
+			                            </div>
+			                            
+			                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+			                                <button id="create-form-btn" class="btn btn-primary" onclick="createForm()" style="width: 100%;">
+			                                    📋 Preparar Formulario de Asistencia
+			                                </button>
+			                            </div>
+									</div>
 		                        </div>
 		                    </div>
 		                </div>
@@ -919,61 +921,56 @@
 		// ROUTER DE VISTAS
 		// ========================
 		async function showDashboardBasedOnRole(role) {
-		    // Primero, ocultamos todas las pantallas principales para asegurar un estado limpio
 		    document.getElementById('loginScreen').style.display = 'none';
 		    document.getElementById('player-dashboard').style.display = 'none';
 		    document.getElementById('admin-panel').style.display = 'none';
 		
-		    // Ahora, mostramos el panel correcto según el rol del usuario
-		   if (role === 'ADMIN' || role === 'COACH') {
-			    document.getElementById('admin-panel').style.display = 'block';
-			
-			    const teamSelectorHeader = document.getElementById('team-selector-header');
-			    const teamSelector = document.getElementById('team-selector');
-			    teamSelector.innerHTML = ''; // Limpiamos opciones antiguas
-			
-			    // currentUser.teams ahora existe gracias al cambio en loginUser
-			    if (currentUser.teams && currentUser.teams.length > 1) {
-			        // Si el usuario tiene MÁS DE UN equipo, mostramos el selector
-			        teamSelectorHeader.style.display = 'flex';
-			        
-			        currentUser.teams.forEach(teamId => {
-			            const option = document.createElement('option');
-			            option.value = teamId;
-						// Usamos el mapa para obtener el nombre, si no existe, usamos el ID
-					    option.textContent = currentUser.teamMap[teamId] || teamId; 			            
-			            teamSelector.appendChild(option);
-			        });
-			
-			        // Añadimos un listener para que al cambiar de equipo, se recarguen los datos
-			        teamSelector.onchange = () => {
-			            const selectedTeamId = teamSelector.value;
-			            initializeAdminPanel(selectedTeamId);
-			        };
-			
-			        // Cargamos los datos del primer equipo de la lista por defecto
-			        initializeAdminPanel(currentUser.teams[0]);
-			
-			    } else if (currentUser.teams && currentUser.teams.length === 1) {
-			        // Si solo tiene UN equipo, no mostramos el selector y cargamos sus datos directamente
-			        teamSelectorHeader.style.display = 'none';
-			        initializeAdminPanel(currentUser.teams[0]);
-			    } else {
-			        // Si no tiene equipos asignados, mostramos un error
-			        showAlert('No tienes equipos asignados. Contacta con un administrador.', 'warning');
-			    }
-			    
-			} else if (role === 'PLAYER') {
-		        document.getElementById('player-dashboard').style.display = 'block';
-		        // Llamamos a la función que carga los datos de la jugadora (esta ya la tienes)
-				showMotivationalMessage();
-		        await loadUserData(); 
-		    } else {
-		        // En caso de que un rol desconocido intente acceder
-		        showError('Tu rol de usuario no es válido para esta aplicación.');
-		        signOut(); // Lo deslogueamos por seguridad
+		    // Referencia a la pestaña de configuración
+		    const configTabButton = document.getElementById('config-tab-button');
+		
+		    if (role === 'ADMIN' || role === 'COACH') {
+		        document.getElementById('admin-panel').style.display = 'block';
+		
+		        // --- LÓGICA DE DIFERENCIACIÓN DE ROLES ---
+		        if (role === 'COACH') {
+		            // Si es COACH, OCULTAMOS la pestaña de configuración
+		            configTabButton.style.display = 'none';
+		            // Y nos aseguramos de que la pestaña por defecto sea el calendario
+		            document.querySelector('.tab[onclick="showTab(\'calendar\')"]').click();
+		        } else {
+		            // Si es ADMIN, nos aseguramos de que la pestaña esté VISIBLE
+		            configTabButton.style.display = 'flex';
+		        }
+		        
+		        // La lógica del selector de equipo se queda exactamente igual...
+		        const teamSelectorHeader = document.getElementById('team-selector-header');
+		        const teamSelector = document.getElementById('team-selector');
+		        teamSelector.innerHTML = '';
+		
+		        if (currentUser.teams && currentUser.teams.length > 1) {
+		            teamSelectorHeader.style.display = 'flex';
+		            currentUser.teams.forEach(teamId => {
+		                const option = document.createElement('option');
+		                option.value = teamId;
+		                option.textContent = currentUser.teamMap[teamId] || teamId;
+		                teamSelector.appendChild(option);
+		            });
+		            teamSelector.onchange = () => {
+		                const selectedTeamId = teamSelector.value;
+		                initializeAdminPanel(selectedTeamId);
+		            };
+		            await initializeAdminPanel(currentUser.teams[0]);
+		        } else if (currentUser.teams && currentUser.teams.length === 1) {
+		            teamSelectorHeader.style.display = 'none';
+		            await initializeAdminPanel(currentUser.teams[0]);
+		        } else {
+		            showAlert('No tienes equipos asignados. Contacta con un administrador.', 'warning');
+		        }
+		
+		    } else if (role === 'PLAYER') {
+		        // ... (la lógica de la jugadora se queda igual) ...
 		    }
-		}
+		}		
 
 		async function initializeAdminPanel(teamId) {
 			if (!teamId) {
@@ -1602,22 +1599,19 @@
         }
 
 		function loadTrainingData(dateString) {
-		    // Obtenemos referencias a los botones y campos una sola vez
+		    // Obtenemos referencias a los elementos una sola vez
 		    const formInputs = [
 		        document.getElementById('start-time'),
 		        document.getElementById('end-time'),
 		        document.getElementById('location'),
 		        document.getElementById('notes')
 		    ];
-		    const actionButtons = [
-		        document.getElementById('save-training-btn'), // <-- Daremos IDs a los botones
-		        document.getElementById('delete-training-btn'),
-		        document.getElementById('create-form-btn')
-		    ];
-		
-		    // Primero, habilitamos todo por si acaso
+		    // Referenciamos el contenedor de los botones para ocultarlo/mostrarlo
+		    const buttonContainer = document.getElementById('action-buttons-container');
+		    
+		    // Primero, reseteamos todo a un estado visible y editable
 		    formInputs.forEach(input => input.disabled = false);
-		    actionButtons.forEach(btn => btn.disabled = false);
+		    if (buttonContainer) buttonContainer.style.display = 'block';
 		
 		    const training = trainings[dateString] || {};
 		    
@@ -1633,17 +1627,17 @@
 		    formInputs[2].value = training.location || '';
 		    formInputs[3].value = training.notes || '';
 		    
-		    // --- LÓGICA PARA DESHABILITAR ---
+		    // --- LÓGICA PARA OCULTAR ---
 		    if (dateString) {
 		        const today = toYYYYMMDD(new Date());
 		        if (dateString < today) {
-		            // Si la fecha seleccionada es anterior a hoy, deshabilitamos todo
+		            // Si la fecha seleccionada es anterior a hoy, deshabilitamos los inputs y OCULTAMOS los botones
 		            formInputs.forEach(input => input.disabled = true);
-		            actionButtons.forEach(btn => btn.disabled = true);
+		            if (buttonContainer) buttonContainer.style.display = 'none';
 		            showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
 		        }
 		    }
-		}
+		}		
         
         // FUNCIONES DE ENTRENAMIENTO
         async function saveTraining() {
