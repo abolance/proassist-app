@@ -712,34 +712,51 @@
 		
 		            <!-- ESTADÍSTICAS TAB -->
 		            <div id="stats-tab" class="tab-panel">
-		                <div class="stats-grid">
-		                    <div class="card">
-		                        <div class="stat-value" id="stat-trainings">0</div>
-		                        <div class="stat-label">Entrenamientos Programados</div>
-		                    </div>
-		                    
-		                    <div class="card">
-		                        <div class="stat-value" id="stat-forms">0</div>
-		                        <div class="stat-label">Formularios Creados</div>
-		                    </div>
-		                    
-		                    <div class="card">
-		                        <div class="stat-value" id="stat-responses">0</div>
-		                        <div class="stat-label">Respuestas Recibidas</div>
-		                    </div>
-		                    
-		                    <div class="card">
-		                        <div class="stat-value" id="stat-players">0</div>
-		                        <div class="stat-label">Jugadoras Activas</div>
-		                    </div>
-		                </div>
-		
+						<!-- 1. Estadísticas Generales del Equipo -->
+					    <div class="stats-grid" id="team-stats-summary">
+					        <!-- Los datos se cargarán aquí desde el backend -->
+					        <div class="card">
+					            <div class="stat-value" id="stat-avg-attendance">- %</div>
+					            <div class="stat-label">Asistencia Media</div>
+					        </div>
+					        <div class="card">
+					            <div class="stat-value" id="stat-total-trainings">-</div>
+					            <div class="stat-label">Entrenamientos Planificados</div>
+					        </div>
+					        <div class="card">
+					            <div class="stat-value" id="stat-upcoming-trainings">-</div>
+					            <div class="stat-label">Próximos Entrenamientos</div>
+					        </div>
+					        <div class="card">
+					            <div class="stat-value" id="stat-total-players">-</div>
+					            <div class="stat-label">Jugadoras en el Equipo</div>
+					        </div>
+					    </div>
+					
+					    <hr style="margin: 2rem 0;">
+					
+					    <!-- 2. Estadísticas por Jugadora -->
+					    <div id="player-stats-section">
+					        <h3 style="margin-bottom: 1rem;">Análisis por Jugadora</h3>
+					        
+					        <div class="form-group" style="max-width: 400px;">
+					            <label for="player-selector">Selecciona una jugadora:</label>
+					            <select id="player-selector" class="btn" style="width: 100%; justify-content: start;">
+					                <option value="">-- Cargar jugadoras --</option>
+					            </select>
+					        </div>
+					
+					        <div class="stats-grid" id="individual-player-stats" style="display: none; margin-top: 1.5rem;">
+					            <!-- Aquí se mostrarán las estadísticas de la jugadora seleccionada -->
+					        </div>
+					    </div>								                
 		                <div class="training-list">
 		                    <h3 style="padding: 1rem; background: #f8f9fa; margin: 0;">📅 Próximos Entrenamientos</h3>
 		                    <div id="upcoming-trainings">
 		                        <!-- Se genera con JavaScript -->
 		                    </div>
 		                </div>
+						
 		            </div>
 		        </div>
 			</div>
