@@ -1617,6 +1617,14 @@
 		        showAlert('Por favor, selecciona una fecha en el calendario primero.', 'warning');
 		        return;
 		    }
+
+			// --- CAMBIO CLAVE AQUÍ: OBTENER EL EQUIPO SELECCIONADO ---
+		    const teamSelector = document.getElementById('team-selector');
+		    const selectedTeamId = teamSelector.value;
+		    if (!selectedTeamId) {
+		        showAlert('Error: No se ha seleccionado ningún equipo.', 'warning');
+		        return;
+		    }
 		    
 		    const trainingDetails = {
 		        fecha: selectedDate,
@@ -1634,6 +1642,7 @@
 				const url = new URL(CONFIG.SCRIPT_URL);
 				url.searchParams.append('action', 'saveTraining');
 				url.searchParams.append('userEmail', currentUser.email);
+				url.searchParams.append('teamId', selectedTeamId); // <-- Lo añadimos a la URL
 				
 				// 2.2. Añadimos cada pieza del entrenamiento como un parámetro simple
 				url.searchParams.append('fecha', trainingDetails.fecha);
@@ -1642,13 +1651,12 @@
 				url.searchParams.append('location', trainingDetails.location);
 				url.searchParams.append('notes', trainingDetails.notes);
 
-				console.log("Intentando llamar a la siguiente URL:");
-        		console.log(url.toString());
+				console.log("Intentando guardar con URL:", url.toString()); // Debug
 		
 		        // 3. Hacemos la petición GET a la nueva URL
 		        const response = await fetch(url); // No se necesita method, por defecto es GET
-		
 		        const data = await response.json();
+				
 				// Primero, comprobamos si la respuesta general del backend fue exitosa.
 				// Luego, nos aseguramos de que el objeto 'result' existe.
 				// Y finalmente, comprobamos si la operación específica de guardado fue exitosa.
