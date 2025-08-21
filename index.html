@@ -621,10 +621,11 @@
 									</div>
 
 									<div id="action-buttons-container" style="margin-top: 1.5rem; border-top: 1px solid #ddd; padding-top: 1.5rem;">
-									    <div style="display: flex; gap: 10px; align-items: center;">
-									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()" style="flex: 1;">✅ Guardar</button>
-									        <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="flex: 2; padding: 12px 20px;">📋 Preparar Formulario</button>
-									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()" style="flex: 1;">🗑️ Eliminar</button>
+									    <!-- Usaremos CSS Grid para un control perfecto del layout -->
+									    <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 10px;">
+									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
+									        <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()">📋 Preparar Formulario</button>
+									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
 									    </div>
 									</div>
 		                        </div>
