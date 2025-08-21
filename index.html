@@ -1055,17 +1055,41 @@
             }
         }
 
-        function showFormUI(formData) {
-            const container = document.getElementById('formContainer');
-            container.innerHTML = `
-                <div style="text-align: center; padding: 30px;">
-                    <h3 style="margin-bottom: 10px;">¡Listo para el próximo entreno!</h3>
-                    <p style="color: #666; margin-bottom: 25px;">Por favor, completa el formulario de control antes de la sesión.</p>
-                    <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
-                    <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">(Se abrirá en una nueva pestaña)</p>
-                </div>
-            `;
-        }
+		function showFormUI(formData) {
+		    const container = document.getElementById('formContainer');
+		    const title = document.getElementById('formTitle');
+		    
+		    let displayHtml = '';
+		    
+		    if (formData.formUrl && formData.trainingInfo) {
+		        const info = formData.trainingInfo;
+		        // Formateamos la fecha para mostrarla
+		        const parts = info.fecha.split('-');
+		        const displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+		
+		        // Actualizamos el título de la sección
+		        title.innerHTML = `📝 Próximo Entreno: ${displayDate}`;
+		        
+		        // Creamos el botón para abrir el formulario
+		        displayHtml = `
+		            <div style="text-align: center; padding: 30px;">
+		                <h3 style="margin-bottom: 10px;">¡Listo para el entreno del ${displayDate}!</h3>
+		                <p style="color: #666; margin-bottom: 25px;">
+		                    Por favor, completa el formulario de asistencia.
+		                </p>
+		                <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">
+		                    📋 Abrir Formulario
+		                </a>
+		                <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">(Se abrirá en una nueva pestaña)</p>
+		            </div>
+		        `;
+		    } else {
+		        // Si algo falla, mostramos un mensaje genérico
+		        title.innerHTML = `📝 Formulario del Día`;
+		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">No hay formulario disponible.</div>`;
+		    }		    
+		    container.innerHTML = displayHtml;
+		}
         
         function showNoTrainingUI(message) {
             const container = document.getElementById('formContainer');
