@@ -775,41 +775,35 @@
 
     <script>
         // ========================
-        // CONFIGURACIÓN
+        // CONFIGURACIÓN Y GLOBALES
         // ========================
         const CONFIG = {
             CLIENT_ID: '231457973375-lu8n54s56es213oqg5r3c5huas7golbb.apps.googleusercontent.com',
             SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzxB3VoZ5qEgsO1Q9c5k3_JGRE60Fgnwt3BVfHRf0RTZsYZMdofEX91yBJ4jvDbYyj_Mg/exec',
             SCOPES: 'email profile',
-			RESPONSES_SHEET_NAME: 'Todas_Las_Respuestas',
-            AUTO_REFRESH_INTERVAL: 300000, // 5 minutos
+            AUTO_REFRESH_INTERVAL: 300000,
         };
 
-		const FRASES_MOTIVACIONALES = [
-		    { title: "⚽ ¡A por Todas!", text: "El talento depende de la inspiración, pero el esfuerzo depende de cada una." },
-		    { title: "🔥 Espíritu de Equipo", text: "Juegas para el nombre en el frente de la camiseta, y se acordarán del nombre en la espalda." },
-		    { title: "🎯 Precisión y Pasión", text: "Cada entrenamiento es una oportunidad para ser mejor que ayer. ¡No la desperdicies!" },
-		    { title: "🌟 Brilla en el Campo", text: "No sueñes con el éxito. Entrena para conseguirlo. ¡Vamos!" },
-		    { title: "🏆 Mentalidad Ganadora", text: "Las campeonas no se hacen en los partidos, se hacen en los entrenamientos diarios." },
-		    { title: "💪 Fuerza y Coraje", text: "La diferencia entre lo posible y lo imposible reside en tu determinación." },
-		    { title: "🧠 Juega con Inteligencia", text: "El balón es tu amigo, el campo tu lienzo. ¡Crea tu obra de arte hoy!" }
-		];
+        const FRASES_MOTIVACIONALES = [
+            { title: "⚽ ¡A por Todas!", text: "El talento depende de la inspiración, pero el esfuerzo depende de cada una." },
+            { title: "🔥 Espíritu de Equipo", text: "Juegas para el nombre en el frente de la camiseta, y se acordarán del nombre en la espalda." },
+            { title: "🎯 Precisión y Pasión", text: "Cada entrenamiento es una oportunidad para ser mejor que ayer. ¡No la desperdicies!" },
+            { title: "🌟 Brilla en el Campo", text: "No sueñes con el éxito. Entrena para conseguirlo. ¡Vamos!" },
+            { title: "🏆 Mentalidad Ganadora", text: "Las campeonas no se hacen en los partidos, se hacen en los entrenamientos diarios." },
+        ];
 
-        // Variables globales
         let currentUser = null;
         let refreshInterval = null;
-		// --- Variables Globales para el Panel de Administrador ---
-		let currentDate = new Date(); // Controla el mes y año que muestra el calendario
-		let selectedDate = null;      // Guarda la fecha que el admin ha seleccionado (ej: '2025-08-19')
-		let trainings = {};           // Almacena los entrenamientos cargados desde el backend
+        let currentDate = new Date();
+        let selectedDate = null;
+        let trainings = {};
 
-		// --- Función de Utilidad para Fechas ---
-		function toYYYYMMDD(date) {
-		    const anio = date.getFullYear();
-		    const mes = String(date.getMonth() + 1).padStart(2, '0'); // +1 porque los meses empiezan en 0
-		    const dia = String(date.getDate()).padStart(2, '0');
-		    return `${anio}-${mes}-${dia}`;
-		}
+        function toYYYYMMDD(date) {
+            const anio = date.getFullYear();
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const dia = String(date.getDate()).padStart(2, '0');
+            return `${anio}-${mes}-${dia}`;
+        }
 
         // ========================
         // INICIALIZACIÓN
@@ -819,19 +813,14 @@
         });
 
         function initializeApp() {
-            // Configurar botones
             document.getElementById('signInButton').addEventListener('click', signIn);
-            document.getElementById('logoutButton').addEventListener('click', signOut);
-
-            // Cargar Google Identity Services
+            document.getElementById('logoutButton').addEventListener('click', signOut); // Solo hay un logout button ahora
             if (typeof google !== 'undefined') {
                 google.accounts.id.initialize({
                     client_id: CONFIG.CLIENT_ID,
                     callback: handleCredentialResponse
                 });
             }
-
-            // Verificar si ya hay sesión activa
             checkExistingSession();
         }
 
@@ -841,7 +830,6 @@
         function signIn() {
             document.getElementById('loginLoading').style.display = 'block';
             document.getElementById('signInButton').style.display = 'none';
-
             google.accounts.oauth2.initTokenClient({
                 client_id: CONFIG.CLIENT_ID,
                 scope: CONFIG.SCOPES,
@@ -859,7 +847,6 @@
         }
 
         function handleCredentialResponse(response) {
-            // Decodificar JWT token
             const userInfo = parseJwt(response.credential);
             loginUser(userInfo);
         }
@@ -867,14 +854,11 @@
         async function fetchUserInfo(accessToken) {
             try {
                 const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    }
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
-                
                 if (response.ok) {
                     const userInfo = await response.json();
-                    loginUser(userInfo);
+                    await loginUser(userInfo);
                 } else {
                     throw new Error('Error al obtener información del usuario');
                 }
@@ -886,175 +870,97 @@
         }
 
         async function loginUser(userInfo) {
-		    try {
-		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
-		        
-		        // Si la respuesta NO es OK (ej. 404, 500), leemos el texto del error y lo lanzamos
-		        if (!response.ok) {
-		            const errorText = await response.text();
-		            throw new Error(`El servidor respondió con un error ${response.status}: ${errorText}`);
-		        }
-		
-		        const accessData = await response.json();
-		
-		        if (accessData.status === 'granted') {		            
-					currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams, teamMap: accessData.teamMap };
-					sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
-		            updateGreeting();
-		            await showDashboardBasedOnRole(accessData.role);
-		            startAutoRefresh(); 
-		        } else {
-		            // Esto es si el backend nos deniega el acceso explícitamente
-		            throw new Error(`Acceso denegado por el servidor: ${accessData.reason}`);
-		        }
-		    } catch (error) {
-		        // Este bloque ahora capturará tanto errores de red (CORS) como los errores que lanzamos nosotros.
-		        console.error('--- ERROR DE AUTORIZACIÓN DETALLADO ---');
-		        console.error(error); // <-- Esto nos dará el mensaje de error real y sin filtros.
-		        showError('No se pudo verificar tus permisos. Revisa la consola para más detalles.');
-		        resetLoginScreen();
-		    }
-		}
-
-        function checkExistingSession() {
-		    const savedUser = sessionStorage.getItem('proassist_user');
-		    if (savedUser) {
-		        currentUser = JSON.parse(savedUser);
-				updateGreeting();
-		        // Usamos nuestro router también aquí para restaurar la vista correcta
-		        showDashboardBasedOnRole(currentUser.role);
-		        startAutoRefresh();
-		    }
-		}
-
-        function signOut() {
-            // Limpiar datos
-            currentUser = null;
-            sessionStorage.removeItem('proassist_user');
-            
-            // Detener auto-refresh
-            stopAutoRefresh();
-            
-            // Mostrar pantalla de login
-            showLoginScreen();            
+            try {
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`El servidor respondió con un error ${response.status}: ${errorText}`);
+                }
+                const accessData = await response.json();
+                if (accessData.status === 'granted') {
+                    currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams, teamMap: accessData.teamMap };
+                    sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
+                    updateGreeting();
+                    await showDashboardBasedOnRole(accessData.role);
+                    startAutoRefresh();
+                } else {
+                    throw new Error(`Acceso denegado por el servidor: ${accessData.reason}`);
+                }
+            } catch (error) {
+                console.error('--- ERROR DE AUTORIZACIÓN DETALLADO ---', error);
+                showError('No se pudo verificar tus permisos. Revisa la consola para más detalles.');
+                resetLoginScreen();
+            }
         }
 
-		// ========================
-		// ROUTER DE VISTAS
-		// ========================
-		async function showDashboardBasedOnRole(role) {
-		    document.getElementById('loginScreen').style.display = 'none';
-		    document.getElementById('player-dashboard').style.display = 'none';
-		    document.getElementById('admin-panel').style.display = 'none';
-		
-		    // Referencia a la pestaña de configuración
-		    const configTabButton = document.getElementById('config-tab-button');
-		
-		    if (role === 'ADMIN' || role === 'COACH') {
-		        document.getElementById('admin-panel').style.display = 'block';
-		
-		        // --- LÓGICA DE DIFERENCIACIÓN DE ROLES ---
-		        if (role === 'COACH') {
-		            // Si es COACH, OCULTAMOS la pestaña de configuración
-		            configTabButton.style.display = 'none';
-		            // Y nos aseguramos de que la pestaña por defecto sea el calendario
-		            document.querySelector('.tab[onclick="showTab(\'calendar\')"]').click();
-		        } else {
-		            // Si es ADMIN, nos aseguramos de que la pestaña esté VISIBLE
-		            configTabButton.style.display = 'flex';
-		        }
-		        
-		        // La lógica del selector de equipo se queda exactamente igual...
-		        const teamSelectorHeader = document.getElementById('team-selector-header');
-		        const teamSelector = document.getElementById('team-selector');
-		        teamSelector.innerHTML = '';
-		
-		        if (currentUser.teams && currentUser.teams.length > 1) {
-		            teamSelectorHeader.style.display = 'flex';
-		            currentUser.teams.forEach(teamId => {
-		                const option = document.createElement('option');
-		                option.value = teamId;
-		                option.textContent = currentUser.teamMap[teamId] || teamId;
-		                teamSelector.appendChild(option);
-		            });
-		            teamSelector.onchange = () => {
-		                const selectedTeamId = teamSelector.value;
-		                initializeAdminPanel(selectedTeamId);
-		            };
-		            await initializeAdminPanel(currentUser.teams[0]);
-		        } else if (currentUser.teams && currentUser.teams.length === 1) {
-		            teamSelectorHeader.style.display = 'none';
-		            await initializeAdminPanel(currentUser.teams[0]);
-		        } else {
-		            showAlert('No tienes equipos asignados. Contacta con un administrador.', 'warning');
-		        }
-		
-		    } else if (role === 'PLAYER') {
-		        // ... (la lógica de la jugadora se queda igual) ...
-		    }
-		}		
+        async function checkExistingSession() {
+            const savedUser = sessionStorage.getItem('proassist_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateGreeting();
+                await showDashboardBasedOnRole(currentUser.role);
+                startAutoRefresh();
+            }
+        }
 
-		async function initializeAdminPanel(teamId) {
-			if (!teamId) {
-		        console.error("initializeAdminPanel fue llamado sin un teamId.");
-		        return;
-		    }
-		    console.log(`Inicializando panel para el equipo: ${teamId}...`);		    
-			trainings = {}; // Reseteamos los datos para evitar "fantasmas"			
-		    
-		    // Muestra un estado de carga mientras se obtienen los datos
-		    document.getElementById('calendar-month').textContent = 'Cargando datos...';
-		
-		    try {
-		        // Llama al backend para obtener todos los entrenamientos
-				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTrainings&teamId=${teamId}`);
-		        const data = await response.json();
-		
-		        if (data.success) {
-		            // Si la llamada es exitosa, guarda los entrenamientos en nuestra variable global
-		            trainings = data.trainings;
-		            console.log('Entrenamientos cargados:', trainings);
-		            
-		            // Ahora que tenemos los datos, renderizamos todo el panel
-		            renderCalendar();
-		            //updateStats();
-		            
-		        } else {
-		            // Si el backend devuelve un error, lo mostramos
-		            showAlert('Error al cargar entrenamientos: ' + data.error, 'warning');
-		        }
-		    } catch (error) {
-		        // Si hay un error de red, también lo mostramos
-		        console.error('Error de conexión al cargar entrenamientos:', error);
-		        showAlert('Error de conexión. No se pudieron cargar los datos.', 'warning');
-		    }
-		    
-		    // La configuración de los campos (form base id, etc.) la podemos seguir
-		    // cargando desde localStorage por ahora, o crear otra llamada al backend más adelante.
-		    loadConfiguration();
+        function signOut() {
+            currentUser = null;
+            sessionStorage.removeItem('proassist_user');
+            stopAutoRefresh();
+            showLoginScreen();
+        }
 
-			// --- RESTAURAMOS LA PESTAÑA ACTIVA ---
-		    const activeTab = sessionStorage.getItem('proassist_active_tab');
-		    if (activeTab) {
-		        // Buscamos el botón de la pestaña y lo "clickamos" para restaurar el estado
-		        // Usamos un querySelector para encontrar el botón que llama a la función con el nombre de la pestaña
-		        const tabButton = document.querySelector(`.tab[onclick="showTab('${activeTab}')"]`);
-		        if (tabButton) {
-		            tabButton.click();
-		        }
-		    }
-		}
-		
         // ========================
-        // UI NAVIGATION
+        // ROUTER Y NAVEGACIÓN
         // ========================
+        async function showDashboardBasedOnRole(role) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('player-dashboard').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
+            const configTabButton = document.getElementById('config-tab-button');
+
+            if (role === 'ADMIN' || role === 'COACH') {
+                document.getElementById('admin-panel').style.display = 'block';
+                if (role === 'COACH') {
+                    configTabButton.style.display = 'none';
+                    document.querySelector('.tab[onclick="showTab(\'calendar\')"]').click();
+                } else {
+                    configTabButton.style.display = 'flex';
+                }
+                
+                const teamSelectorHeader = document.getElementById('team-selector-header');
+                const teamSelector = document.getElementById('team-selector');
+                teamSelector.innerHTML = '';
+
+                if (currentUser.teams && currentUser.teams.length > 1) {
+                    teamSelectorHeader.style.display = 'flex';
+                    currentUser.teams.forEach(teamId => {
+                        const option = document.createElement('option');
+                        option.value = teamId;
+                        option.textContent = currentUser.teamMap[teamId] || teamId;
+                        teamSelector.appendChild(option);
+                    });
+                    teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
+                    await initializeAdminPanel(currentUser.teams[0]);
+                } else if (currentUser.teams && currentUser.teams.length === 1) {
+                    teamSelectorHeader.style.display = 'none';
+                    await initializeAdminPanel(currentUser.teams[0]);
+                } else {
+                    showAlert('No tienes equipos asignados.', 'warning');
+                }
+            } else if (role === 'PLAYER') {
+                document.getElementById('player-dashboard').style.display = 'block';
+                showMotivationalMessage();
+                await loadUserData();
+            }
+        }
+
         function showLoginScreen() {
-    		document.getElementById('loginScreen').style.display = 'flex';
-		    // Ocultamos AMBOS dashboards para asegurar un estado limpio
-		    document.getElementById('player-dashboard').style.display = 'none';
-		    document.getElementById('admin-panel').style.display = 'none';
-		    resetLoginScreen();
-		}        		
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('player-dashboard').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'none';
+            resetLoginScreen();
+        }
 
         function resetLoginScreen() {
             document.getElementById('loginLoading').style.display = 'none';
@@ -1062,250 +968,86 @@
         }
 
         // ========================
-        // SALUDO PERSONALIZADO
+        // LÓGICA DASHBOARD JUGADORA
         // ========================
         function updateGreeting() {
             if (!currentUser) return;
-            
             const now = new Date();
             const hour = now.getHours();
-            let greeting;
-            
-            if (hour < 12) {
-                greeting = '🌅 Buenos días';
-            } else if (hour < 18) {
-                greeting = '☀️ Buenas tardes';
-            } else {
-                greeting = '🌙 Buenas noches';
-            }
-            
+            let greeting = (hour < 12) ? '🌅 Buenos días' : (hour < 18) ? '☀️ Buenas tardes' : '🌙 Buenas noches';
             const firstName = currentUser.name ? currentUser.name.split(' ')[0] : 'Jugadora';
             document.getElementById('greeting').textContent = `${greeting}, ${firstName}!`;
         }
 
-        // ========================
-        // CARGAR DATOS DEL USUARIO
-        // ========================
-		async function loadUserData() {
-		    if (!currentUser || !currentUser.email) {
-		        showError('No hay información de usuario disponible');
-		        return;
-		    }
-		
-		    // --- CLAVE: OBTENEMOS EL ID DEL EQUIPO DE LA JUGADORA ---
-		    // Asumimos que una jugadora solo pertenece a un equipo, así que cogemos el primero de la lista.
-		    const playerTeamId = currentUser.teams[0];
-		    if (!playerTeamId) {
-		        showError("No estás asignada a ningún equipo. Contacta con tu entrenador.");
-		        return;
-		    }
-		
-		    try {
-		        // Pasamos el teamId a las funciones que lo necesitan
-		        await loadUserStats(playerTeamId); 
-		        await loadUserHistory(playerTeamId);
-		        await loadTodaysForm(playerTeamId);
-		        
-		    } catch (error) {
-		        console.error('Error cargando datos de la jugadora:', error);
-		        showError('Error al cargar los datos del usuario');
-		    }
-		}
-        		
-        async function loadUserStats(teamId) {
-		    try {
-		        // Usamos la acción correcta del backend que creamos como placeholder
-		        //const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${encodeURIComponent(currentUser.email)}`);
-				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`);
-		        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-		        
-		        const data = await response.json();
-		        // La respuesta del backend ahora es { success: true, stats: {...} }
-		        if (data.success) {
-		            updateStatsUI(data.stats);		            		        
-		        } else {
-		            console.error('Error del servidor:', data.error);
-		            showDefaultStats();
-		        }
-		    } catch (error) {
-		        console.error('Error cargando estadísticas:', error);
-		        showDefaultStats();
-		    }
-		}
-
-		function updateStatsUI(stats) {
-		    // --- SECCIÓN DE "MIS ESTADÍSTICAS" (Esto ya estaba bien) ---
-		    document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
-		    document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-		    
-		    const attendanceProgress = Math.min(100, stats.attendanceRate || 0);
-		    document.getElementById('attendanceProgress').style.width = `${attendanceProgress}%`;
-		    
-		    const monthlyProgress = Math.min(100, ((stats.monthlyTrainings || 0) / (stats.monthlyGoal || 1)) * 100);
-		    document.getElementById('monthlyProgressBar').style.width = `${monthlyProgress}%`;
-		    document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`;
-		
-		    // --- SECCIÓN DE "COMPARACIÓN CON EQUIPO" (Aquí está la corrección) ---
-		    // Rellenamos los nuevos campos que creamos
-		    document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-		    document.getElementById('myAttendanceProgress').style.width = `${attendanceProgress}%`;
-		    
-		    // El 'teamAverageRate' y 'teamAverageProgress' los dejaremos para cuando activemos la lógica de equipo.
-		    // Las siguientes líneas son las que causaban el error. Las eliminamos:
-		    // document.getElementById('currentStreak').textContent = stats.currentStreak || 0; // <-- ELIMINADA
-		    // document.getElementById('myRanking').textContent = `#${stats.ranking || '-'}`;      // <-- ELIMINADA
-		    
-		    // Actualizar última actividad
-		    if (stats.lastActivity) {
-		        const lastDate = new Date(stats.lastActivity);
-		        const formattedDate = lastDate.toLocaleDateString('es-ES', {
-		            day: 'numeric', month: 'long', year: 'numeric'
-		        });
-		        document.getElementById('lastActivity').textContent = `Último entreno: ${formattedDate}`;
-		    }
-		}
-
-		function showDefaultStats() {
-		    document.getElementById('totalTrainings').textContent = '0';
-		    document.getElementById('attendanceRate').textContent = '0%';
-		    document.getElementById('monthlyProgress').textContent = '0/0';
-		    
-		    // Nuevos campos de comparación
-		    document.getElementById('myAttendanceRate').textContent = '0%';
-		    document.getElementById('teamAverageRate').textContent = '-'; // Aún no tenemos este dato
-		    
-		    // Las siguientes líneas causaban el error. Las eliminamos:
-		    // document.getElementById('currentStreak').textContent = '0'; // <-- ELIMINADA
-		    // document.getElementById('myRanking').textContent = '-';     // <-- ELIMINADA
-		    
-		    document.getElementById('lastActivity').textContent = 'Aún no hay actividad registrada';
-		}        
-
-        async function loadTeamComparison() {
-            try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamStats`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const data = await response.json();
-                if (data.success) {
-                    updateTeamComparisonUI(data.stats);
-                }
-            } catch (error) {
-                console.error('Error cargando comparación de equipo:', error);
-                document.getElementById('teamAverage').textContent = '-';
-                document.getElementById('performanceComparison').textContent = '-';
-            }
-        }
-
-        function updateTeamComparisonUI(teamStats) {
-            document.getElementById('teamAverage').textContent = `${teamStats.averageAttendance || 0}%`;
-            
-            // Calcular comparación de rendimiento
-            const userAttendance = parseInt(document.getElementById('attendanceRate').textContent) || 0;
-            const teamAverage = teamStats.averageAttendance || 0;
-            
-            let performanceText, performanceWidth;
-            if (userAttendance > teamAverage) {
-                const diff = userAttendance - teamAverage;
-                performanceText = `+${diff}% sobre la media`;
-                performanceWidth = Math.min(100, 50 + (diff / teamAverage) * 50);
-            } else if (userAttendance < teamAverage) {
-                const diff = teamAverage - userAttendance;
-                performanceText = `-${diff}% bajo la media`;
-                performanceWidth = Math.max(0, 50 - (diff / teamAverage) * 50);
-            } else {
-                performanceText = 'En la media del equipo';
-                performanceWidth = 50;
-            }
-            
-            document.getElementById('performanceComparison').textContent = performanceText;
-            document.getElementById('performanceBar').style.width = `${performanceWidth}%`;
-        }
-		
-		// ========================
-        // HISTORIAL DE ENTRENAMIENTOS
-        // ========================
-        async function loadUserHistory(teamId) {
-            try {
-				// Creamos un placeholder para que no falle
-		        document.getElementById('historyList').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><p>Aún no tienes entrenamientos registrados.</p></div>';
-		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}&limit=5`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const data = await response.json();
-                if (data.success) {
-                    updateHistoryUI(data.history);
-                } else {
-                    showHistoryError();
-                }
-            } catch (error) {
-                console.error('Error cargando historial:', error);
-                showHistoryError();
-            }
-        }
-		
-		function updateHistoryUI(history) {
-            const historyList = document.getElementById('historyList');
-            
-            if (!history || history.length === 0) {
-                historyList.innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: #666;">
-                        <p>Aún no tienes entrenamientos registrados</p>
-                        <p style="font-size: 0.9rem;">¡Completa tu primer formulario!</p>
-                    </div>
-                `;
+        async function loadUserData() {
+            if (!currentUser || !currentUser.email) {
+                showError('No hay información de usuario disponible');
                 return;
             }
-
-            historyList.innerHTML = history.map(item => {
-                const date = new Date(item.date);
-                const formattedDate = date.toLocaleDateString('es-ES', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short'
-                });
-                
-                const statusClass = item.completed ? 'status-completed' : 'status-missed';
-                const statusText = item.completed ? 'Completado' : 'No asistió';
-                
-                return `
-                    <div class="history-item">
-                        <div>
-                            <div class="history-date">${formattedDate}</div>
-                            <div style="font-size: 0.8rem; color: #666;">${item.time || 'Horario no especificado'}</div>
-                        </div>
-                        <div class="history-status ${statusClass}">
-                            ${statusText}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const playerTeamId = currentUser.teams[0];
+            if (!playerTeamId) {
+                showError("No estás asignada a ningún equipo.");
+                return;
+            }
+            try {
+                await Promise.all([
+                    loadUserStats(playerTeamId),
+                    loadUserHistory(playerTeamId),
+                    loadTodaysForm(playerTeamId)
+                ]);
+            } catch (error) {
+                console.error('Error cargando datos de la jugadora:', error);
+                showError('Error al cargar los datos del usuario');
+            }
         }
 
-        function showHistoryError() {
-            document.getElementById('historyList').innerHTML = `
-                <div style="text-align: center; padding: 20px; color: #666;">
-                    <p>Error al cargar el historial</p>
-                    <button onclick="loadUserHistory()" style="margin-top: 10px; padding: 5px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                        Reintentar
-                    </button>
-                </div>
-            `;
+        async function loadUserStats(teamId) {
+            try {
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                if (data.success) {
+                    updateStatsUI(data.stats);
+                } else {
+                    showDefaultStats();
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+                showDefaultStats();
+            }
         }
 
-        // ========================
-        // FORMULARIO DEL DÍA
-        // ========================
+        function updateStatsUI(stats) {
+            document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
+            document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+            document.getElementById('attendanceProgress').style.width = `${Math.min(100, stats.attendanceRate || 0)}%`;
+            document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`;
+            document.getElementById('monthlyProgressBar').style.width = `${Math.min(100, ((stats.monthlyTrainings || 0) / (stats.monthlyGoal || 1)) * 100)}%`;
+            document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+            document.getElementById('myAttendanceProgress').style.width = `${Math.min(100, stats.attendanceRate || 0)}%`;
+        }
+
+        function showDefaultStats() {
+            document.getElementById('totalTrainings').textContent = '0';
+            document.getElementById('attendanceRate').textContent = '0%';
+            document.getElementById('monthlyProgress').textContent = '0/0';
+            document.getElementById('myAttendanceRate').textContent = '0%';
+        }
+
+        async function loadUserHistory(teamId) {
+            // Placeholder
+            document.getElementById('historyList').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><p>Aún no tienes entrenamientos registrados.</p></div>';
+        }
+
         async function loadTodaysForm(teamId) {
             try {
-				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${currentUser.email}&teamId=${teamId}`);                
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${currentUser.email}&teamId=${teamId}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
                 const data = await response.json();
                 if (data.success && data.formUrl) {
                     showFormUI(data);
                 } else {
-                    showNoTrainingUI(data.message || 'No hay entreno programado para hoy');
+                    showNoTrainingUI(data.error || 'No hay entreno programado para hoy');
                 }
             } catch (error) {
                 console.error('Error cargando formulario del día:', error);
@@ -1313,286 +1055,121 @@
             }
         }
 
-		function showFormUI(formData) {
-		    const container = document.getElementById('formContainer');
-		    const title = document.getElementById('formTitle');
-		    
-		    // Mantenemos la lógica de actualizar el título, si existe la información
-		    if (formData.trainingInfo) { // Suponiendo que el backend puede enviar esta info
-		        const info = formData.trainingInfo;
-		        title.innerHTML = `📝 Entreno de Hoy - ${info.time || ''} 📍 ${info.location || ''}`;
-		    } else {
-		        title.innerHTML = `📝 Formulario del Día`;
-		    }
-		    
-		    // --- ESTE ES EL CAMBIO CLAVE ---
-		    // En lugar de un iframe, creamos un botón grande y atractivo.
-		    container.innerHTML = `
-		        <div style="text-align: center; padding: 30px;">
-		            <h3 style="margin-bottom: 10px;">¡Listo para el próximo entreno!</h3>
-		            <p style="color: #666; margin-bottom: 25px;">
-		                Por favor, completa el formulario de control antes de la sesión.
-		            </p>
-		            <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">
-		                📋 Abrir Formulario
-		            </a>
-		            <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">
-		                (Se abrirá en una nueva pestaña)
-		            </p>
-		        </div>
-		    `;
-		}
-		
-        function showNoTrainingUI(message) {
+        function showFormUI(formData) {
             const container = document.getElementById('formContainer');
-            const title = document.getElementById('formTitle');
-            
-            title.textContent = '📅 Información del Día';
             container.innerHTML = `
-                <div class="no-training">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">😴</div>
-                    <h3 style="margin-bottom: 10px;">No hay entreno hoy</h3>
-                    <p style="color: #666; margin-bottom: 20px;">${message}</p>
-                    <p style="font-size: 0.9rem; color: #888;">
-                        ¡Descansa y prepárate para el próximo entreno!
-                    </p>
+                <div style="text-align: center; padding: 30px;">
+                    <h3 style="margin-bottom: 10px;">¡Listo para el próximo entreno!</h3>
+                    <p style="color: #666; margin-bottom: 25px;">Por favor, completa el formulario de control antes de la sesión.</p>
+                    <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
+                    <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">(Se abrirá en una nueva pestaña)</p>
                 </div>
             `;
+        }
+        
+        function showNoTrainingUI(message) {
+            const container = document.getElementById('formContainer');
+            container.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;">😴<p style="margin-top:1rem;">${message}</p></div>`;
         }
 
         function showFormError() {
-            const container = document.getElementById('formContainer');
-            container.innerHTML = `
-                <div class="no-training">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
-                    <h3 style="margin-bottom: 10px;">Error al cargar formulario</h3>
-                    <p style="color: #666; margin-bottom: 20px;">
-                        No se pudo cargar el formulario del día
-                    </p>
-                    <button onclick="loadTodaysForm()" 
-                            style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        Reintentar
-                    </button>
-                </div>
-            `;
+            // Similar a showNoTrainingUI
+            showNoTrainingUI('Error al cargar el formulario del día.');
         }
 
-        // ========================
-        // MENSAJES MOTIVACIONALES
-        // ========================
-		function showMotivationalMessage() {
-		    const messageDiv = document.getElementById('motivationalMessage');
-		    const titleEl = document.getElementById('motivationalTitle');
-		    const textEl = document.getElementById('motivationalText');
-		
-		    // 1. Elegir una frase aleatoria de nuestro banco de frases
-		    const randomIndex = Math.floor(Math.random() * FRASES_MOTIVACIONALES.length);
-		    const randomPhrase = FRASES_MOTIVACIONALES[randomIndex];
-		
-		    // 2. Asignar el título y el texto
-		    titleEl.textContent = randomPhrase.title;
-		    textEl.textContent = randomPhrase.text;
-		
-		    // 3. Mostrar el mensaje
-		    messageDiv.style.display = 'block';
-		
-		    // 4. Ocultarlo después de 10 segundos para no saturar
-		    setTimeout(() => {
-		        // Añadimos una transición suave para que desaparezca
-		        messageDiv.style.transition = 'opacity 0.5s';
-		        messageDiv.style.opacity = '0';
-		        // Y lo ocultamos del layout después de la transición
-		        setTimeout(() => {
-		            messageDiv.style.display = 'none';
-		            messageDiv.style.opacity = '1'; // Lo reseteamos para la próxima vez
-		            messageDiv.style.transition = '';
-		        }, 500);
-		    }, 10000);
-		}        
-
-        // ========================
-        // AUTO-REFRESH
-        // ========================
-        function startAutoRefresh() {
-            // Limpiar intervalo existente
-            stopAutoRefresh();
-            
-            // Crear nuevo intervalo
-            refreshInterval = setInterval(() => {
-                showRefreshIndicator();
-                loadUserData();
-            }, CONFIG.AUTO_REFRESH_INTERVAL);
-        }
-
-        function stopAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-                refreshInterval = null;
-            }
-        }
-
-        function showRefreshIndicator() {
-            const indicator = document.getElementById('refreshIndicator');
-            indicator.classList.remove('hidden');
-            
+        function showMotivationalMessage() {
+            const messageDiv = document.getElementById('motivationalMessage');
+            const titleEl = document.getElementById('motivationalTitle');
+            const textEl = document.getElementById('motivationalText');
+            const randomIndex = Math.floor(Math.random() * FRASES_MOTIVACIONALES.length);
+            const randomPhrase = FRASES_MOTIVACIONALES[randomIndex];
+            titleEl.textContent = randomPhrase.title;
+            textEl.textContent = randomPhrase.text;
+            messageDiv.style.display = 'block';
             setTimeout(() => {
-                indicator.classList.add('hidden');
-            }, 2000);
+                messageDiv.style.transition = 'opacity 0.5s';
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transition = '';
+                }, 500);
+            }, 10000);
         }
 
         // ========================
-        // UTILIDADES
+        // LÓGICA PANEL ADMIN/COACH
         // ========================
-        function parseJwt(token) {
+        async function initializeAdminPanel(teamId) {
+            if (!teamId) {
+                console.error("initializeAdminPanel fue llamado sin un teamId.");
+                return;
+            }
+            console.log(`Inicializando panel para el equipo: ${teamId}...`);
+            trainings = {};
+            document.getElementById('calendar-month').textContent = 'Cargando datos...';
             try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (error) {
-                console.error('Error parsing JWT:', error);
-                return null;
-            }
-        }
-
-        function showError(message) {
-            // Crear notificación de error
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #ff4757;
-                color: white;
-                padding: 15px 25px;
-                border-radius: 10px;
-                box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-                z-index: 10000;
-                font-weight: bold;
-                max-width: 400px;
-                text-align: center;
-            `;
-            errorDiv.textContent = message;
-            
-            document.body.appendChild(errorDiv);
-            
-            // Auto-remove después de 5 segundos
-            setTimeout(() => {
-                if (errorDiv.parentNode) {
-                    errorDiv.parentNode.removeChild(errorDiv);
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTrainings&teamId=${teamId}`);
+                const data = await response.json();
+                if (data.success) {
+                    trainings = data.trainings;
+                    console.log('Entrenamientos cargados:', trainings);
+                    renderCalendar();
+                    const activeTab = sessionStorage.getItem('proassist_active_tab') || 'calendar';
+                    const tabButton = document.querySelector(`.tab[onclick="showTab('${activeTab}')"]`);
+                    if (tabButton) tabButton.click();
+                } else {
+                    showAlert('Error al cargar entrenamientos: ' + data.error, 'warning');
                 }
-            }, 5000);
+            } catch (error) {
+                console.error('Error de conexión al cargar entrenamientos:', error);
+                showAlert('Error de conexión. No se pudieron cargar los datos.', 'warning');
+            }
+            loadConfiguration();
         }
-
-        // Funciones para el iframe del formulario
-        function handleFormLoad() {
-            console.log('Formulario cargado correctamente');
-        }
-
-        function handleFormError() {
-            console.error('Error al cargar el formulario');
-            showFormError();
-        }
-
-        // ========================
-        // EVENT LISTENERS GLOBALES
-        // ========================
         
-        // Detectar cuando el usuario regresa a la pestaña
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden && currentUser) {
-                loadUserData(); // Refrescar datos
-            }
-        });
-
-        // Detectar errores globales
-        window.addEventListener('error', function(e) {
-            console.error('Error global:', e.error);
-            if (e.error.message && e.error.message.includes('fetch')) {
-                showError('Error de conexión. Por favor verifica tu internet.');
-            }
-        });
-
-        // Limpiar al cerrar la ventana
-        window.addEventListener('beforeunload', function() {
-            stopAutoRefresh();
-        });
-	
-        // FUNCIONES DE PESTAÑAS
         function showTab(tabName) {
-            // Ocultar todas las pestañas
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-            
-            // Usamos event.currentTarget para asegurarnos de que es el botón
-    		const clickedTab = event.currentTarget;
-			clickedTab.classList.add('active');
-    		document.getElementById(tabName + '-tab').classList.add('active');			
-            
+            const clickedTab = event.currentTarget;
+            clickedTab.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
             if (tabName === 'stats') {
-                //updateStats();
+                const selectedTeamId = document.getElementById('team-selector').value;
+                loadAdminStats(selectedTeamId);
             }
-
-			// --- GUARDAMOS LA PESTAÑA ACTIVA ---
-    		sessionStorage.setItem('proassist_active_tab', tabName);
+            sessionStorage.setItem('proassist_active_tab', tabName);
         }
 
-        // FUNCIONES DE CALENDARIO
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            
-            // Actualizar título
-            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            document.getElementById('calendar-month').textContent = `${monthNames[month]} ${year}`;
-            
-            // Generar grid del calendario
+            document.getElementById('calendar-month').textContent = `${['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][month]} ${year}`;
             const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
-            
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
-            
-            // Headers de días
-            const dayHeaders = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-            dayHeaders.forEach(day => {
+            ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].forEach(day => {
                 const header = document.createElement('div');
                 header.className = 'calendar-day-header';
                 header.textContent = day;
                 grid.appendChild(header);
             });
-            
-            // Días del calendario
-            const current = new Date(startDate);
+            let current = new Date(firstDay);
+            current.setDate(current.getDate() - firstDay.getDay());
             for (let i = 0; i < 42; i++) {
                 const dayElement = document.createElement('div');
                 dayElement.className = 'calendar-day';
                 dayElement.textContent = current.getDate();
-                
-                const dateString = toYYYYMMDD(current); // Usamos nuestra nueva función
+                const dateString = toYYYYMMDD(current);
                 dayElement.dataset.date = dateString;
-                
-                // Clases adicionales
-                if (current.getMonth() !== month) {
-                    dayElement.classList.add('other-month');
-                }
-                
+                if (current.getMonth() !== month) dayElement.classList.add('other-month');
                 if (trainings[dateString]) {
                     dayElement.classList.add('has-training');
                     const indicator = document.createElement('div');
                     indicator.className = 'training-indicator';
                     dayElement.appendChild(indicator);
                 }
-                
-                // Event listener
                 dayElement.addEventListener('click', () => selectDate(dateString));
-                
                 grid.appendChild(dayElement);
                 current.setDate(current.getDate() + 1);
             }
@@ -1609,555 +1186,276 @@
         }
 
         function selectDate(dateString) {
-            // Remover selección anterior
-            document.querySelectorAll('.calendar-day.selected').forEach(day => {
-                day.classList.remove('selected');
-            });
-            
-            // Seleccionar nuevo día
+            document.querySelectorAll('.calendar-day.selected').forEach(day => day.classList.remove('selected'));
             const dayElement = document.querySelector(`[data-date="${dateString}"]`);
-            if (dayElement) {
-                dayElement.classList.add('selected');
-            }
-            
+            if (dayElement) dayElement.classList.add('selected');
             selectedDate = dateString;
             loadTrainingData(dateString);
         }
 
-		function loadTrainingData(dateString) {
-		    // Obtenemos referencias a los elementos
-		    const trainingForm = document.getElementById('training-details-form');
-		    const buttonContainer = document.getElementById('action-buttons-container');
-		    
-		    // --- LÓGICA PRINCIPAL ---
-		    const today = toYYYYMMDD(new Date());
-		    const isPastDate = dateString && dateString < today;
-		    const hasTraining = dateString && trainings[dateString];
-		
-		    // 1. Reseteamos la visibilidad
-		    trainingForm.style.display = 'block';
-		    buttonContainer.style.display = 'block';
-		
-		    // 2. Comprobamos las condiciones para ocultar
-		    if (isPastDate && !hasTraining) {
-		        // Es una fecha pasada Y NO había entreno -> Ocultamos todo
-		        trainingForm.style.display = 'none';
-		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
-		    } else if (isPastDate && hasTraining) {
-		        // Es una fecha pasada Y SÍ había entreno -> Mostramos datos, ocultamos botones
-		        trainingForm.style.display = 'block';
-		        buttonContainer.style.display = 'none';
-		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
-		    }
-		
-		    // 3. Rellenamos los datos (esto solo se verá si el formulario está visible)
-		    const training = trainings[dateString] || {};
-		    
-		    let displayDate = 'dd/mm/aaaa';
-		    if (dateString) {
-		        const parts = dateString.split('-');
-		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-		    }
-		    document.getElementById('selected-date').value = displayDate;
-		    document.getElementById('start-time').value = training.start || '20:45';
-		    document.getElementById('end-time').value = training.end || '22:30';
-		    document.getElementById('location').value = training.location || '';
-		    document.getElementById('notes').value = training.notes || '';
-			document.getElementById('pdf-id').value = training.pdfId || '';
-		
-		    // 4. Deshabilitamos los inputs si la fecha es pasada (protección extra)
-		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
-		    formInputs.forEach(input => input.disabled = isPastDate);
-		}				
-        
-        // FUNCIONES DE ENTRENAMIENTO
+        function loadTrainingData(dateString) {
+            const trainingForm = document.getElementById('training-details-form');
+            const buttonContainer = document.getElementById('action-buttons-container');
+            const today = toYYYYMMDD(new Date());
+            const isPastDate = dateString && dateString < today;
+            const hasTraining = dateString && trainings[dateString];
+            
+            trainingForm.style.display = 'block';
+            buttonContainer.style.display = 'block';
+
+            if (isPastDate && !hasTraining) {
+                trainingForm.style.display = 'none';
+                showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
+            } else if (isPastDate && hasTraining) {
+                buttonContainer.style.display = 'none';
+                showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
+            }
+
+            const training = trainings[dateString] || {};
+            let displayDate = 'dd/mm/aaaa';
+            if (dateString) {
+                const parts = dateString.split('-');
+                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            document.getElementById('selected-date').value = displayDate;
+            document.getElementById('start-time').value = training.start || '20:45';
+            document.getElementById('end-time').value = training.end || '22:30';
+            document.getElementById('location').value = training.location || '';
+            document.getElementById('notes').value = training.notes || '';
+            document.getElementById('pdf-id').value = training.pdfId || '';
+            
+            const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+            formInputs.forEach(input => input.disabled = isPastDate);
+        }
+
         async function saveTraining() {
-		    if (!selectedDate) {
-		        showAlert('Por favor, selecciona una fecha en el calendario primero.', 'warning');
-		        return;
-		    }
+            if (!selectedDate) return showAlert('Por favor, selecciona una fecha en el calendario.', 'warning');
+            const selectedTeamId = document.getElementById('team-selector').value;
+            if (!selectedTeamId) return showAlert('Error: No se ha seleccionado ningún equipo.', 'warning');
+            
+            const trainingDetails = {
+                fecha: selectedDate,
+                start: document.getElementById('start-time').value,
+                end: document.getElementById('end-time').value,
+                location: document.getElementById('location').value,
+                notes: document.getElementById('notes').value,
+                pdfId: document.getElementById('pdf-id').value
+            };
+            try {
+                const url = new URL(CONFIG.SCRIPT_URL);
+                url.searchParams.append('action', 'saveTraining');
+                url.searchParams.append('userEmail', currentUser.email);
+                url.searchParams.append('teamId', selectedTeamId);
+                Object.keys(trainingDetails).forEach(key => url.searchParams.append(key, trainingDetails[key]));
+                
+                console.log("Intentando guardar con URL:", url.toString());
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.success && data.result && data.result.success) {
+                    trainings[selectedDate] = trainingDetails;
+                    renderCalendar();
+                    showAlert(data.result.message, 'success');
+                } else {
+                    const errorMessage = data.error || data.result?.error || "Ocurrió un error desconocido.";
+                    showAlert('Error al guardar: ' + errorMessage, 'warning');
+                }
+            } catch (error) {
+                console.error('Error de conexión al guardar:', error);
+                showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
+            }
+        }
 
-			// --- CAMBIO CLAVE AQUÍ: OBTENER EL EQUIPO SELECCIONADO ---
-		    const teamSelector = document.getElementById('team-selector');
-		    const selectedTeamId = teamSelector.value;
-		    if (!selectedTeamId) {
-		        showAlert('Error: No se ha seleccionado ningún equipo.', 'warning');
-		        return;
-		    }
-		    
-		    const trainingDetails = {
-		        fecha: selectedDate,
-		        start: document.getElementById('start-time').value,
-		        end: document.getElementById('end-time').value,
-		        location: document.getElementById('location').value,
-		        notes: document.getElementById('notes').value,
-				pdfId: document.getElementById('pdf-id').value
-		    };
-		
-		    try {
-		        // 1. Convertimos los detalles a un string JSON
-		        const detailsString = JSON.stringify(trainingDetails);
-		        
-				// 2.1. Creamos la URL base
-				const url = new URL(CONFIG.SCRIPT_URL);
-				url.searchParams.append('action', 'saveTraining');
-				url.searchParams.append('userEmail', currentUser.email);
-				url.searchParams.append('teamId', selectedTeamId); // <-- Lo añadimos a la URL
-				
-				// 2.2. Añadimos cada pieza del entrenamiento como un parámetro simple
-				url.searchParams.append('fecha', trainingDetails.fecha);
-				url.searchParams.append('start', trainingDetails.start);
-				url.searchParams.append('end', trainingDetails.end);
-				url.searchParams.append('location', trainingDetails.location);
-				url.searchParams.append('notes', trainingDetails.notes);
-				url.searchParams.append('pdfId', trainingDetails.pdfId);
-
-				console.log("Intentando guardar con URL:", url.toString()); // Debug
-		
-		        // 3. Hacemos la petición GET a la nueva URL
-		        const response = await fetch(url); // No se necesita method, por defecto es GET
-		        const data = await response.json();
-				
-				// Primero, comprobamos si la respuesta general del backend fue exitosa.
-				// Luego, nos aseguramos de que el objeto 'result' existe.
-				// Y finalmente, comprobamos si la operación específica de guardado fue exitosa.
-				if (data.success && data.result && data.result.success) {
-				    trainings[selectedDate] = trainingDetails;
-				    renderCalendar();
-				    //updateStats();
-				    showAlert(data.result.message, 'success');
-				} else {
-				    // Si cualquiera de las condiciones anteriores falla, mostramos el mensaje de error.
-				    // Usamos data.error para el error general, o data.result.error para el específico.
-				    const errorMessage = data.error || data.result?.error || "Ocurrió un error desconocido.";
-				    showAlert('Error al guardar: ' + errorMessage, 'warning');
-				}
-		    } catch (error) {
-		        console.error('Error de conexión al guardar:', error);
-		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
-		    }
-		}
-
-		async function deleteTraining() {
-		    if (!selectedDate || !trainings[selectedDate]) {
-		        showAlert('No hay un entrenamiento seleccionado para eliminar.', 'warning');
-		        return;
-		    }
-		
-		    // Obtenemos el equipo seleccionado
-		    const selectedTeamId = document.getElementById('team-selector').value;
-		    
-		    if (confirm(`¿Estás seguro de que quieres eliminar el entrenamiento del ${selectedDate} para el equipo ${selectedTeamId}?`)) {
-		        try {
-		            const url = new URL(CONFIG.SCRIPT_URL);
-		            url.searchParams.append('action', 'deleteTraining');
-		            url.searchParams.append('userEmail', currentUser.email); // Seguridad
-		            url.searchParams.append('fecha', selectedDate);
-		            url.searchParams.append('teamId', selectedTeamId);
-		
-		            const response = await fetch(url);
-		            const data = await response.json();
-		
-		            if (data.success && data.result && data.result.success) {
-		                delete trainings[selectedDate];
-		                loadTrainingData(''); // Limpia el formulario
-		                renderCalendar();
-		                //updateStats();
-		                showAlert(data.result.message, 'success');
-		            } else {
-		                const errorMessage = data.error || data.result?.error || "Error desconocido.";
-		                showAlert('Error al eliminar: ' + errorMessage, 'warning');
-		            }
-		        } catch (error) {
-		            console.error('Error de conexión al eliminar:', error);
-		            showAlert('Error de conexión. No se pudo eliminar el entrenamiento.', 'warning');
-		        }
-		    }
-		}        
+        async function deleteTraining() {
+            if (!selectedDate || !trainings[selectedDate]) return showAlert('No hay un entrenamiento seleccionado para eliminar.', 'warning');
+            const selectedTeamId = document.getElementById('team-selector').value;
+            if (confirm(`¿Estás seguro de que quieres eliminar el entrenamiento del ${selectedDate} para el equipo ${selectedTeamId}?`)) {
+                try {
+                    const url = new URL(CONFIG.SCRIPT_URL);
+                    url.searchParams.append('action', 'deleteTraining');
+                    url.searchParams.append('userEmail', currentUser.email);
+                    url.searchParams.append('fecha', selectedDate);
+                    url.searchParams.append('teamId', selectedTeamId);
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.success && data.result && data.result.success) {
+                        delete trainings[selectedDate];
+                        loadTrainingData('');
+                        renderCalendar();
+                        showAlert(data.result.message, 'success');
+                    } else {
+                        const errorMessage = data.error || data.result?.error || "Error desconocido.";
+                        showAlert('Error al eliminar: ' + errorMessage, 'warning');
+                    }
+                } catch (error) {
+                    console.error('Error de conexión al eliminar:', error);
+                    showAlert('Error de conexión. No se pudo eliminar el entrenamiento.', 'warning');
+                }
+            }
+        }
 
         async function prepareForm() {
-		    if (!selectedDate || !trainings[selectedDate]) {
-		        showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
-		        return;
-		    }
-		
-		    const trainingDetails = trainings[selectedDate];
-		    const selectedTeamId = document.getElementById('team-selector').value;
-		    const prepareButton = event.currentTarget;
-		
-		    prepareButton.disabled = true;
-		    prepareButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Preparando...';
-		
-		    try {
-		        const url = new URL(CONFIG.SCRIPT_URL);
-		        url.searchParams.append('action', 'prepareForm');
-		        url.searchParams.append('userEmail', currentUser.email);
-		        url.searchParams.append('teamId', selectedTeamId);
-		        // Enviamos todos los detalles como un único string JSON
-		        url.searchParams.append('details', JSON.stringify(trainingDetails));
-		
-		        const response = await fetch(url);
-		        const data = await response.json();
-		
-		        if (data.success && data.result.success) {
-		            showAlert(data.result.message, 'success');
-		        } else {
-		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
-		            showAlert('Error al preparar el formulario: ' + errorMessage, 'warning');
-		        }
-		    } catch (error) {
-		        console.error('Error de conexión al preparar formulario:', error);
-		        showAlert('Error de conexión. No se pudo preparar el formulario.', 'warning');
-		    } finally {
-		        prepareButton.disabled = false;
-		        prepareButton.innerHTML = '📋 Preparar Formulario de Asistencia';
-		    }
-		}
-
-        // FUNCIONES DE CONFIGURACIÓN
-        function toggleDay(day) {
-            const checkbox = document.getElementById(`enable-${day}`);
-            const dayElement = document.getElementById(`day-${day}`);
-            
-            if (checkbox.checked) {
-                dayElement.classList.add('active');
-            } else {
-                dayElement.classList.remove('active');
+            if (!selectedDate || !trainings[selectedDate]) return showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
+            const trainingDetails = trainings[selectedDate];
+            const selectedTeamId = document.getElementById('team-selector').value;
+            const prepareButton = event.currentTarget;
+            prepareButton.disabled = true;
+            prepareButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Preparando...';
+            try {
+                const url = new URL(CONFIG.SCRIPT_URL);
+                url.searchParams.append('action', 'prepareForm');
+                url.searchParams.append('userEmail', currentUser.email);
+                url.searchParams.append('teamId', selectedTeamId);
+                url.searchParams.append('details', JSON.stringify(trainingDetails));
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.success && data.result.success) {
+                    showAlert(data.result.message, 'success');
+                } else {
+                    const errorMessage = data.error || data.result?.error || "Error desconocido.";
+                    showAlert('Error al preparar el formulario: ' + errorMessage, 'warning');
+                }
+            } catch (error) {
+                console.error('Error de conexión al preparar formulario:', error);
+                showAlert('Error de conexión. No se pudo preparar el formulario.', 'warning');
+            } finally {
+                prepareButton.disabled = false;
+                prepareButton.innerHTML = '📋 Preparar Formulario de Asistencia';
             }
         }
 
-        function generateTrainings() {
-            const days = ['tuesday', 'thursday', 'friday'];
-            const dayNumbers = { tuesday: 2, thursday: 4, friday: 5 };
-            
-            let generated = 0;
-            const today = new Date();
-            
-            // Generar para las próximas 4 semanas
-            for (let week = 0; week < 4; week++) {
-                days.forEach(day => {
-                    const checkbox = document.getElementById(`enable-${day}`);
-                    if (!checkbox.checked) return;
-                    
-                    const targetDate = new Date(today);
-                    const daysToAdd = (dayNumbers[day] - today.getDay() + 7) % 7 + (week * 7);
-                    targetDate.setDate(today.getDate() + daysToAdd);
-                    
-                    const dateString = targetDate.toISOString().split('T')[0];
-                    
-                    if (!trainings[dateString]) {
-                        trainings[dateString] = {
-                            start: document.getElementById(`${day}-start`).value,
-                            end: document.getElementById(`${day}-end`).value,
-                            location: '',
-                            notes: `Entrenamiento ${day} - Semana ${week + 1}`,
-                            formId: null
-                        };
-                        generated++;
-                    }
-                });
-            }
-            
-            renderCalendar();
-            //updateStats();
-            showAlert(`🔄 ${generated} entrenamientos generados automáticamente`, 'success');
-        }
-
-        function clearAllTrainings() {
-            if (confirm('¿Estás seguro de eliminar TODOS los entrenamientos? Esta acción no se puede deshacer.')) {
-                trainings = {};
-                renderCalendar();
-                //updateStats();
-                showAlert('🗑️ Todos los entrenamientos eliminados', 'warning');
+        async function loadAdminStats(teamId) {
+            if (!teamId) return;
+            document.getElementById('stat-avg-attendance').textContent = '...';
+            document.getElementById('stat-total-trainings').textContent = '...';
+            document.getElementById('stat-upcoming-trainings').textContent = '...';
+            document.getElementById('stat-total-players').textContent = '...';
+            document.getElementById('player-selector').innerHTML = '<option>Cargando...</option>';
+            try {
+                let response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamStats&teamId=${teamId}&userEmail=${currentUser.email}`);
+                let data = await response.json();
+                if (data.success) {
+                    document.getElementById('stat-avg-attendance').textContent = `${data.stats.avgAttendance}%`;
+                    document.getElementById('stat-total-trainings').textContent = data.stats.totalTrainings;
+                    document.getElementById('stat-upcoming-trainings').textContent = data.stats.upcomingTrainings;
+                    document.getElementById('stat-total-players').textContent = data.stats.totalPlayers;
+                }
+                response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayersByTeam&teamId=${teamId}&userEmail=${currentUser.email}`);
+                data = await response.json();
+                if (data.success) {
+                    const playerSelector = document.getElementById('player-selector');
+                    playerSelector.innerHTML = '<option value="">-- Selecciona una jugadora --</option>';
+                    data.players.forEach(player => {
+                        const option = document.createElement('option');
+                        option.value = player.email;
+                        option.textContent = player.name;
+                        playerSelector.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error("Error al cargar estadísticas del admin:", error);
+                showAlert('No se pudieron cargar las estadísticas del equipo.', 'warning');
             }
         }
 
-        // FUNCIONES DE ESTADÍSTICAS
-        /**
-		 * Carga y muestra TODAS las estadísticas del panel de admin/coach para un equipo.
-		 * Esta función se llamará al cambiar de pestaña a "Estadísticas".
-		 */
-		async function loadAdminStats(teamId) {
-		    if (!teamId) return;
-		
-		    // Muestra placeholders de carga
-		    document.getElementById('stat-avg-attendance').textContent = '...';
-		    document.getElementById('stat-total-trainings').textContent = '...';
-		    document.getElementById('stat-upcoming-trainings').textContent = '...';
-		    document.getElementById('stat-total-players').textContent = '...';
-		    document.getElementById('player-selector').innerHTML = '<option>Cargando...</option>';
-		
-		    try {
-		        // 1. Cargar estadísticas generales del equipo
-		        let response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamStats&teamId=${teamId}&userEmail=${currentUser.email}`);
-		        let data = await response.json();
-		        if (data.success) {
-		            document.getElementById('stat-avg-attendance').textContent = `${data.stats.avgAttendance}%`;
-		            document.getElementById('stat-total-trainings').textContent = data.stats.totalTrainings;
-		            document.getElementById('stat-upcoming-trainings').textContent = data.stats.upcomingTrainings;
-		            document.getElementById('stat-total-players').textContent = data.stats.totalPlayers;
-		        }
-		
-		        // 2. Cargar la lista de jugadoras
-		        response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayersByTeam&teamId=${teamId}&userEmail=${currentUser.email}`);
-		        data = await response.json();
-		        if (data.success) {
-		            const playerSelector = document.getElementById('player-selector');
-		            playerSelector.innerHTML = '<option value="">-- Selecciona una jugadora --</option>'; // Opción por defecto
-		            data.players.forEach(player => {
-		                const option = document.createElement('option');
-		                option.value = player.email;
-		                option.textContent = player.name;
-		                playerSelector.appendChild(option);
-		            });
-		        }
-		
-		    } catch (error) {
-		        console.error("Error al cargar estadísticas del admin:", error);
-		        showAlert('No se pudieron cargar las estadísticas del equipo.', 'warning');
-		    }
-		}
-		
-		// Modificamos showTab para que llame a la nueva función
-		function showTab(tabName) {
-		    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-		    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-		    
-		    const clickedTab = event.currentTarget;
-		    clickedTab.classList.add('active');
-		    document.getElementById(tabName + '-tab').classList.add('active');
-		    
-		    if (tabName === 'stats') {
-		        const selectedTeamId = document.getElementById('team-selector').value;
-		        loadAdminStats(selectedTeamId); // Llama a la nueva función
-		    }
-		    
-		    sessionStorage.setItem('proassist_active_tab', tabName);
-		}
-
-        function updateUpcomingTrainings() {
-		    const container = document.getElementById('upcoming-trainings');
-		    container.innerHTML = ''; // Limpiamos el contenedor
-		
-		    // Verificación de seguridad: nos aseguramos de que 'trainings' exista y no esté vacío.
-		    if (!trainings || Object.keys(trainings).length === 0) {
-		        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
-		        return;
-		    }
-		
-		    const today = toYYYYMMDD(new Date());
-		    
-		    const futureTrainings = Object.entries(trainings)
-		        .filter(([date, trainingData]) => date >= today && trainingData) // Filtro más seguro
-		        .sort(([a], [b]) => a.localeCompare(b))
-		        .slice(0, 5);
-		    
-		    if (futureTrainings.length === 0) {
-		        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #7f8c8d;">No hay entrenamientos programados</div>';
-		        return;
-		    }
-		    
-		    futureTrainings.forEach(([date, training]) => {
-		        const item = document.createElement('div');
-		        item.className = 'training-item';
-		        
-		        const formatDate = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {
-		            weekday: 'long',
-		            day: 'numeric',
-		            month: 'long'
-		        });
-		        
-		        item.innerHTML = `
-		            <div class="training-info">
-		                <div class="training-date">${formatDate}</div>
-		                <div class="training-time">${training.start} - ${training.end}</div>
-		                ${training.location ? `<div class="training-time">📍 ${training.location}</div>` : ''}
-		            </div>
-		            <div class="training-actions">
-		                ${training.formId 
-		                    ? '<span style="color: #27ae60;">📋 Formulario creado</span>'
-		                    : '<span style="color: #e74c3c;">⏳ Sin formulario</span>'
-		                }
-		            </div>
-		        `;
-		        container.appendChild(item);
-		    });
-		}
-
-        // FUNCIONES DE PERSISTENCIA
-        function loadConfiguration() {            
+        async function onPlayerSelected() {
+            const playerSelector = document.getElementById('player-selector');
+            const selectedEmail = playerSelector.value;
+            const statsContainer = document.getElementById('individual-player-stats');
+            if (!selectedEmail) {
+                statsContainer.style.display = 'none';
+                return;
+            }
+            statsContainer.style.display = 'grid';
+            statsContainer.innerHTML = '<div class="card"><div class="spinner"></div><p>Cargando estadísticas...</p></div>';
+            const selectedTeamId = document.getElementById('team-selector').value;
+            try {
+                const url = new URL(CONFIG.SCRIPT_URL);
+                url.searchParams.append('action', 'getPlayerStats');
+                url.searchParams.append('userEmail', currentUser.email);
+                url.searchParams.append('playerEmail', selectedEmail);
+                url.searchParams.append('teamId', selectedTeamId);
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.success) {
+                    const stats = data.stats;
+                    statsContainer.innerHTML = `
+                        <div class="card"><div class="stat-value">${stats.attendanceRate}%</div><div class="stat-label">Tasa de Asistencia</div></div>
+                        <div class="card"><div class="stat-value">${stats.attendedCount} / ${stats.totalResponses}</div><div class="stat-label">Respuestas Afirmativas</div></div>
+                        <div class="card"><div class="stat-value">${stats.lastResponse}</div><div class="stat-label">Última Respuesta</div></div>
+                    `;
+                } else {
+                    statsContainer.innerHTML = `<div class="alert alert-warning">No se pudieron cargar las estadísticas.</div>`;
+                }
+            } catch (error) {
+                console.error("Error al cargar stats de jugadora:", error);
+                statsContainer.innerHTML = `<div class="alert alert-warning">Error de conexión.</div>`;
+            }
+        }
+        
+        // ========================
+        // OTRAS FUNCIONES Y LISTENERS
+        // ========================
+        function loadConfiguration() {
             const savedConfig = localStorage.getItem('proassist-config');
             if (savedConfig) {
                 const config = JSON.parse(savedConfig);
                 document.getElementById('form-base-id').value = config.formBaseId || '';
                 document.getElementById('sheet-id').value = config.sheetId || '';
                 document.getElementById('email-entry').value = config.emailEntry || '';
-                
-                // Cargar configuración de días
-                ['tuesday', 'thursday', 'friday'].forEach(day => {
-                    if (config.defaultDays && config.defaultDays[day]) {
-                        document.getElementById(`enable-${day}`).checked = config.defaultDays[day].enabled;
-                        document.getElementById(`${day}-start`).value = config.defaultDays[day].start;
-                        document.getElementById(`${day}-end`).value = config.defaultDays[day].end;
-                        toggleDay(day);
-                    }
-                });
-            } else {
-                // Configuración por defecto
-                ['tuesday', 'thursday', 'friday'].forEach(day => {
-                    document.getElementById(`enable-${day}`).checked = true;
-                    toggleDay(day);
-                });
             }
         }
 
         function guardarConfiguracion() {
-            // Guardar entrenamientos
-            localStorage.setItem('proassist-trainings', JSON.stringify(trainings));
-            
-            // Guardar configuración
             const config = {
                 formBaseId: document.getElementById('form-base-id').value,
                 sheetId: document.getElementById('sheet-id').value,
-                emailEntry: document.getElementById('email-entry').value,
-                defaultDays: {}
+                emailEntry: document.getElementById('email-entry').value
             };
-            
-            ['tuesday', 'thursday', 'friday'].forEach(day => {
-                config.defaultDays[day] = {
-                    enabled: document.getElementById(`enable-${day}`).checked,
-                    start: document.getElementById(`${day}-start`).value,
-                    end: document.getElementById(`${day}-end`).value
-                };
-            });
-            
             localStorage.setItem('proassist-config', JSON.stringify(config));
-            
-            // En producción, aquí enviarías los datos al backend
-            syncWithBackend();
-            
-            showAlert('💾 Configuración guardada correctamente', 'success');
+            showAlert('💾 Configuración guardada localmente', 'success');
         }
 
-        function syncWithBackend() {
-            // Simular sincronización con Google Apps Script
-            console.log('Sincronizando con backend...', {
-                trainings: trainings,
-                config: JSON.parse(localStorage.getItem('proassist-config'))
-            });
-            
-            // En producción:
-            // fetch(CONFIG.SCRIPT_URL + '?action=saveConfig', {
-            //     method: 'POST',
-            //     body: JSON.stringify({trainings, config})
-            // });
-        }
-
-        // UTILIDADES
-        function showAlert(message, type) {
-            // Crear elemento de alerta
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            
-            // Insertar al inicio del contenido activo
-            const activePanel = document.querySelector('.tab-panel.active');
-            activePanel.insertBefore(alert, activePanel.firstChild);
-            
-            // Remover después de 5 segundos
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-        }
-
-        // FUNCIONES DE INTEGRACIÓN CON BACKEND
-        function createFormularioReal(fecha) {
-            const training = trainings[fecha];
-            if (!training) return;
-            
-            // Llamada real al backend
-            fetch(CONFIG.SCRIPT_URL + '?action=createForm', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    fecha: fecha,
-                    horaInicio: training.start,
-                    horaFin: training.end,
-                    ubicacion: training.location,
-                    notas: training.notes
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    trainings[fecha].formId = data.formId;
-                    showAlert('📋 Formulario creado en Google Forms', 'success');
-                } else {
-                    showAlert('Error creando formulario: ' + data.error, 'warning');
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshInterval = setInterval(async () => {
+                showRefreshIndicator();
+                if (document.getElementById('player-dashboard').style.display === 'block') {
+                    await loadUserData();
                 }
-            })
-            .catch(error => {
-                showAlert('Error de conexión con el backend', 'warning');
-                console.error(error);
-            });
+            }, CONFIG.AUTO_REFRESH_INTERVAL);
         }
 
-		/**
-		 * Se activa cuando el entrenador selecciona una jugadora del desplegable.
-		 * Carga y muestra las estadísticas de esa jugadora.
-		 */
-		async function onPlayerSelected() {
-		    const playerSelector = document.getElementById('player-selector');
-		    const selectedEmail = playerSelector.value;
-		    const statsContainer = document.getElementById('individual-player-stats');
-		
-		    if (!selectedEmail) {
-		        statsContainer.style.display = 'none'; // Oculta el contenedor si no hay selección
-		        return;
-		    }
-		
-		    statsContainer.style.display = 'grid'; // Muestra el contenedor
-		    statsContainer.innerHTML = '<div class="card"><div class="spinner"></div><p>Cargando estadísticas...</p></div>'; // Muestra carga
-		
-		    const selectedTeamId = document.getElementById('team-selector').value;
-		
-		    try {
-		        const url = new URL(CONFIG.SCRIPT_URL);
-		        url.searchParams.append('action', 'getPlayerStats');
-		        url.searchParams.append('userEmail', currentUser.email);
-		        url.searchParams.append('playerEmail', selectedEmail);
-		        url.searchParams.append('teamId', selectedTeamId);
-		
-		        const response = await fetch(url);
-		        const data = await response.json();
-		
-		        if (data.success) {
-		            const stats = data.stats;
-		            // Dibujamos las tarjetas de estadísticas individuales
-		            statsContainer.innerHTML = `
-		                <div class="card">
-		                    <div class="stat-value">${stats.attendanceRate}%</div>
-		                    <div class="stat-label">Tasa de Asistencia</div>
-		                </div>
-		                <div class="card">
-		                    <div class="stat-value">${stats.attendedCount} / ${stats.totalResponses}</div>
-		                    <div class="stat-label">Respuestas Afirmativas</div>
-		                </div>
-		                <div class="card">
-		                    <div class="stat-value">${stats.lastResponse}</div>
-		                    <div class="stat-label">Última Respuesta</div>
-		                </div>
-		            `;
-		        } else {
-		            statsContainer.innerHTML = `<div class="alert alert-warning">No se pudieron cargar las estadísticas de la jugadora.</div>`;
-		        }
-		
-		    } catch (error) {
-		        console.error("Error al cargar stats de jugadora:", error);
-		        statsContainer.innerHTML = `<div class="alert alert-warning">Error de conexión.</div>`;
-		    }
-		}
+        function stopAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+        }
+
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('refreshIndicator');
+            indicator.classList.remove('hidden');
+            setTimeout(() => indicator.classList.add('hidden'), 2000);
+        }
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) { return null; }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#ff4757;color:white;padding:15px 25px;border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,0.2);z-index:10000;font-weight:bold;max-width:400px;text-align:center;`;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        document.addEventListener('visibilitychange', async function() {
+            if (!document.hidden && currentUser && document.getElementById('player-dashboard').style.display === 'block') {
+                await loadUserData();
+            }
+		});
     </script>
 </body>
