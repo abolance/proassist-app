@@ -620,12 +620,13 @@
 									    <input type="text" id="pdf-id" placeholder="Pega aquí el ID o enlace del archivo de Drive">
 									</div>
 
+									<!-- Contenedor de botones con Flexbox y Flex-wrap -->
 									<div id="action-buttons-container" style="margin-top: 1.5rem; border-top: 1px solid #ddd; padding-top: 1.5rem;">
-									    <!-- Usaremos CSS Grid para un control perfecto del layout -->
-									    <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 10px;">
-									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
-									        <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()">📋 Preparar Formulario</button>
-									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
+									    <!-- Usaremos Flexbox con envoltura para una máxima adaptabilidad -->
+									    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()" style="flex-grow: 1;">✅ Guardar</button>
+									        <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="flex-grow: 2; min-width: 180px;">📋 Preparar Formulario</button>
+									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()" style="flex-grow: 1;">🗑️ Eliminar</button>
 									    </div>
 									</div>
 		                        </div>
