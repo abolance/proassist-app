@@ -1084,33 +1084,47 @@
 		    
 		    if (formData.formUrl && formData.trainingInfo) {
 		        const info = formData.trainingInfo;
-		        // Formateamos la fecha para mostrarla
 		        const parts = info.fecha.split('-');
 		        const displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 		
-		        // Actualizamos el título de la sección
 		        title.innerHTML = `📝 Próximo Entreno: ${displayDate}`;
 		        
-		        // Creamos el botón para abrir el formulario
-		        displayHtml = `
-		            <div style="text-align: center; padding: 30px;">
-		                <h3 style="margin-bottom: 10px;">¡Listo para el entreno del ${displayDate}!</h3>
-		                <p style="color: #666; margin-bottom: 25px;">
-		                    Por favor, completa el formulario de asistencia.
-		                </p>
-		                <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">
-		                    📋 Abrir Formulario
-		                </a>
-		                <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">(Se abrirá en una nueva pestaña)</p>
-		            </div>
-		        `;
+		        // --- ¡LÓGICA CONDICIONAL AQUÍ! ---
+		        if (formData.hasResponded) {
+		            // Si la jugadora YA HA RESPONDIDO
+		            displayHtml = `
+		                <div style="text-align: center; padding: 30px; background-color: #e8f5e8; border-radius: 15px;">
+		                    <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
+		                    <p style="color: #666; margin-bottom: 25px;">
+		                        Tu respuesta para el entreno del ${displayDate} ha sido registrada.
+		                    </p>
+		                    <!-- Dejamos la opción de editar, si quieres quitarla, simplemente elimina esta línea -->
+		                    <a href="${formData.formUrl}" target="_blank" class="btn btn-secondary">📝 Modificar mi Respuesta</a>
+		                </div>
+		            `;
+		        } else {
+		            // Si la jugadora AÚN NO HA RESPONDIDO
+		            displayHtml = `
+		                <div style="text-align: center; padding: 30px;">
+		                    <h3 style="margin-bottom: 10px;">¡Listo para el entreno del ${displayDate}!</h3>
+		                    <p style="color: #666; margin-bottom: 25px;">
+		                        Por favor, completa el formulario de asistencia.
+		                    </p>
+		                    <a href="${formData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">
+		                        📋 Abrir Formulario
+		                    </a>
+		                    <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">(Se abrirá en una nueva pestaña)</p>
+		                </div>
+		            `;
+		        }
+		
 		    } else {
-		        // Si algo falla, mostramos un mensaje genérico
 		        title.innerHTML = `📝 Formulario del Día`;
 		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">No hay formulario disponible.</div>`;
-		    }		    
+		    }
+		    
 		    container.innerHTML = displayHtml;
-		}
+		}		
         
         function showNoTrainingUI(message) {
             const container = document.getElementById('formContainer');
