@@ -390,6 +390,21 @@
 	            flex-direction: column; /* Apila las pestañas del admin */
 	        }
 	    }
+
+		/* Estilo para las alertas flotantes */
+		.alert-popup {
+		    position: fixed;
+		    top: 20px;
+		    left: 50%;
+		    transform: translateX(-50%);
+		    padding: 15px 25px;
+		    border-radius: 10px;
+		    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+		    z-index: 10000;
+		    font-weight: bold;
+		    max-width: 90%;
+		    text-align: center;
+		}
 	</style>
 </head>
 <body>
@@ -531,10 +546,9 @@
 	        <header class="header">
 	            <div class="logo">
 	                ⚽ ProAssist
-	                <span class="admin-badge">ADMIN</span>
+	                <span id="role-badge" class="admin-badge"></span>
 	            </div>
 	            <div style="display: flex; gap: 10px;">
-	                <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Todo</button>
 	                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
 	            </div>
 	        </header>
@@ -606,17 +620,12 @@
 									    <input type="text" id="pdf-id" placeholder="Pega aquí el ID o enlace del archivo de Drive">
 									</div>
 
-									<div id="action-buttons-container">
-			                            <div style="display: flex; gap: 10px;">
-			                                <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()">✅ Guardar</button>
-			                                <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()">🗑️ Eliminar</button>
-			                            </div>
-			                            
-			                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-			                                <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="width: 100%;">
-			                                    📋 Preparar Formulario de Asistencia
-			                                </button>
-			                            </div>
+									<div id="action-buttons-container" style="margin-top: 1.5rem; border-top: 1px solid #ddd; padding-top: 1.5rem;">
+									    <div style="display: flex; gap: 10px; align-items: center;">
+									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()" style="flex: 1;">✅ Guardar</button>
+									        <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="flex: 2; padding: 12px 20px;">📋 Preparar Formulario</button>
+									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()" style="flex: 1;">🗑️ Eliminar</button>
+									    </div>
 									</div>
 		                        </div>
 		                    </div>
@@ -921,6 +930,16 @@
 
             if (role === 'ADMIN' || role === 'COACH') {
                 document.getElementById('admin-panel').style.display = 'block';
+
+				// --- LÓGICA PARA EL BADGE DE ROL ---
+			    const roleBadge = document.getElementById('role-badge');
+			    roleBadge.textContent = role; // Pone "ADMIN" o "COACH"
+			    if (role === 'COACH') {
+			        roleBadge.style.backgroundColor = '#3498db'; // Color azul para COACH
+			    } else {
+			        roleBadge.style.backgroundColor = '#e74c3c'; // Color rojo para ADMIN
+			    }
+								
                 if (role === 'COACH') {
                     configTabButton.style.display = 'none';
                     document.querySelector('.tab[onclick="showTab(\'calendar\')"]').click();
@@ -1475,6 +1494,15 @@
             document.body.appendChild(errorDiv);
             setTimeout(() => errorDiv.remove(), 5000);
         }
+
+		function showAlert(message, type) {
+		    const alert = document.createElement('div');
+		    // Usamos una clase genérica para posicionamiento
+		    alert.className = `alert-popup alert-${type}`;
+		    alert.textContent = message;
+		    document.body.appendChild(alert);
+		    setTimeout(() => alert.remove(), 4000); // Duración un poco más corta
+		}
 
         document.addEventListener('visibilitychange', async function() {
             if (!document.hidden && currentUser && document.getElementById('player-dashboard').style.display === 'block') {
