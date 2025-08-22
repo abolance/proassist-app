@@ -1123,13 +1123,22 @@
 		
 		    // Construimos el HTML para cada item del historial
 		    historyList.innerHTML = history.map(item => {
-		        // Google Sheets a veces devuelve la fecha como un string, la convertimos a objeto Date
-		        const date = new Date(item.date);
-		        const formattedDate = date.toLocaleDateString('es-ES', {
-		            weekday: 'long',
-		            day: 'numeric',
-		            month: 'short'
-		        });
+		        let formattedDate = "Fecha inválida";
+				if (item.date) {
+				    // Asumimos que item.date es un string como "19/08/2025"
+				    const dateParts = String(item.date).split(' ')[0].split('/');
+				    // Creamos la fecha de forma segura: new Date(Año, Mes (0-11), Día)
+				    if (dateParts.length === 3) {
+				        const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+				        if (!isNaN(date)) { // Verificamos si la fecha es válida
+				            formattedDate = date.toLocaleDateString('es-ES', {
+				                weekday: 'long',
+				                day: 'numeric',
+				                month: 'short'
+				            });
+				        }
+				    }
+				}
 		        
 		        const statusClass = item.completed ? 'status-completed' : 'status-missed';
 		        const statusText = item.completed ? 'Asistió' : 'No Asistió';
@@ -1159,20 +1168,25 @@
 		}
 
         async function loadTodaysForm(teamId) {
-            try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${currentUser.email}&teamId=${teamId}`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
-                if (data.success && data.formUrl) {
-                    showFormUI(data);
-                } else {
-                    showNoTrainingUI(data.error || 'No hay entreno programado para hoy');
-                }
-            } catch (error) {
-                console.error('Error cargando formulario del día:', error);
-                showFormError();
-            }
-        }
+		try {
+			const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getForm&email=${currentUser.email}&teamId=${teamId}`);
+			const data = await response.json();
+	
+			// Si la llamada al backend fue exitosa PERO la lógica interna falló (ej. no hay entreno)
+			if (!data.success) {
+				// Lanzamos un error con el mensaje que nos da el backend
+				throw new Error(data.error);
+			}
+			
+			// Si todo fue bien, mostramos la UI del formulario
+			showFormUI(data);
+	
+		} catch (error) {
+			console.error('Error cargando formulario del día:', error.message);
+			// El 'catch' ahora recibe el mensaje de error limpio y se lo pasa a la UI
+			showNoTrainingUI(error.message);
+		}
+	}
 
 		function showFormUI(formData) {
 		    const container = document.getElementById('formContainer');
