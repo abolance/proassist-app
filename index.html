@@ -454,6 +454,21 @@
 		    color: #3498db;
 		    font-weight: bold;
 		}
+		.calendar-nav {
+		    background: none;
+		    border: none;
+		    color: white; /* <-- La clave para que se vean */
+		    font-size: 1.5em; /* Un poco más grandes para que sean fáciles de pulsar */
+		    cursor: pointer;
+		    padding: 5px 10px;
+		    border-radius: 5px;
+		    transition: background 0.2s ease;
+		    line-height: 1; /* Para alinear verticalmente el icono */
+		}
+		
+		.calendar-nav:hover {
+		    background: rgba(255, 255, 255, 0.2);
+		}
 	</style>
 </head>
 <body>
@@ -1520,20 +1535,83 @@
         }
 
 		/**
-		 * Dibuja la vista semanal del calendario.
+		 * Dibuja la vista semanal del calendario con franjas horarias.
 		 */
 		function renderWeekView() {
-		    // Lógica para calcular el inicio y fin de la semana... (la añadiremos después)
-		    
+		    const grid = document.getElementById('calendar-grid');
+		    grid.innerHTML = ''; // Limpiamos el grid
+		    grid.style.display = 'grid'; // Aseguramos que sea un grid
+		    grid.style.gridTemplateColumns = 'repeat(7, 1fr)'; // 7 columnas iguales
+		
+		    const hoy = new Date();
+		    const diaDeLaSemana = currentDate.getDay(); // 0 (Dom) a 6 (Sáb)
+		    const inicioDeLaSemana = new Date(currentDate);
+		    inicioDeLaSemana.setDate(currentDate.getDate() - diaDeLaSemana); // Llevamos la fecha al domingo
+		
+		    // Actualizamos el título del header para mostrar el rango de la semana
+		    const finDeLaSemana = new Date(inicioDeLaSemana);
+		    finDeLaSemana.setDate(inicioDeLaSemana.getDate() + 6);
+		    const opcionesTitulo = { month: 'long', day: 'numeric' };
+		    document.getElementById('calendar-month').textContent = 
+		        `${inicioDeLaSemana.toLocaleDateString('es-ES', opcionesTitulo)} - ${finDeLaSemana.toLocaleDateString('es-ES', opcionesTitulo)}`;
+		
+		    // --- Dibujamos los encabezados de los días ---
+		    const dayHeaders = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+		    for (let i = 0; i < 7; i++) {
+		        const currentDay = new Date(inicioDeLaSemana);
+		        currentDay.setDate(inicioDeLaSemana.getDate() + i);
+		        
+		        const header = document.createElement('div');
+		        header.className = 'calendar-day-header';
+		        // Mostramos el nombre del día y el número
+		        header.innerHTML = `${dayHeaders[i]} <br> <span style="font-size: 1.2em; font-weight: normal;">${currentDay.getDate()}</span>`;
+		        
+		        // Resaltamos el día de hoy
+		        if (toYYYYMMDD(currentDay) === toYYYYMMDD(hoy)) {
+		            header.style.backgroundColor = '#2980b9';
+		        }
+		        grid.appendChild(header);
+		    }
+		
+		    // --- Dibujamos las casillas para los entrenamientos ---
+		    for (let i = 0; i < 7; i++) {
+		        const currentDay = new Date(inicioDeLaSemana);
+		        currentDay.setDate(inicioDeLaSemana.getDate() + i);
+		        const dateString = toYYYYMMDD(currentDay);
+		        
+		        const dayCell = document.createElement('div');
+		        dayCell.className = 'calendar-day';
+		        dayCell.style.minHeight = '200px'; // Damos más altura para ver los detalles
+		        dayCell.dataset.date = dateString;
+		        dayCell.addEventListener('click', () => selectDate(dateString));
+		
+		        // Buscamos si hay un entrenamiento para este día
+		        if (trainings[dateString]) {
+		            const training = trainings[dateString];
+		            dayCell.classList.add('has-training');
+		            dayCell.innerHTML = `
+		                <div style="font-weight: bold; margin-bottom: 5px;">${training.start} - ${training.end}</div>
+		                <div style="font-size: 0.9em; color: #333;">${training.notes || 'Entrenamiento'}</div>
+		                ${training.location ? `<div style="font-size: 0.8em; color: #7f8c8d; margin-top: 5px;">📍 ${training.location}</div>` : ''}
+		            `;
+		        }
+		        
+		        grid.appendChild(dayCell);
+		    }
+		}
+
+		/**
+		 * Dibuja la vista diaria del calendario (placeholder).
+		 */
+		function renderDayView() {
 		    const grid = document.getElementById('calendar-grid');
 		    grid.innerHTML = ''; // Limpiamos el grid
 		
-		    // Placeholder - Aquí irá la lógica para dibujar la semana
-		    grid.innerHTML = '<div style="padding: 4rem; text-align: center; grid-column: 1 / 8;">Vista Semanal en construcción...</div>';
+		    // Placeholder
+		    grid.innerHTML = '<div style="padding: 4rem; text-align: center; grid-column: 1 / 8;">Vista Diaria en construcción...</div>';
 		    
 		    // Actualizamos el título del header
-		    // TODO: Mostrar el rango de fechas de la semana
-		    document.getElementById('calendar-month').textContent = "Semana Actual"; 
+		    document.getElementById('calendar-month').textContent = "Día Actual";
 		}
 
         function loadTrainingData(dateString) {
