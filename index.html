@@ -458,8 +458,7 @@
 
 		/* Estilos para el selector de vistas del calendario */
 		.view-btn {
-		    /* background: none; */
-			background: rgba(255, 255, 255, 0.15);
+		    /* Estilos base para todos los botones de vista */
 		    border: 1px solid white;
 		    color: white;
 		    padding: 5px 12px;
@@ -467,15 +466,21 @@
 		    cursor: pointer;
 		    transition: all 0.2s ease;
 		    margin-left: 5px;
+		    background: rgba(255, 255, 255, 0.15); /* Fondo sutil para inactivos */
 		}
-		.view-btn:hover {
-		    background: rgba(255,255,255,0.3);
+		
+		.view-btn:not(.active):hover {
+		    /* Efecto hover SOLO para los botones inactivos */
+		    background: rgba(255, 255, 255, 0.3);
 		}
+
 		.view-btn.active {
+		    /* Estilos para el botón activo, que sobreescriben los anteriores */
 		    background: white;
 		    color: #3498db;
 		    font-weight: bold;
 		}
+		
 		.calendar-nav {
 		    background: none;
 		    border: none;
@@ -1149,23 +1154,33 @@
                 showDefaultStats();
             }
         }
-
-        function updateStatsUI(stats) {
-            document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
-            document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-            document.getElementById('attendanceProgress').style.width = `${Math.min(100, stats.attendanceRate || 0)}%`;
-            document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`;
-            document.getElementById('monthlyProgressBar').style.width = `${Math.min(100, ((stats.monthlyTrainings || 0) / (stats.monthlyGoal || 1)) * 100)}%`;
-            document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-            document.getElementById('myAttendanceProgress').style.width = `${Math.min(100, stats.attendanceRate || 0)}%`;
-        }
+        
+		function updateStatsUI(stats) {
+		    // Widget "Mis Estadísticas"
+		    document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
+		    document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+		    document.getElementById('attendanceProgress').style.width = `${stats.attendanceRate || 0}%`;
+		    document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`;
+		    document.getElementById('monthlyProgressBar').style.width = `${(stats.monthlyTrainings / (stats.monthlyGoal || 1)) * 100}%`;
+		
+		    // Widget "Comparación con Equipo"
+		    document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+		    document.getElementById('myAttendanceProgress').style.width = `${stats.attendanceRate || 0}%`;
+		    // ToDo 'teamAverageRate' se llenará cuando implementemos esa estadística
+		}
 
         function showDefaultStats() {
-            document.getElementById('totalTrainings').textContent = '0';
-            document.getElementById('attendanceRate').textContent = '0%';
-            document.getElementById('monthlyProgress').textContent = '0/0';
-            document.getElementById('myAttendanceRate').textContent = '0%';
-        }
+		    // Widget "Mis Estadísticas"
+		    document.getElementById('totalTrainings').textContent = '0';
+		    document.getElementById('attendanceRate').textContent = '0%';
+		    document.getElementById('attendanceProgress').style.width = '0%';
+		    document.getElementById('monthlyProgress').textContent = '0/0';
+		    document.getElementById('monthlyProgressBar').style.width = '0%';
+		
+		    // Widget "Comparación con Equipo"
+		    document.getElementById('myAttendanceRate').textContent = '0%';
+		    document.getElementById('myAttendanceProgress').style.width = '0%';
+		}
 
         async function loadUserHistory(teamId) {
 			try {
