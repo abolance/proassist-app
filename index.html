@@ -458,43 +458,39 @@
 
 		/* Estilos para el selector de vistas del calendario */
 		.view-btn {
-		    /* Estilos base para todos los botones de vista */
-		    border: 1px solid white;
+		    border: none;
 		    color: white;
-		    padding: 5px 12px;
+		    padding: 6px 14px;
 		    border-radius: 5px;
 		    cursor: pointer;
 		    transition: all 0.2s ease;
 		    margin-left: 5px;
-		    background: rgba(255, 255, 255, 0.15); /* Fondo sutil para inactivos */
+		    font-weight: bold;
+		    background: #34495e; /* Azul oscuro (como los días del calendario) */
 		}
 		
 		.view-btn:not(.active):hover {
-		    /* Efecto hover SOLO para los botones inactivos */
-		    background: rgba(255, 255, 255, 0.3);
+		    background: #2c3e50; /* Un azul oscuro más intenso al pasar el ratón */
 		}
-
+		
 		.view-btn.active {
-		    /* Estilos para el botón activo, que sobreescriben los anteriores */
-		    background: white;
-		    color: #3498db;
-		    font-weight: bold;
+		    background: #3498db; /* Azul claro para el botón activo */
+		    color: white;
 		}
 		
 		.calendar-nav {
-		    background: none;
+		    background: #3498db; /* Azul claro (como el día seleccionado) */
 		    border: none;
-		    color: white; /* <-- La clave para que se vean */
-		    font-size: 1.5em; /* Un poco más grandes para que sean fáciles de pulsar */
+		    color: white;
+		    font-size: 1.5em;
 		    cursor: pointer;
 		    padding: 5px 10px;
 		    border-radius: 5px;
 		    transition: background 0.2s ease;
-		    line-height: 1; /* Para alinear verticalmente el icono */
+		    line-height: 1;
 		}
-		
 		.calendar-nav:hover {
-		    background: rgba(255, 255, 255, 0.2);
+		    background: #2980b9; /* Un azul un poco más oscuro al pasar el ratón */
 		}
 
 		/* Estilos para la Vista Diaria */
@@ -1154,34 +1150,31 @@
                 showDefaultStats();
             }
         }
-        
+
 		function updateStatsUI(stats) {
-		    // Widget "Mis Estadísticas"
-		    document.getElementById('totalTrainings').textContent = stats.totalTrainings || 0;
-		    document.getElementById('attendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-		    document.getElementById('attendanceProgress').style.width = `${stats.attendanceRate || 0}%`;
-		    document.getElementById('monthlyProgress').textContent = `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`;
-		    document.getElementById('monthlyProgressBar').style.width = `${(stats.monthlyTrainings / (stats.monthlyGoal || 1)) * 100}%`;
-		
-		    // Widget "Comparación con Equipo"
-		    document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-		    document.getElementById('myAttendanceProgress').style.width = `${stats.attendanceRate || 0}%`;
-		    // ToDo 'teamAverageRate' se llenará cuando implementemos esa estadística
+		    const attendance = stats.attendanceRate || 0;
+		    safeSetText('totalTrainings', stats.totalTrainings || 0);
+		    safeSetText('attendanceRate', `${attendance}%`);
+		    safeSetWidth('attendanceProgress', `${attendance}%`);
+		    safeSetText('monthlyProgress', `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`);
+		    safeSetWidth('monthlyProgressBar', `${(stats.monthlyTrainings / (stats.monthlyGoal || 1)) * 100}%`);
+		    
+		    // Widget de Comparación (ahora también es seguro)
+		    safeSetText('myAttendanceRate', `${attendance}%`);
+		    safeSetWidth('myAttendanceProgress', `${attendance}%`);
 		}
-
-        function showDefaultStats() {
-		    // Widget "Mis Estadísticas"
-		    document.getElementById('totalTrainings').textContent = '0';
-		    document.getElementById('attendanceRate').textContent = '0%';
-		    document.getElementById('attendanceProgress').style.width = '0%';
-		    document.getElementById('monthlyProgress').textContent = '0/0';
-		    document.getElementById('monthlyProgressBar').style.width = '0%';
 		
-		    // Widget "Comparación con Equipo"
-		    document.getElementById('myAttendanceRate').textContent = '0%';
-		    document.getElementById('myAttendanceProgress').style.width = '0%';
+		function showDefaultStats() {
+		    safeSetText('totalTrainings', '0');
+		    safeSetText('attendanceRate', '0%');
+		    safeSetWidth('attendanceProgress', '0%');
+		    safeSetText('monthlyProgress', '0/0');
+		    safeSetWidth('monthlyProgressBar', '0%');
+		
+		    safeSetText('myAttendanceRate', '0%');
+		    safeSetWidth('myAttendanceProgress', '0%');
 		}
-
+		
         async function loadUserHistory(teamId) {
 			try {
 		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`);
@@ -2008,6 +2001,30 @@
 		            }
 		        }
 		    }
-		});        
+		});  
+
+		/**
+		 * Asigna texto a un elemento de forma segura. Si el elemento no existe, no hace nada.
+		 * @param {string} id El ID del elemento.
+		 * @param {string} text El texto a asignar.
+		 */
+		function safeSetText(id, text) {
+		    const element = document.getElementById(id);
+		    if (element) {
+		        element.textContent = text;
+		    }
+		}
+		
+		/**
+		 * Asigna el ancho a un elemento de forma segura.
+		 * @param {string} id El ID del elemento.
+		 * @param {string} width El ancho en porcentaje (ej: '50%').
+		 */
+		function safeSetWidth(id, width) {
+		    const element = document.getElementById(id);
+		    if (element) {
+		        element.style.width = width;
+		    }
+		}
     </script>
 </body>
