@@ -263,6 +263,35 @@
 	        border: none;
 	        border-radius: 10px;
 	    }
+		.history-item {
+		    display: flex;
+		    justify-content: space-between;
+		    align-items: center;
+		    padding: 1rem 0;
+		    border-bottom: 1px solid #eee;
+		}
+		.history-item:last-child {
+		    border-bottom: none;
+		    padding-bottom: 0;
+		}
+		.history-date {
+		    font-weight: bold;
+		}
+		.history-status {
+		    padding: 5px 12px;
+		    border-radius: 20px;
+		    font-size: 0.8rem;
+		    font-weight: bold;
+		    text-align: center;
+		}
+		.status-completed { /* Verde para "Asistió" */
+		    background-color: #d4edda;
+		    color: #155724;
+		}
+		.status-missed { /* Rojo para "No Asistió" */
+		    background-color: #f8d7da;
+		    color: #721c24;
+		}
 	
 	    /* ======================================== */
 	    /* ===== 6. PANEL ADMINISTRADOR (ADMIN) ===== */
@@ -1059,9 +1088,75 @@
         }
 
         async function loadUserHistory(teamId) {
-            // Placeholder
-            document.getElementById('historyList').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><p>Aún no tienes entrenamientos registrados.</p></div>';
+			try {
+		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`);
+		        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+		        
+		        const data = await response.json();
+		        if (data.success) {
+		            updateHistoryUI(data.history); // Llamamos a la función que dibuja el historial
+		        } else {
+		            showHistoryError();
+		        }
+		    } catch (error) {
+		        console.error('Error cargando historial:', error);
+		        showHistoryError();
+		    }            
         }
+
+		/**
+		 * Dibuja la lista del historial reciente en el dashboard de la jugadora.
+		 * @param {Array} history Un array de objetos con el historial.
+		 */
+		function updateHistoryUI(history) {
+		    const historyList = document.getElementById('historyList');
+		    
+		    if (!history || history.length === 0) {
+		        historyList.innerHTML = `
+		            <div style="text-align: center; padding: 20px; color: #666;">
+		                <p>Aún no tienes entrenamientos registrados.</p>
+		                <p style="font-size: 0.9rem;">¡Completa tu primer formulario!</p>
+		            </div>
+		        `;
+		        return;
+		    }
+		
+		    // Construimos el HTML para cada item del historial
+		    historyList.innerHTML = history.map(item => {
+		        // Google Sheets a veces devuelve la fecha como un string, la convertimos a objeto Date
+		        const date = new Date(item.date);
+		        const formattedDate = date.toLocaleDateString('es-ES', {
+		            weekday: 'long',
+		            day: 'numeric',
+		            month: 'short'
+		        });
+		        
+		        const statusClass = item.completed ? 'status-completed' : 'status-missed';
+		        const statusText = item.completed ? 'Asistió' : 'No Asistió';
+		        
+		        return `
+		            <div class="history-item">
+		                <div class="history-date">${formattedDate}</div>
+		                <div class="history-status ${statusClass}">
+		                    ${statusText}
+		                </div>
+		            </div>
+		        `;
+		    }).join('');
+		}
+		
+		/**
+		 * Muestra un mensaje de error en el widget del historial.
+		 */
+		function showHistoryError() {
+		    const historyList = document.getElementById('historyList');
+		    historyList.innerHTML = `
+		        <div style="text-align: center; padding: 20px; color: #666;">
+		            <p>Error al cargar el historial.</p>
+		            <button onclick="loadUserHistory(currentUser.teams[0])" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Reintentar</button>
+		        </div>
+		    `;
+		}
 
         async function loadTodaysForm(teamId) {
             try {
