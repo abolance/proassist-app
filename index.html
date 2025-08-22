@@ -1123,22 +1123,8 @@
 		
 		    // Construimos el HTML para cada item del historial
 		    historyList.innerHTML = history.map(item => {
-		        let formattedDate = "Fecha inválida";
-				if (item.date) {
-				    // Asumimos que item.date es un string como "19/08/2025"
-				    const dateParts = String(item.date).split(' ')[0].split('/');
-				    // Creamos la fecha de forma segura: new Date(Año, Mes (0-11), Día)
-				    if (dateParts.length === 3) {
-				        const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-				        if (!isNaN(date)) { // Verificamos si la fecha es válida
-				            formattedDate = date.toLocaleDateString('es-ES', {
-				                weekday: 'long',
-				                day: 'numeric',
-				                month: 'short'
-				            });
-				        }
-				    }
-				}
+		        console.log("Dato de fecha recibido del backend:", item.date, "Tipo:", typeof item.date);
+				const formattedDate = item.date || "Fecha no recibida";
 		        
 		        const statusClass = item.completed ? 'status-completed' : 'status-missed';
 		        const statusText = item.completed ? 'Asistió' : 'No Asistió';
