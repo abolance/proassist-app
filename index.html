@@ -542,107 +542,30 @@
         </div>
     </div>
 
-    <!-- DASHBOARD JUGADORA -->
-    <div id="player-dashboard" class="main-screen">		
-        <div class="container">  
-			<!-- HEADER UNIFICADO CON SALUDO PARA JUGADORA -->
+    <!-- DASHBOARD JUGADORA -->    
+	<div id="player-dashboard" style="display: none;">
+        <div class="container">
+	        <!-- Header Unificado -->
 	        <header class="header">
 	            <div class="logo">
-	                <span id="greeting">Cargando saludo...</span>
+	                <span id="greeting"></span>
 	            </div>
-	            <div style="display: flex; gap: 10px;">
-	                <button id="logoutButton" class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
+	            <div>
+	                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
 	            </div>
 	        </header>
-            <!-- MENSAJE MOTIVACIONAL -->
-            <div id="motivationalMessage" class="motivational-message" style="display: none;">
-                <h3 id="motivationalTitle"></h3>
-                <p id="motivationalText"></p>
-            </div>
-
-            <!-- ESTADÍSTICAS PRINCIPALES -->
-            <div class="stats-grid">
-                <!-- ESTADÍSTICAS PERSONALES -->
-                <div class="card">
-                    <div class="stat-title">
-                        📊 Mis Estadísticas
-                    </div>
-                    <div class="stat-value" id="totalTrainings">-</div>
-                    <div class="stat-description">Entrenamientos completados</div>
-                    
-                    <div style="margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span>Asistencia</span>
-                            <span id="attendanceRate">-</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span>Progreso Mensual</span>
-                            <span id="monthlyProgress">-</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="monthlyProgressBar" class="progress-fill" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- COMPARACIÓN CON EQUIPO -->
-                <div class="card">
-				    <div class="stat-title">
-				        👥 Comparación con Equipo
-				    </div>
-				    <div style="margin-top: 1rem;">
-				        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-				            <span>Tu Asistencia</span>
-				            <span id="myAttendanceRate">-</span>
-				        </div>
-				        <div class="progress-bar">
-				            <div id="myAttendanceProgress" class="progress-fill" style="width: 0%"></div>
-				        </div>
-				    </div>
-				    <div style="margin-top: 1.5rem;">
-				        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-				            <span>Media del Equipo</span>
-				            <span id="teamAverageRate">-</span>
-				        </div>
-				        <div class="progress-bar">
-				            <div id="teamAverageProgress" class="progress-fill" style="background: #e67e22;"></div>
-				        </div>
-				    </div>
-				</div>
-
-                <!-- HISTORIAL RECIENTE -->
-                <div class="card">
-                    <div class="stat-title">
-                        📅 Historial Reciente
-                    </div>
-                    <div id="historyList">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Cargando historial...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FORMULARIO DEL DÍA -->
-            <div class="card">
-                <div class="form-title">
-                	<span id="formTitle">Formulario del Día</span>
-                </div>
-                <div id="formContainer">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Cargando formulario...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+	
+	        <!-- Mensaje Motivacional -->
+	        <div id="motivationalMessage" class="motivational-message" style="display: none;">
+	            <h3 id="motivationalTitle"></h3>
+	            <p id="motivationalText"></p>
+	        </div>
+	
+	        <!-- Contenedor Principal para la Vista Diaria de la Jugadora -->
+	        <div id="player-day-view-container" class="card">
+	            <!-- El contenido se generará con JavaScript -->
+	        </div>
+	    </div>
     </div>
 
     <!-- PANEL DE ADMINISTRADOR -->
@@ -683,15 +606,16 @@
 		            <div id="calendar-tab" class="tab-panel active">
 		                <div class="calendar-container">
 		                    <div class="calendar">
-		                        <div class="calendar-header">
-								    <!-- Navegación de Mes/Semana/Día -->
-								    <div>
+		                        <div class="calendar-header" style="justify-content: center; position: relative;">
+								    <!-- Navegación de Período -->
+								    <div style="display: flex; align-items: center; gap: 1rem;">
 								        <button class="calendar-nav" onclick="previousPeriod()">‹</button>
-								        <h2 id="calendar-month">Agosto 2025</h2>
+								        <h2 id="calendar-month" style="text-align: center; min-width: 250px;">Agosto 2025</h2>
 								        <button class="calendar-nav" onclick="nextPeriod()">›</button>
 								    </div>
-								    <!-- Selector de Vistas -->
-								    <div id="view-switcher">
+								    
+								    <!-- Selector de Vistas (ahora posicionado a la derecha) -->
+								    <div id="view-switcher" style="position: absolute; right: 1rem;">
 								        <button id="month-view-btn" class="view-btn" onclick="setView('month')">Mes</button>
 								        <button id="week-view-btn" class="view-btn active" onclick="setView('week')">Semana</button>
 								        <button id="day-view-btn" class="view-btn" onclick="setView('day')">Día</button>
@@ -1247,13 +1171,12 @@
 		}
 
 		/**
-		 * Pide al backend el estado del formulario de la jugadora y dibuja la UI correspondiente.
+		 * Carga el estado de la jugadora y renderiza la VISTA DIARIA.
 		 * @param {string} teamId El ID del equipo de la jugadora.
 		 */
 		async function loadPlayerFormState(teamId) {
-		  const container = document.getElementById('formContainer');
-		  const title = document.getElementById('formTitle');
-		  container.innerHTML = '<div class="spinner"></div>'; // Muestra carga
+		  const container = document.getElementById('player-day-view-container');
+		  container.innerHTML = '<div class="spinner"></div><p style="text-align: center;">Cargando información del día...</p>';
 		  
 		  try {
 		    const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
@@ -1263,53 +1186,49 @@
 		      throw new Error(data.error || data.playerState.error);
 		    }
 		
-		    const state = data.playerState.state;
-		    const info = data.playerState.trainingInfo;
-		    const formUrl = data.playerState.formUrl;
+		    const stateData = data.playerState;
+		    const info = stateData.trainingInfo;
 		    
-		    let displayHtml = '';
-		    let displayDate = info ? `${info.fecha.split('-')[2]}/${info.fecha.split('-')[1]}/${info.fecha.split('-')[0]}` : '';
+		    let contentHtml = '';
 		
-		    title.innerHTML = `📝 Formulario del Día`;
+		    if (info) {
+		        // Si hay un próximo entreno, mostramos sus detalles
+		        contentHtml += `
+		            <div class="day-view-card" style="box-shadow: none; padding: 0;">
+		                <h3>Próximo Entrenamiento: ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</h3>
+		                <div class="details">
+		                    <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
+		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'No especificada'}</p>
+		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'Sin notas'}</p>
+		                    ${info.pdfId ? `<p class="detail-item"><strong>📄 Sesión:</strong> <a href="https://docs.google.com/document/d/${info.pdfId}/edit?usp=sharing" target="_blank">Ver PDF</a></p>` : ''}
+		                </div>
+		                <hr style="margin: 2rem 0;">
+		            </div>`;
+		    }
 		
-		    switch (state) {
+		    // Añadimos la sección del formulario basándonos en el estado
+		    switch (stateData.state) {
 		      case 'listo_para_responder':
-		        title.innerHTML = `📝 Próximo Entreno: ${displayDate}`;
-		        displayHtml = `
-		            <div style="text-align: center; padding: 30px;">
-		                <h3 style="margin-bottom: 10px;">¡Listo para el entreno de hoy!</h3>
-		                <p style="color: #666; margin-bottom: 25px;">Por favor, completa el formulario de asistencia.</p>
-		                <a href="${formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
+		        contentHtml += `
+		            <div style="text-align: center;">
+		                <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
+		                <a href="${stateData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
 		            </div>`;
 		        break;
 		        
 		      case 'ya_respondido':
-		        title.innerHTML = `📝 Entreno de Hoy: ${displayDate}`;
-		        displayHtml = `
-		            <div style="text-align: center; padding: 30px; background-color: #e8f5e8; border-radius: 15px;">
+		        contentHtml += `
+		            <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
 		                <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
-		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>	
-				  		<p style="font-size: 0.9rem; color: #888; margin-top: 15px;">Para cualquier modificación, avisa a los entrenadores.</p>
+		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
 		            </div>`;
 		        break;
 		
-		      case 'entreno_futuro':
-		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">El próximo entreno es el ${displayDate}. El formulario se activará ese día.</p></div>`;
-		        break;
-		
-		      case 'form_no_preparado':
-		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">👨‍🏫<p style="margin-top:1rem;">El entrenador aún no ha preparado el formulario para el entreno de hoy.</p></div>`;
-		        break;
-		
-		      case 'sin_entrenos':
-		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">😴<p style="margin-top:1rem;">No hay próximos entrenamientos programados.</p></div>`;
-		        break;
-		
 		      default:
-		        displayHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
+		         contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">${stateData.error || 'No hay formulario disponible para el próximo entreno.'}</p></div>`;
 		    }
 		    
-		    container.innerHTML = displayHtml;
+		    container.innerHTML = contentHtml;
 		
 		  } catch (error) {
 		    console.error('Error cargando el estado del formulario:', error);
