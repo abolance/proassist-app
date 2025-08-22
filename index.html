@@ -1000,28 +1000,31 @@
             document.getElementById('greeting').textContent = `${greeting}, ${firstName}!`;
         }
 
-        async function loadUserData() {
-            if (!currentUser || !currentUser.email) {
-                showError('No hay información de usuario disponible');
-                return;
-            }
-            const playerTeamId = currentUser.teams[0];
-            if (!playerTeamId) {
-                showError("No estás asignada a ningún equipo.");
-                return;
-            }
-            try {
-                await Promise.all([
-                    loadUserStats(playerTeamId),
-                    loadUserHistory(playerTeamId),
-                    loadTodaysForm(playerTeamId)
-                ]);
-            } catch (error) {
-                console.error('Error cargando datos de la jugadora:', error);
-                showError('Error al cargar los datos del usuario');
-            }
-        }
-
+		async function loadUserData() {
+		    if (!currentUser || !currentUser.email) {
+		        return showError('No hay información de usuario disponible');
+		    }
+		    const playerTeamId = currentUser.teams[0];
+		    if (!playerTeamId) {
+		        return showError("No estás asignada a ningún equipo.");
+		    }
+		
+		    try {
+		        console.log("Cargando estadísticas de jugadora...");
+		        await loadUserStats(playerTeamId);
+		        
+		        console.log("Cargando historial de jugadora...");
+		        await loadUserHistory(playerTeamId);
+		        
+		        console.log("Cargando formulario del día...");
+		        await loadTodaysForm(playerTeamId);
+		
+		    } catch (error) {
+		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
+		        showError('Error al cargar los datos del usuario. Revisa la consola.');
+		    }
+		}
+        
         async function loadUserStats(teamId) {
             try {
                 const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`);
@@ -1474,16 +1477,26 @@
             showAlert('💾 Configuración guardada localmente', 'success');
         }
 
-        function startAutoRefresh() {
-            stopAutoRefresh();
-            refreshInterval = setInterval(async () => {
-                showRefreshIndicator();
-                if (document.getElementById('player-dashboard').style.display === 'block') {
-                    await loadUserData();
-                }
-            }, CONFIG.AUTO_REFRESH_INTERVAL);
-        }
-
+		function startAutoRefresh() {
+		    stopAutoRefresh();
+		    refreshInterval = setInterval(async () => {
+		        showRefreshIndicator();
+		        
+		        // --- ¡AQUÍ ESTÁ LA LÓGICA CONTEXTUAL! ---
+		        // Comprobamos qué dashboard está visible actualmente
+		        if (document.getElementById('player-dashboard').style.display === 'block') {
+		            console.log("Auto-refresh: Refrescando datos de la jugadora...");
+		            await loadUserData();
+		        } else if (document.getElementById('admin-panel').style.display === 'block') {
+		            // En el futuro, podríamos refrescar los datos del admin también
+		            console.log("Auto-refresh: Panel de admin activo, no se hace nada por ahora.");
+		            // const selectedTeamId = document.getElementById('team-selector').value;
+		            // await initializeAdminPanel(selectedTeamId); // <-- Esto lo activaremos si lo necesitamos
+		        }
+		
+		    }, CONFIG.AUTO_REFRESH_INTERVAL);
+		}
+        
         function stopAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
         }
@@ -1520,10 +1533,22 @@
 		    setTimeout(() => alert.remove(), 4000); // Duración un poco más corta
 		}
 
-        document.addEventListener('visibilitychange', async function() {
-            if (!document.hidden && currentUser && document.getElementById('player-dashboard').style.display === 'block') {
-                await loadUserData();
-            }
-		});
+		document.addEventListener('visibilitychange', async function() {
+		    // Solo actúa si la pestaña se vuelve visible Y hay un usuario logueado
+		    if (document.hidden === false && currentUser) {
+		        
+		        // --- ¡AQUÍ ESTÁ LA LÓGICA CONTEXTUAL! ---
+		        if (document.getElementById('player-dashboard').style.display === 'block') {
+		            console.log("Pestaña visible: Refrescando datos de la jugadora...");
+		            await loadUserData();
+		        } else if (document.getElementById('admin-panel').style.display === 'block') {
+		            console.log("Pestaña visible: Panel de admin activo, refrescando datos del equipo...");
+		            const selectedTeamId = document.getElementById('team-selector').value;
+		            if (selectedTeamId) {
+		                await initializeAdminPanel(selectedTeamId);
+		            }
+		        }
+		    }
+		});        
     </script>
 </body>
