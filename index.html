@@ -1046,7 +1046,8 @@
 		        await loadUserHistory(playerTeamId);
 		        
 		        console.log("Cargando formulario del día...");
-		        await loadTodaysForm(playerTeamId);
+		        //await loadTodaysForm(playerTeamId);
+				await loadPlayerFormState(playerTeamId)
 		
 		    } catch (error) {
 		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
@@ -1154,6 +1155,77 @@
 		            <button onclick="loadUserHistory(currentUser.teams[0])" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Reintentar</button>
 		        </div>
 		    `;
+		}
+
+		/**
+		 * Pide al backend el estado del formulario de la jugadora y dibuja la UI correspondiente.
+		 * @param {string} teamId El ID del equipo de la jugadora.
+		 */
+		async function loadPlayerFormState(teamId) {
+		  const container = document.getElementById('formContainer');
+		  const title = document.getElementById('formTitle');
+		  container.innerHTML = '<div class="spinner"></div>'; // Muestra carga
+		  
+		  try {
+		    const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
+		    const data = await response.json();
+		
+		    if (!data.success || !data.playerState.success) {
+		      throw new Error(data.error || data.playerState.error);
+		    }
+		
+		    const state = data.playerState.state;
+		    const info = data.playerState.trainingInfo;
+		    const formUrl = data.playerState.formUrl;
+		    
+		    let displayHtml = '';
+		    let displayDate = info ? `${info.fecha.split('-')[2]}/${info.fecha.split('-')[1]}/${info.fecha.split('-')[0]}` : '';
+		
+		    title.innerHTML = `📝 Formulario del Día`;
+		
+		    switch (state) {
+		      case 'listo_para_responder':
+		        title.innerHTML = `📝 Próximo Entreno: ${displayDate}`;
+		        displayHtml = `
+		            <div style="text-align: center; padding: 30px;">
+		                <h3 style="margin-bottom: 10px;">¡Listo para el entreno de hoy!</h3>
+		                <p style="color: #666; margin-bottom: 25px;">Por favor, completa el formulario de asistencia.</p>
+		                <a href="${formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
+		            </div>`;
+		        break;
+		        
+		      case 'ya_respondido':
+		        title.innerHTML = `📝 Entreno de Hoy: ${displayDate}`;
+		        displayHtml = `
+		            <div style="text-align: center; padding: 30px; background-color: #e8f5e8; border-radius: 15px;">
+		                <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
+		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
+		                <a href="${formUrl}" target="_blank" class="btn btn-secondary" style="margin-top: 15px;">📝 Modificar mi Respuesta</a>
+		            </div>`;
+		        break;
+		
+		      case 'entreno_futuro':
+		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">El próximo entreno es el ${displayDate}. El formulario se activará ese día.</p></div>`;
+		        break;
+		
+		      case 'form_no_preparado':
+		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">👨‍🏫<p style="margin-top:1rem;">El entrenador aún no ha preparado el formulario para el entreno de hoy.</p></div>`;
+		        break;
+		
+		      case 'sin_entrenos':
+		        displayHtml = `<div style="text-align: center; padding: 20px; color: #666;">😴<p style="margin-top:1rem;">No hay próximos entrenamientos programados.</p></div>`;
+		        break;
+		
+		      default:
+		        displayHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
+		    }
+		    
+		    container.innerHTML = displayHtml;
+		
+		  } catch (error) {
+		    console.error('Error cargando el estado del formulario:', error);
+		    container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		  }
 		}
 
         async function loadTodaysForm(teamId) {
