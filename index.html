@@ -1112,19 +1112,24 @@
 		    const historyList = document.getElementById('historyList');
 		    
 		    if (!history || history.length === 0) {
-		        historyList.innerHTML = `
-		            <div style="text-align: center; padding: 20px; color: #666;">
-		                <p>Aún no tienes entrenamientos registrados.</p>
-		                <p style="font-size: 0.9rem;">¡Completa tu primer formulario!</p>
-		            </div>
-		        `;
+		        historyList.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;"><p>Aún no tienes entrenamientos registrados.</p></div>`;
 		        return;
 		    }
 		
-		    // Construimos el HTML para cada item del historial
 		    historyList.innerHTML = history.map(item => {
-		        console.log("Dato de fecha recibido del backend:", item.date, "Tipo:", typeof item.date);
-				const formattedDate = item.date || "Fecha no recibida";
+		        let formattedDate = "Fecha inválida";
+		        // El backend devuelve la fecha del entreno, que puede ser un objeto Date o un string
+		        if (item.date) {
+		            // Creamos la fecha de forma segura para evitar errores de formato y zona horaria
+		            const date = new Date(item.date);
+		            if (!isNaN(date.getTime())) { // Verificamos si la fecha es válida
+		                formattedDate = date.toLocaleDateString('es-ES', {
+		                    weekday: 'long',
+		                    day: 'numeric',
+		                    month: 'short'
+		                });
+		            }
+		        }
 		        
 		        const statusClass = item.completed ? 'status-completed' : 'status-missed';
 		        const statusText = item.completed ? 'Asistió' : 'No Asistió';
@@ -1132,9 +1137,7 @@
 		        return `
 		            <div class="history-item">
 		                <div class="history-date">${formattedDate}</div>
-		                <div class="history-status ${statusClass}">
-		                    ${statusText}
-		                </div>
+		                <div class="history-status ${statusClass}">${statusText}</div>
 		            </div>
 		        `;
 		    }).join('');
