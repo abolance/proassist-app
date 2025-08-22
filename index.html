@@ -713,9 +713,22 @@
 		                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
 		                            </div>
 
+									<!-- Nueva Interfaz para la Gestión de Sesiones -->
 									<div class="form-group">
-									    <label>📄 PDF de la Sesión (Opcional):</label>
-									    <input type="text" id="pdf-id" placeholder="Pega aquí el ID o enlace del archivo de Drive">
+									    <label>📄 Sesión de Entrenamiento:</label>
+									    <!-- Contenedor que mostrará el estado del archivo -->
+									    <div id="pdf-status-container">
+									        <p id="pdf-no-file-msg">No hay ninguna sesión adjunta.</p>
+									        <div id="pdf-viewer-link" style="display: none;">
+									            <a href="#" target="_blank" class="btn btn-secondary">Ver Sesión</a>
+									        </div>
+									    </div>
+									    <!-- Input de tipo 'file' para seleccionar el archivo, inicialmente oculto -->
+									    <input type="file" id="pdf-uploader" style="display: none;" onchange="handleFileSelect(this.files)">
+									    <!-- Botón que activará el input de archivo -->
+									    <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="document.getElementById('pdf-uploader').click();">
+									        📤 Subir/Cambiar Archivo
+									    </button>
 									</div>
 
 									<!-- Contenedor de botones con Flexbox y Flex-wrap -->
@@ -2024,6 +2037,91 @@
 		    const element = document.getElementById(id);
 		    if (element) {
 		        element.style.width = width;
+		    }
+		}
+
+		/**
+		 * Se activa cuando el coach selecciona un archivo.
+		 * Lee el archivo y llama a la función que lo subirá al backend.
+		 * @param {FileList} files La lista de archivos seleccionados (usaremos el primero).
+		 */
+		function handleFileSelect(files) {
+		    if (!selectedDate) {
+		        showAlert('Por favor, selecciona primero un día de entrenamiento.', 'warning');
+		        return;
+		    }
+		    if (files.length === 0) {
+		        console.log("No se seleccionó ningún archivo.");
+		        return;
+		    }
+		
+		    const file = files[0];
+		    const reader = new FileReader();
+		
+		    // Mostramos un spinner mientras se lee el archivo
+		    const pdfStatus = document.getElementById('pdf-status-container');
+		    pdfStatus.innerHTML = '<div class="spinner"></div><p>Procesando archivo...</p>';
+		
+		    // Cuando el archivo se ha leído, lo enviamos al backend
+		    reader.onload = function(e) {
+		        const fileData = e.target.result.split(','); // Separamos el tipo MIME de los datos en base64
+		        const mimeType = fileData[0].match(/:(.*?);/)[1];
+		        const base64Data = fileData[1];
+		
+		        // Llamamos a la función que se comunicará con el backend
+		        uploadFileToDrive(file.name, mimeType, base64Data);
+		    };
+		
+		    // Leemos el archivo como una Data URL (que incluye los datos en base64)
+		    reader.readAsDataURL(file);
+		}
+
+		/**
+		 * Envía los datos del archivo al backend para que lo suba a Google Drive.
+		 * @param {string} fileName El nombre original del archivo.
+		 * @param {string} mimeType El tipo MIME del archivo (ej: 'application/pdf').
+		 * @param {string} base64Data Los datos del archivo codificados en base64.
+		 */
+		async function uploadFileToDrive(fileName, mimeType, base64Data) {
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		
+		    try {
+		        // Hacemos una petición POST, esta vez es inevitable y necesario
+		        const response = await fetch(CONFIG.SCRIPT_URL, {
+		            method: 'POST',
+		            headers: { 'Content-Type': 'application/json' },
+		            body: JSON.stringify({
+		                action: 'uploadTrainingFile',
+		                userEmail: currentUser.email,
+		                teamId: selectedTeamId,
+		                fileName: fileName,
+		                mimeType: mimeType,
+		                fileData: base64Data,
+		                trainingDate: selectedDate // Enviamos la fecha para asociarlo
+		            })
+		        });
+		
+		        const data = await response.json();
+		
+		        if (data.success && data.result.success) {
+		            const file = data.result.file;
+		            // Actualizamos la UI y el objeto 'trainings' local
+		            trainings[selectedDate].pdfId = file.id;
+		            
+		            const pdfStatus = document.getElementById('pdf-status-container');
+		            pdfStatus.innerHTML = `
+		                <p>Archivo adjunto: <strong>${file.name}</strong></p>
+		                <a href="${file.url}" target="_blank" class="btn btn-secondary">Ver Sesión</a>
+		            `;
+		            showAlert('Archivo subido y asociado correctamente.', 'success');
+		        } else {
+		            throw new Error(data.error || data.result.error);
+		        }
+		    } catch (error) {
+		        console.error("Error al subir archivo:", error);
+		        showAlert(`Error al subir el archivo: ${error.message}`, 'warning');
+		        // Restauramos la UI
+		        document.getElementById('pdf-status-container').innerHTML = '<p id="pdf-no-file-msg">Error al subir. Inténtalo de nuevo.</p>';
 		    }
 		}
     </script>
