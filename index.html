@@ -458,7 +458,8 @@
 
 		/* Estilos para el selector de vistas del calendario */
 		.view-btn {
-		    background: none;
+		    /* background: none; */
+			background: rgba(255, 255, 255, 0.15);
 		    border: 1px solid white;
 		    color: white;
 		    padding: 5px 12px;
@@ -586,6 +587,42 @@
 	        <div id="player-day-view-container" class="card">
 	            <!-- El contenido se generará con JavaScript -->
 	        </div>
+
+			<div class="stats-grid" style="margin-top: 1.5rem;">
+			    <div class="card">
+			        <div class="stat-title">📊 Mis Estadísticas</div>
+			        <div class="stat-value" id="totalTrainings">-</div>
+			        <div class="stat-description">Entrenamientos completados</div>
+			        <div style="margin-top: 20px;">
+			            <span>Asistencia</span>
+			            <span id="attendanceRate" style="float: right;">-</span>
+			            <div class="progress-bar">
+			                <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
+			            </div>
+			        </div>
+			    </div>
+			    <div class="card">
+			        <div class="stat-title">👥 Comparación con Equipo</div>
+			         <div style="margin-top: 1rem;">
+			            <span>Tu Asistencia</span>
+			            <span id="myAttendanceRate" style="float: right;">-</span>
+			            <div class="progress-bar">
+			                <div id="myAttendanceProgress" class="progress-fill" style="width: 0%"></div>
+			            </div>
+			        </div>
+			        <div style="margin-top: 1.5rem;">
+			            <span>Media del Equipo</span>
+			            <span id="teamAverageRate" style="float: right;">-</span>
+			            <div class="progress-bar">
+			                <div id="teamAverageProgress" class="progress-fill" style="background: #e67e22; width: 0%;"></div>
+			            </div>
+			        </div>
+			    </div>
+			    <div class="card">
+			        <div class="stat-title">📅 Historial Reciente</div>
+			        <div id="historyList">Cargando historial...</div>
+			    </div>
+			</div>
 	    </div>
     </div>
 
@@ -886,7 +923,7 @@
 
         function initializeApp() {
             document.getElementById('signInButton').addEventListener('click', signIn);
-            document.getElementById('logoutButton').addEventListener('click', signOut); // Solo hay un logout button ahora
+            //document.getElementById('logoutButton').addEventListener('click', signOut); // Solo hay un logout button ahora
             if (typeof google !== 'undefined') {
                 google.accounts.id.initialize({
                     client_id: CONFIG.CLIENT_ID,
@@ -1030,11 +1067,7 @@
                 } else {
                     showAlert('No tienes equipos asignados.', 'warning');
                 }
-            } else if (role === 'PLAYER') {
-                //document.getElementById('player-dashboard').style.display = 'block';
-                //showMotivationalMessage();
-                //await loadUserData();
-
+            } else if (role === 'PLAYER') {                
 				document.getElementById('player-dashboard').style.display = 'block';
 			    showMotivationalMessage();
 			    
@@ -1043,6 +1076,8 @@
 			    const playerTeamId = currentUser.teams[0];
 			    if (playerTeamId) {
 			        await loadPlayerFormState(playerTeamId);
+					await loadUserStats(playerTeamId);
+        			await loadUserHistory(playerTeamId);
 			    } else {
 			        showError("No estás asignada a ningún equipo.");
 			    }
@@ -1373,7 +1408,7 @@
                     messageDiv.style.opacity = '1';
                     messageDiv.style.transition = '';
                 }, 500);
-            }, 10000);
+            }, 120000);
         }
 
         // ========================
