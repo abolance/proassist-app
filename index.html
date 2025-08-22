@@ -1768,26 +1768,31 @@
 			} else {
 			    pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
 			}
-		}        
+		}
 
-        async function saveTraining() {
-		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
-		    const selectedTeamId = document.getElementById('team-selector').value;
-		    if (!selectedTeamId) return showAlert('No se ha seleccionado ningún equipo.', 'warning');
+		async function saveTraining() {
+		    console.log("--- saveTraining: INICIO ---");
 		    
-		    // --- ¡NUEVA LÓGICA PARA EXTRAER EL ID DEL PDF! ---
+		    if (!selectedDate) {
+		        console.log("saveTraining: ERROR - No hay selectedDate.");
+		        return showAlert('Por favor, selecciona una fecha.', 'warning');
+		    }
+		    
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		    if (!selectedTeamId) {
+		        console.log("saveTraining: ERROR - No hay selectedTeamId.");
+		        return showAlert('No se ha seleccionado ningún equipo.', 'warning');
+		    }
+		    
 		    const pdfLink = document.getElementById('pdf-link').value;
 		    let pdfId = '';
 		    if (pdfLink.includes('/d/')) {
-		        // Extraemos el ID de una URL de Google Drive (funciona para Docs, Sheets, PDF, etc.)
 		        const match = pdfLink.match(/\/d\/(.+?)\//);
-		        if (match && match[1]) {
-		            pdfId = match[1];
-		        }
+		        if (match && match[1]) { pdfId = match[1]; }
 		    } else if (pdfLink.length > 30) {
-		         // Si no es un enlace, asumimos que han pegado directamente el ID
 		         pdfId = pdfLink;
 		    }
+		    console.log(`saveTraining: PDF ID extraído -> "${pdfId}"`);
 		
 		    const trainingDetails = {
 		        fecha: selectedDate,
@@ -1795,8 +1800,9 @@
 		        end: document.getElementById('end-time').value,
 		        location: document.getElementById('location').value,
 		        notes: document.getElementById('notes').value,
-		        pdfId: pdfId // Usamos el ID extraído
+		        pdfId: pdfId
 		    };
+		    console.log("saveTraining: Detalles del entreno a guardar ->", trainingDetails);
 		
 		    try {
 		        const url = new URL(CONFIG.SCRIPT_URL);
@@ -1805,25 +1811,37 @@
 		        url.searchParams.append('teamId', selectedTeamId);
 		        Object.keys(trainingDetails).forEach(key => url.searchParams.append(key, trainingDetails[key]));
 		        
+		        console.log("saveTraining: URL construida ->", url.toString());
+		
 		        const response = await fetch(url);
+		        console.log("saveTraining: Respuesta recibida del fetch ->", response);
+		
+		        if (!response.ok) {
+		            const errorText = await response.text();
+		            console.error("saveTraining: La respuesta del servidor no fue OK.", errorText);
+		            throw new Error(`Error del servidor: ${response.status}`);
+		        }
+		
 		        const data = await response.json();
+		        console.log("saveTraining: Datos JSON parseados ->", data);
 		
 		        if (data.success && data.result && data.result.success) {
-		            // Actualizamos nuestro estado local con los nuevos datos
+		            console.log("saveTraining: El guardado fue exitoso. Actualizando UI.");
 		            trainings[selectedDate] = trainingDetails;
-		            // Volvemos a cargar los datos en el formulario para mostrar el enlace "Ver Sesión"
 		            loadTrainingData(selectedDate); 
 		            renderCalendar();
 		            showAlert(data.result.message, 'success');
 		        } else {
-		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
+		            const errorMessage = data.error || data.result?.error || "Error desconocido en la respuesta.";
+		            console.error("saveTraining: El backend devolvió un error ->", errorMessage);
 		            showAlert('Error al guardar: ' + errorMessage, 'warning');
 		        }
 		    } catch (error) {
-		        console.error('Error de conexión al guardar:', error);
+		        console.error('--- saveTraining: ERROR CATASTRÓFICO EN CATCH ---');
+		        console.error(error);
 		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
 		    }
-		}
+		}        
 
         async function deleteTraining() {
             if (!selectedDate || !trainings[selectedDate]) return showAlert('No hay un entrenamiento seleccionado para eliminar.', 'warning');
