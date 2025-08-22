@@ -1760,17 +1760,14 @@
 		    document.getElementById('location').value = training.location || '';
 		    document.getElementById('notes').value = training.notes || '';
 		    
-		    // --- LÓGICA DEL PDF CORREGIDA Y FINAL ---
-		    if (training.pdfId) {
-		        // Si hay un PDF, mostramos un enlace para verlo.
-		        pdfStatusContainer.innerHTML = `
-		            <a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%; justify-content: center;">
-		                📄 Ver Sesión Adjunta
-		            </a>`;
-		    } else {
-		        // Si no hay PDF, mostramos el mensaje por defecto.
-		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
-		    }
+		    // Rellenar estado del PDF
+			document.getElementById('pdf-link').value = ''; // Limpiamos el campo de texto
+			
+			if (training.pdfId) {
+			    pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
+			} else {
+			    pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
+			}
 		}        
 
         async function saveTraining() {
