@@ -341,15 +341,36 @@
 	        grid-template-columns: 1fr 300px;
 	        gap: 1.5rem;
 	    }
-	    .calendar-header {
-	        background: #3498db;
-	        color: white;
-	        padding: 1rem;
-	        display: flex;
-	        justify-content: space-between;
-	        align-items: center;
-	        border-radius: 8px 8px 0 0;
-	    }
+
+		.calendar-header {
+		    /* Hacemos que el header sea un flexbox */
+		    display: flex;
+		    justify-content: space-between; /* Empuja los elementos a los extremos */
+		    align-items: center;
+		    flex-wrap: wrap; /* Permite que los elementos se coloquen abajo si no caben */
+		    gap: 1rem; /* Espacio entre los bloques por si se apilan */
+		}
+		
+		.calendar-title-nav {
+		    display: flex;
+		    align-items: center;
+		    gap: 1rem;
+		    flex-grow: 1; /* Permite que este bloque crezca */
+		    justify-content: center; /* Centra el título y las flechas */
+		}
+		
+		#calendar-month {
+		    min-width: 200px;
+		    text-align: center;
+		}
+		
+		/* En pantallas muy pequeñas, centramos todo */
+		@media (max-width: 500px) {
+		    .calendar-header {
+		        justify-content: center;
+		    }
+		}
+		
 	    .calendar-grid {
 	        display: grid;
 	        grid-template-columns: repeat(7, 1fr);
@@ -510,7 +531,7 @@
 		    gap: 15px;
 		    margin-bottom: 1rem;
 		    font-size: 1.1em;
-		}
+		}		
 	</style>
 </head>
 <body>
@@ -606,16 +627,16 @@
 		            <div id="calendar-tab" class="tab-panel active">
 		                <div class="calendar-container">
 		                    <div class="calendar">
-		                        <div class="calendar-header" style="justify-content: center; position: relative;">
-								    <!-- Navegación de Período -->
-								    <div style="display: flex; align-items: center; gap: 1rem;">
+		                        <div class="calendar-header">
+								    <!-- Contenedor para el título y la navegación -->
+								    <div class="calendar-title-nav">
 								        <button class="calendar-nav" onclick="previousPeriod()">‹</button>
-								        <h2 id="calendar-month" style="text-align: center; min-width: 250px;">Agosto 2025</h2>
+								        <h2 id="calendar-month">Agosto 2025</h2>
 								        <button class="calendar-nav" onclick="nextPeriod()">›</button>
 								    </div>
 								    
-								    <!-- Selector de Vistas (ahora posicionado a la derecha) -->
-								    <div id="view-switcher" style="position: absolute; right: 1rem;">
+								    <!-- El selector de vistas se queda como está -->
+								    <div id="view-switcher">
 								        <button id="month-view-btn" class="view-btn" onclick="setView('month')">Mes</button>
 								        <button id="week-view-btn" class="view-btn active" onclick="setView('week')">Semana</button>
 								        <button id="day-view-btn" class="view-btn" onclick="setView('day')">Día</button>
@@ -1010,9 +1031,21 @@
                     showAlert('No tienes equipos asignados.', 'warning');
                 }
             } else if (role === 'PLAYER') {
-                document.getElementById('player-dashboard').style.display = 'block';
-                showMotivationalMessage();
-                await loadUserData();
+                //document.getElementById('player-dashboard').style.display = 'block';
+                //showMotivationalMessage();
+                //await loadUserData();
+
+				document.getElementById('player-dashboard').style.display = 'block';
+			    showMotivationalMessage();
+			    
+			    // --- LLAMADA CORRECTA ---
+			    // Obtenemos el teamId y llamamos a nuestra nueva función maestra
+			    const playerTeamId = currentUser.teams[0];
+			    if (playerTeamId) {
+			        await loadPlayerFormState(playerTeamId);
+			    } else {
+			        showError("No estás asignada a ningún equipo.");
+			    }
             }
         }
 
@@ -1846,10 +1879,17 @@
 		        
 		        // --- ¡AQUÍ ESTÁ LA LÓGICA CONTEXTUAL! ---
 		        // Comprobamos qué dashboard está visible actualmente
-		        if (document.getElementById('player-dashboard').style.display === 'block') {
-		            console.log("Auto-refresh: Refrescando datos de la jugadora...");
-		            await loadUserData();
-		        } else if (document.getElementById('admin-panel').style.display === 'block') {
+		        //if (document.getElementById('player-dashboard').style.display === 'block') {
+		        //    console.log("Auto-refresh: Refrescando datos de la jugadora...");
+		        //    await loadUserData();
+		        //} 
+				if (document.getElementById('player-dashboard').style.display === 'block') {
+				    const playerTeamId = currentUser.teams[0];
+				    if (playerTeamId) {
+				        await loadPlayerFormState(playerTeamId); // <-- Llamada corregida
+				    }
+				}
+				else if (document.getElementById('admin-panel').style.display === 'block') {
 		            // En el futuro, podríamos refrescar los datos del admin también
 		            console.log("Auto-refresh: Panel de admin activo, no se hace nada por ahora.");
 		            // const selectedTeamId = document.getElementById('team-selector').value;
@@ -1900,10 +1940,17 @@
 		    if (document.hidden === false && currentUser) {
 		        
 		        // --- ¡AQUÍ ESTÁ LA LÓGICA CONTEXTUAL! ---
-		        if (document.getElementById('player-dashboard').style.display === 'block') {
-		            console.log("Pestaña visible: Refrescando datos de la jugadora...");
-		            await loadUserData();
-		        } else if (document.getElementById('admin-panel').style.display === 'block') {
+		        //if (document.getElementById('player-dashboard').style.display === 'block') {
+		        //    console.log("Pestaña visible: Refrescando datos de la jugadora...");
+		        //    await loadUserData();
+		        //} 
+				if (document.getElementById('player-dashboard').style.display === 'block') {
+				    const playerTeamId = currentUser.teams[0];
+				    if (playerTeamId) {
+				        await loadPlayerFormState(playerTeamId); // <-- Llamada corregida
+				    }
+				}
+				else if (document.getElementById('admin-panel').style.display === 'block') {
 		            console.log("Pestaña visible: Panel de admin activo, refrescando datos del equipo...");
 		            const selectedTeamId = document.getElementById('team-selector').value;
 		            if (selectedTeamId) {
