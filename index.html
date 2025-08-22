@@ -718,11 +718,8 @@
 									    <label>📄 Sesión de Entrenamiento:</label>
 									    <!-- Contenedor que mostrará el estado del archivo -->
 									    <div id="pdf-status-container">
-									        <p id="pdf-no-file-msg">No hay ninguna sesión adjunta.</p>
-									        <div id="pdf-viewer-link" style="display: none;">
-									            <a href="#" target="_blank" class="btn btn-secondary">Ver Sesión</a>
-									        </div>
-									    </div>
+										    <!-- El JavaScript generará el contenido aquí -->
+										</div>
 									    <!-- Input de tipo 'file' para seleccionar el archivo, inicialmente oculto -->
 									    <input type="file" id="pdf-uploader" style="display: none;" onchange="handleFileSelect(this.files)">
 									    <!-- Botón que activará el input de archivo -->
@@ -1577,12 +1574,21 @@
         }
 
         function selectDate(dateString) {
-            document.querySelectorAll('.calendar-day.selected').forEach(day => day.classList.remove('selected'));
-            const dayElement = document.querySelector(`[data-date="${dateString}"]`);
-            if (dayElement) dayElement.classList.add('selected');
-            selectedDate = dateString;
-            loadTrainingData(dateString);
-        }
+		    selectedDate = dateString;
+		    currentDate = new Date(dateString + 'T12:00:00'); // Sincronizamos la fecha principal
+		
+		    // Si estamos en la vista de mes o semana, resaltamos el día
+		    if (currentCalendarView === 'month' || currentCalendarView === 'week') {
+		        document.querySelectorAll('.calendar-day.selected').forEach(day => day.classList.remove('selected'));
+		        const dayElement = document.querySelector(`[data-date="${dateString}"]`);
+		        if (dayElement) dayElement.classList.add('selected');
+		    } else if (currentCalendarView === 'day') {
+		        // Si estamos en la vista de día, simplemente la volvemos a dibujar
+		        renderDayView();
+		    }
+		    
+		    loadTrainingData(dateString);
+		}
 
 		/**
 		 * Dibuja la vista semanal del calendario con franjas horarias.
@@ -1706,40 +1712,62 @@
 		    grid.innerHTML = `<div class="day-view-container">${contentHtml}</div>`;
 		}
 
-        function loadTrainingData(dateString) {
-            const trainingForm = document.getElementById('training-details-form');
-            const buttonContainer = document.getElementById('action-buttons-container');
-            const today = toYYYYMMDD(new Date());
-            const isPastDate = dateString && dateString < today;
-            const hasTraining = dateString && trainings[dateString];
-            
-            trainingForm.style.display = 'block';
-            buttonContainer.style.display = 'block';
-
-            if (isPastDate && !hasTraining) {
-                trainingForm.style.display = 'none';
-                showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
-            } else if (isPastDate && hasTraining) {
-                buttonContainer.style.display = 'none';
-                showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
-            }
-
-            const training = trainings[dateString] || {};
-            let displayDate = 'dd/mm/aaaa';
-            if (dateString) {
-                const parts = dateString.split('-');
-                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            document.getElementById('selected-date').value = displayDate;
-            document.getElementById('start-time').value = training.start || '20:45';
-            document.getElementById('end-time').value = training.end || '22:30';
-            document.getElementById('location').value = training.location || '';
-            document.getElementById('notes').value = training.notes || '';
-            document.getElementById('pdf-id').value = training.pdfId || '';
-            
-            const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
-            formInputs.forEach(input => input.disabled = isPastDate);
-        }
+		/**
+		 * Carga los datos de un entrenamiento seleccionado en el formulario del sidebar,
+		 * gestionando la visibilidad y el estado de los campos y botones.
+		 * @param {string} dateString La fecha seleccionada en formato 'YYYY-MM-DD'.
+		 */
+		function loadTrainingData(dateString) {
+		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
+		    const trainingForm = document.getElementById('training-details-form');
+		    const buttonContainer = document.getElementById('action-buttons-container');
+		    const pdfStatusContainer = document.getElementById('pdf-status-container');
+		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+		
+		    // --- 2. CÁLCULO DE ESTADOS ---
+		    const today = toYYYYMMDD(new Date());
+		    const isPastDate = dateString && dateString < today;
+		    const hasTraining = dateString && trainings[dateString];
+		    const training = trainings[dateString] || {};
+		
+		    // --- 3. LÓGICA DE VISIBILIDAD Y HABILITACIÓN ---
+		    trainingForm.style.display = 'block'; // Mostramos el formulario por defecto
+		    buttonContainer.style.display = 'block'; // Mostramos los botones por defecto
+		    formInputs.forEach(input => input.disabled = false); // Habilitamos los inputs por defecto
+		
+		    if (isPastDate && !hasTraining) {
+		        trainingForm.style.display = 'none';
+		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
+		    } else if (isPastDate && hasTraining) {
+		        buttonContainer.style.display = 'none';
+		        formInputs.forEach(input => input.disabled = true);
+		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
+		    }
+		
+		    // --- 4. RELLENAR LOS DATOS DEL FORMULARIO ---
+		    let displayDate = 'dd/mm/aaaa';
+		    if (dateString) {
+		        const parts = dateString.split('-');
+		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+		    }
+		    document.getElementById('selected-date').value = displayDate;
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		    
+		    // --- LÓGICA DEL PDF CORREGIDA Y FINAL ---
+		    if (training.pdfId) {
+		        // Si hay un PDF, mostramos un enlace para verlo.
+		        pdfStatusContainer.innerHTML = `
+		            <a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+		                📄 Ver Sesión Adjunta
+		            </a>`;
+		    } else {
+		        // Si no hay PDF, mostramos el mensaje por defecto.
+		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
+		    }
+		}        
 
         async function saveTraining() {
             if (!selectedDate) return showAlert('Por favor, selecciona una fecha en el calendario.', 'warning');
