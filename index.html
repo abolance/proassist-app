@@ -713,19 +713,18 @@
 		                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
 		                            </div>
 
-									<!-- Nueva Interfaz para la Gestión de Sesiones -->
+									<!-- Interfaz Simplificada para Asociar Archivos -->
 									<div class="form-group">
-									    <label>📄 Sesión de Entrenamiento:</label>
-									    <!-- Contenedor que mostrará el estado del archivo -->
-									    <div id="pdf-status-container">
-										    <!-- El JavaScript generará el contenido aquí -->
-										</div>
-									    <!-- Input de tipo 'file' para seleccionar el archivo, inicialmente oculto -->
-									    <input type="file" id="pdf-uploader" style="display: none;" onchange="handleFileSelect(this.files)">
-									    <!-- Botón que activará el input de archivo -->
-									    <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="document.getElementById('pdf-uploader').click();">
-									        📤 Subir/Cambiar Archivo
-									    </button>
+									    <label for="pdf-link">📄 Sesión de Entrenamiento (Opcional):</label>
+									    
+									    <!-- Contenedor para mostrar el estado -->
+									    <div id="pdf-status-container" style="margin-bottom: 10px;">
+									        <!-- El JS llenará esto con el enlace si ya existe -->
+									    </div>
+									
+									    <!-- Input para pegar el enlace de Drive -->
+									    <input type="text" id="pdf-link" placeholder="Pega aquí el enlace de Google Drive">
+									    <small style="color: #7f8c8d; font-size: 0.8em;">Obtén el enlace desde Drive > Compartir > Copiar enlace.</small>
 									</div>
 
 									<!-- Contenedor de botones con Flexbox y Flex-wrap -->
@@ -1775,41 +1774,59 @@
 		}        
 
         async function saveTraining() {
-            if (!selectedDate) return showAlert('Por favor, selecciona una fecha en el calendario.', 'warning');
-            const selectedTeamId = document.getElementById('team-selector').value;
-            if (!selectedTeamId) return showAlert('Error: No se ha seleccionado ningún equipo.', 'warning');
-            
-            const trainingDetails = {
-                fecha: selectedDate,
-                start: document.getElementById('start-time').value,
-                end: document.getElementById('end-time').value,
-                location: document.getElementById('location').value,
-                notes: document.getElementById('notes').value,
-                pdfId: document.getElementById('pdf-id').value
-            };
-            try {
-                const url = new URL(CONFIG.SCRIPT_URL);
-                url.searchParams.append('action', 'saveTraining');
-                url.searchParams.append('userEmail', currentUser.email);
-                url.searchParams.append('teamId', selectedTeamId);
-                Object.keys(trainingDetails).forEach(key => url.searchParams.append(key, trainingDetails[key]));
-                
-                console.log("Intentando guardar con URL:", url.toString());
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.success && data.result && data.result.success) {
-                    trainings[selectedDate] = trainingDetails;
-                    renderCalendarView();
-                    showAlert(data.result.message, 'success');
-                } else {
-                    const errorMessage = data.error || data.result?.error || "Ocurrió un error desconocido.";
-                    showAlert('Error al guardar: ' + errorMessage, 'warning');
-                }
-            } catch (error) {
-                console.error('Error de conexión al guardar:', error);
-                showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
-            }
-        }
+		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		    if (!selectedTeamId) return showAlert('No se ha seleccionado ningún equipo.', 'warning');
+		    
+		    // --- ¡NUEVA LÓGICA PARA EXTRAER EL ID DEL PDF! ---
+		    const pdfLink = document.getElementById('pdf-link').value;
+		    let pdfId = '';
+		    if (pdfLink.includes('/d/')) {
+		        // Extraemos el ID de una URL de Google Drive (funciona para Docs, Sheets, PDF, etc.)
+		        const match = pdfLink.match(/\/d\/(.+?)\//);
+		        if (match && match[1]) {
+		            pdfId = match[1];
+		        }
+		    } else if (pdfLink.length > 30) {
+		         // Si no es un enlace, asumimos que han pegado directamente el ID
+		         pdfId = pdfLink;
+		    }
+		
+		    const trainingDetails = {
+		        fecha: selectedDate,
+		        start: document.getElementById('start-time').value,
+		        end: document.getElementById('end-time').value,
+		        location: document.getElementById('location').value,
+		        notes: document.getElementById('notes').value,
+		        pdfId: pdfId // Usamos el ID extraído
+		    };
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'saveTraining');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', selectedTeamId);
+		        Object.keys(trainingDetails).forEach(key => url.searchParams.append(key, trainingDetails[key]));
+		        
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.result && data.result.success) {
+		            // Actualizamos nuestro estado local con los nuevos datos
+		            trainings[selectedDate] = trainingDetails;
+		            // Volvemos a cargar los datos en el formulario para mostrar el enlace "Ver Sesión"
+		            loadTrainingData(selectedDate); 
+		            renderCalendar();
+		            showAlert(data.result.message, 'success');
+		        } else {
+		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
+		            showAlert('Error al guardar: ' + errorMessage, 'warning');
+		        }
+		    } catch (error) {
+		        console.error('Error de conexión al guardar:', error);
+		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
+		    }
+		}
 
         async function deleteTraining() {
             if (!selectedDate || !trainings[selectedDate]) return showAlert('No hay un entrenamiento seleccionado para eliminar.', 'warning');
@@ -2070,91 +2087,6 @@
 		    const element = document.getElementById(id);
 		    if (element) {
 		        element.style.width = width;
-		    }
-		}
-
-		/**
-		 * Se activa cuando el coach selecciona un archivo.
-		 * Lee el archivo y llama a la función que lo subirá al backend.
-		 * @param {FileList} files La lista de archivos seleccionados (usaremos el primero).
-		 */
-		function handleFileSelect(files) {
-		    if (!selectedDate) {
-		        showAlert('Por favor, selecciona primero un día de entrenamiento.', 'warning');
-		        return;
-		    }
-		    if (files.length === 0) {
-		        console.log("No se seleccionó ningún archivo.");
-		        return;
-		    }
-		
-		    const file = files[0];
-		    const reader = new FileReader();
-		
-		    // Mostramos un spinner mientras se lee el archivo
-		    const pdfStatus = document.getElementById('pdf-status-container');
-		    pdfStatus.innerHTML = '<div class="spinner"></div><p>Procesando archivo...</p>';
-		
-		    // Cuando el archivo se ha leído, lo enviamos al backend
-		    reader.onload = function(e) {
-		        const fileData = e.target.result.split(','); // Separamos el tipo MIME de los datos en base64
-		        const mimeType = fileData[0].match(/:(.*?);/)[1];
-		        const base64Data = fileData[1];
-		
-		        // Llamamos a la función que se comunicará con el backend
-		        uploadFileToDrive(file.name, mimeType, base64Data);
-		    };
-		
-		    // Leemos el archivo como una Data URL (que incluye los datos en base64)
-		    reader.readAsDataURL(file);
-		}
-
-		/**
-		 * Envía los datos del archivo al backend para que lo suba a Google Drive.
-		 * @param {string} fileName El nombre original del archivo.
-		 * @param {string} mimeType El tipo MIME del archivo (ej: 'application/pdf').
-		 * @param {string} base64Data Los datos del archivo codificados en base64.
-		 */
-		async function uploadFileToDrive(fileName, mimeType, base64Data) {
-		    const selectedTeamId = document.getElementById('team-selector').value;
-		
-		    try {
-		        // Hacemos una petición POST, esta vez es inevitable y necesario
-		        const response = await fetch(CONFIG.SCRIPT_URL, {
-		            method: 'POST',
-		            headers: { 'Content-Type': 'application/json' },
-		            body: JSON.stringify({
-		                action: 'uploadTrainingFile',
-		                userEmail: currentUser.email,
-		                teamId: selectedTeamId,
-		                fileName: fileName,
-		                mimeType: mimeType,
-		                fileData: base64Data,
-		                trainingDate: selectedDate // Enviamos la fecha para asociarlo
-		            })
-		        });
-		
-		        const data = await response.json();
-		
-		        if (data.success && data.result.success) {
-		            const file = data.result.file;
-		            // Actualizamos la UI y el objeto 'trainings' local
-		            trainings[selectedDate].pdfId = file.id;
-		            
-		            const pdfStatus = document.getElementById('pdf-status-container');
-		            pdfStatus.innerHTML = `
-		                <p>Archivo adjunto: <strong>${file.name}</strong></p>
-		                <a href="${file.url}" target="_blank" class="btn btn-secondary">Ver Sesión</a>
-		            `;
-		            showAlert('Archivo subido y asociado correctamente.', 'success');
-		        } else {
-		            throw new Error(data.error || data.result.error);
-		        }
-		    } catch (error) {
-		        console.error("Error al subir archivo:", error);
-		        showAlert(`Error al subir el archivo: ${error.message}`, 'warning');
-		        // Restauramos la UI
-		        document.getElementById('pdf-status-container').innerHTML = '<p id="pdf-no-file-msg">Error al subir. Inténtalo de nuevo.</p>';
 		    }
 		}
     </script>
