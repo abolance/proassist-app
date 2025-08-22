@@ -469,6 +469,48 @@
 		.calendar-nav:hover {
 		    background: rgba(255, 255, 255, 0.2);
 		}
+
+		/* Estilos para la Vista Diaria */
+		.day-view-container {
+		    padding: 2rem;
+		    text-align: center;
+		}
+		
+		.day-view-card {
+		    background-color: #f8f9fa;
+		    border-radius: 15px;
+		    padding: 2rem;
+		    max-width: 600px;
+		    margin: 0 auto;
+		    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+		}
+		
+		.day-view-card h3 {
+		    font-size: 1.8em;
+		    color: #2c3e50;
+		    margin-bottom: 1rem;
+		}
+		
+		.day-view-card p {
+		    font-size: 1.1em;
+		    color: #7f8c8d;
+		    line-height: 1.6;
+		}
+		
+		.day-view-card .details {
+		    text-align: left;
+		    margin-top: 2rem;
+		    border-top: 1px solid #ddd;
+		    padding-top: 2rem;
+		}
+		
+		.day-view-card .detail-item {
+		    display: flex;
+		    align-items: center;
+		    gap: 15px;
+		    margin-bottom: 1rem;
+		    font-size: 1.1em;
+		}
 	</style>
 </head>
 <body>
@@ -1601,17 +1643,59 @@
 		}
 
 		/**
-		 * Dibuja la vista diaria del calendario (placeholder).
+		 * Dibuja la vista diaria del calendario, mostrando detalles del entreno del día actual.
 		 */
 		function renderDayView() {
 		    const grid = document.getElementById('calendar-grid');
 		    grid.innerHTML = ''; // Limpiamos el grid
+		    // Hacemos que la rejilla se comporte como un bloque normal para esta vista
+		    grid.style.display = 'block'; 
 		
-		    // Placeholder
-		    grid.innerHTML = '<div style="padding: 4rem; text-align: center; grid-column: 1 / 8;">Vista Diaria en construcción...</div>';
-		    
-		    // Actualizamos el título del header
-		    document.getElementById('calendar-month').textContent = "Día Actual";
+		    // Actualizamos el título del header para mostrar la fecha completa
+		    const opcionesTitulo = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+		    document.getElementById('calendar-month').textContent = currentDate.toLocaleDateString('es-ES', opcionesTitulo);
+		
+		    const dateString = toYYYYMMDD(currentDate);
+		    const training = trainings[dateString];
+		
+		    let contentHtml = '';
+		
+		    if (training) {
+		        // Si SÍ hay entrenamiento para este día
+		        contentHtml = `
+		            <div class="day-view-card">
+		                <h3>Detalles del Entrenamiento</h3>
+		                <div class="details">
+		                    <p class="detail-item">
+		                        <strong>🕒 Horario:</strong> ${training.start} - ${training.end}
+		                    </p>
+		                    <p class="detail-item">
+		                        <strong>📍 Ubicación:</strong> ${training.location || 'No especificada'}
+		                    </p>
+		                    <p class="detail-item">
+		                        <strong>📝 Notas:</strong> ${training.notes || 'Sin notas'}
+		                    </p>
+		                    ${training.pdfId ? `
+		                    <p class="detail-item">
+		                        <strong>📄 Sesión:</strong> <a href="https://docs.google.com/document/d/${training.pdfId}/edit?usp=sharing" target="_blank">Ver PDF</a>
+		                    </p>
+		                    ` : ''}
+		                </div>
+		            </div>
+		        `;
+		    } else {
+		        // Si NO hay entrenamiento para este día
+		        contentHtml = `
+		            <div class="day-view-card">
+		                <div style="font-size: 3rem; margin-bottom: 1rem;">😴</div>
+		                <h3>Día de Descanso</h3>
+		                <p>No hay ningún entrenamiento programado para hoy.</p>
+		            </div>
+		        `;
+		    }
+		
+		    // Usamos un contenedor para que los estilos se apliquen bien
+		    grid.innerHTML = `<div class="day-view-container">${contentHtml}</div>`;
 		}
 
         function loadTrainingData(dateString) {
