@@ -1001,7 +1001,7 @@
         function initializeApp() {
 		    // 1. Configurar nuestro propio botón de "Cerrar Sesión"
 		    // Buscamos TODOS los botones con la clase 'logout-btn' y les asignamos la función signOut		    
-			//document.querySelectorAll('.logout-btn').forEach(button => { button.addEventListener('click', signOut); });
+			document.querySelectorAll('.logout-btn').forEach(button => { button.addEventListener('click', signOut); });
 		
 		    // 2. Si la librería de Google está disponible, la inicializamos
 		    if (typeof google !== 'undefined' && google.accounts) {
