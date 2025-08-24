@@ -2153,19 +2153,23 @@
 		        // 2. Pedir al backend la lista de archivos de esa carpeta
 		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=listFilesByFolderId&folderId=${teamFolderId}`);
 		        const data = await response.json();
-		
-		        if (data.filesData.success) {
-		            fileListDiv.innerHTML = '';
-		            data.filesData.files.forEach(file => {
-		                const fileButton = document.createElement('button');
-		                fileButton.className = 'file-item';
-		                fileButton.textContent = file.name;
-		                fileButton.onclick = () => selectFile(file.id, file.name);
-		                fileListDiv.appendChild(fileButton);
-		            });
-		        } else {
-		            throw new Error(data.filesData.error);
-		        }
+				// La respuesta ahora es { success: true, filesList: { success: true, files: [...] } }
+				if (data.success && data.filesList.success) {
+				    fileListDiv.innerHTML = '';
+				    if (data.filesList.files.length === 0) {
+				        fileListDiv.innerHTML = '<p>No hay archivos en esta carpeta.</p>';
+				    } else {
+				        data.filesList.files.forEach(file => {
+				            const fileButton = document.createElement('button');
+				            fileButton.className = 'file-item';
+				            fileButton.textContent = file.name;
+				            fileButton.onclick = () => selectFile(file.id, file.name);
+				            fileListDiv.appendChild(fileButton);
+				        });
+				    }
+				} else {
+				    throw new Error(data.error || data.filesList.error);
+				}
 		    } catch (error) {
 		        fileListDiv.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		    }
