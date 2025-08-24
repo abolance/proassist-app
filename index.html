@@ -982,6 +982,7 @@
         let selectedDate = null;
         let trainings = {};
 		let currentCalendarView = 'week'; // 'week' es ahora la vista por defecto
+		let visibilityChangeListener = null;
 
         function toYYYYMMDD(date) {
             const anio = date.getFullYear();
@@ -1000,9 +1001,7 @@
         function initializeApp() {
 		    // 1. Configurar nuestro propio botón de "Cerrar Sesión"
 		    // Buscamos TODOS los botones con la clase 'logout-btn' y les asignamos la función signOut		    
-			document.querySelectorAll('.logout-btn').forEach(button => {
-		        button.addEventListener('click', signOut);
-		    });
+			//document.querySelectorAll('.logout-btn').forEach(button => { button.addEventListener('click', signOut); });
 		
 		    // 2. Si la librería de Google está disponible, la inicializamos
 		    if (typeof google !== 'undefined' && google.accounts) {
@@ -1102,6 +1101,10 @@
                     currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams, teamMap: accessData.teamMap };
                     sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
                     updateGreeting();
+
+					visibilityChangeListener = handleVisibilityChange;
+    				document.addEventListener('visibilitychange', visibilityChangeListener);
+					
                     await showDashboardBasedOnRole(accessData.role);
                     startAutoRefresh();
                 } else {
@@ -1125,6 +1128,11 @@
         }
 
         function signOut() {
+			if (visibilityChangeListener) {
+		        document.removeEventListener('visibilitychange', visibilityChangeListener);
+		        visibilityChangeListener = null;
+		    }
+			
 		    // Primero, detenemos cualquier refresco automático
 		    stopAutoRefresh();
 		    
@@ -2152,15 +2160,9 @@
 		    setTimeout(() => alert.remove(), 4000); // Duración un poco más corta
 		}
 
-		document.addEventListener('visibilitychange', async function() {
+		document.addEventListener('visibilitychange', async function handleVisibilityChange()() {
 		    // Solo actúa si la pestaña se vuelve visible Y hay un usuario logueado
-		    if (document.hidden === false && currentUser) {
-		        
-		        // --- ¡AQUÍ ESTÁ LA LÓGICA CONTEXTUAL! ---
-		        //if (document.getElementById('player-dashboard').style.display === 'block') {
-		        //    console.log("Pestaña visible: Refrescando datos de la jugadora...");
-		        //    await loadUserData();
-		        //} 
+		    if (document.hidden === false && currentUser) {		        
 				if (document.getElementById('player-dashboard').style.display === 'block') {
 				    const playerTeamId = currentUser.teams[0];
 				    if (playerTeamId) {
