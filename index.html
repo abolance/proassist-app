@@ -62,7 +62,7 @@
 		}
 		
 		.app-logo-container {
-		    background: linear-gradient(135deg, #3498db, #1abc9c);
+		    background: transparent;
 		    width: 100px;
 		    height: 100px;
 		    border-radius: 50%;
@@ -627,45 +627,51 @@
 	            <p id="motivationalText"></p>
 	        </div>
 	
-	        <!-- Contenedor Principal para la Vista Diaria de la Jugadora -->
-	        <div id="player-day-view-container" class="card">
-	            <!-- El contenido se generará con JavaScript -->
-	        </div>
-
-			<div class="stats-grid" style="margin-top: 1.5rem;">
-			    <div class="card">
-			        <div class="stat-title">📊 Mis Estadísticas</div>
-			        <div class="stat-value" id="totalTrainings">-</div>
-			        <div class="stat-description">Entrenamientos completados</div>
-			        <div style="margin-top: 20px;">
-			            <span>Asistencia</span>
-			            <span id="attendanceRate" style="float: right;">-</span>
-			            <div class="progress-bar">
-			                <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
+	        <!-- Contened-or Principal de la Vista Diaria de la Jugadora -->
+			<!-- Usamos un grid para organizar las tarjetas principales -->
+			<div style="display: grid; gap: 1.5rem;">
+			
+			    <!-- 1. TARJETA DEL PRÓXIMO ENTRENAMIENTO -->
+			    <div id="player-day-view-container" class="card">
+			        <!-- El contenido se generará con JavaScript aquí dentro -->
+			    </div>
+			
+			    <!-- 2. REJILLA DE ESTADÍSTICAS -->
+			    <div class="stats-grid">
+			        <div class="card">
+			            <div class="stat-title">📊 Mis Estadísticas</div>
+			            <div class="stat-value" id="totalTrainings">-</div>
+			            <div class="stat-description">Entrenamientos completados</div>
+			            <div style="margin-top: 20px;">
+			                <span>Asistencia</span>
+			                <span id="attendanceRate" style="float: right;">-</span>
+			                <div class="progress-bar">
+			                    <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
+			                </div>
 			            </div>
 			        </div>
-			    </div>
-			    <div class="card">
-			        <div class="stat-title">👥 Comparación con Equipo</div>
-			         <div style="margin-top: 1rem;">
-			            <span>Tu Asistencia</span>
-			            <span id="myAttendanceRate" style="float: right;">-</span>
-			            <div class="progress-bar">
-			                <div id="myAttendanceProgress" class="progress-fill" style="width: 0%"></div>
+			        <div class="card">
+			            <div class="stat-title">👥 Comparación con Equipo</div>
+			             <div style="margin-top: 1rem;">
+			                <span>Tu Asistencia</span>
+			                <span id="myAttendanceRate" style="float: right;">-</span>
+			                <div class="progress-bar">
+			                    <div id="myAttendanceProgress" class="progress-fill" style="width: 0%"></div>
+			                </div>
+			            </div>
+			            <div style="margin-top: 1.5rem;">
+			                <span>Media del Equipo</span>
+			                <span id="teamAverageRate" style="float: right;">-</span>
+			                <div class="progress-bar">
+			                    <div id="teamAverageProgress" class="progress-fill" style="background: #e67e22; width: 0%;"></div>
+			                </div>
 			            </div>
 			        </div>
-			        <div style="margin-top: 1.5rem;">
-			            <span>Media del Equipo</span>
-			            <span id="teamAverageRate" style="float: right;">-</span>
-			            <div class="progress-bar">
-			                <div id="teamAverageProgress" class="progress-fill" style="background: #e67e22; width: 0%;"></div>
-			            </div>
+			        <div class="card">
+			            <div class="stat-title">📅 Historial Reciente</div>
+			            <div id="historyList">Cargando historial...</div>
 			        </div>
-			    </div>
-			    <div class="card">
-			        <div class="stat-title">📅 Historial Reciente</div>
-			        <div id="historyList">Cargando historial...</div>
-			    </div>
+			    </div>			
 			</div>
 	    </div>
     </div>
@@ -1366,21 +1372,19 @@
 		    const info = stateData.trainingInfo;
 		    
 		    let contentHtml = '';
-		
-		    if (info) {
-		        // Si hay un próximo entreno, mostramos sus detalles
-		        contentHtml += `
-		            <div class="day-view-card" style="box-shadow: none; padding: 0;">
-		                <h3>Próximo Entrenamiento: ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</h3>
-		                <div class="details">
-		                    <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
-		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'No especificada'}</p>
-		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'Sin notas'}</p>
-		                    ${info.pdfId ? `<p class="detail-item"><strong>📄 Sesión:</strong> <a href="https://docs.google.com/document/d/${info.pdfId}/edit?usp=sharing" target="_blank">Ver PDF</a></p>` : ''}
-		                </div>
-		                <hr style="margin: 2rem 0;">
-		            </div>`;
-		    }
+
+			if (info) {
+			    // El contenedor ya es un .card, así que inyectamos el contenido directamente
+			    contentHtml += `
+			        <h3 style="margin-bottom: 1rem;">Próximo Entrenamiento: ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</h3>
+			        <div class="details">
+			            <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
+			            <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'No especificada'}</p>
+			            <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'Sin notas'}</p>
+			        </div>
+			        <hr style="margin: 2rem 0;">
+			    `;
+			}		    
 		
 		    // Añadimos la sección del formulario basándonos en el estado
 		    switch (stateData.state) {
