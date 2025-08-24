@@ -533,7 +533,33 @@
 		    gap: 15px;
 		    margin-bottom: 1rem;
 		    font-size: 1.1em;
-		}		
+		}	
+
+		.modal-overlay {
+		    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+		    background: rgba(0,0,0,0.6); z-index: 1000;
+		    display: flex; align-items: center; justify-content: center;
+		}
+		.modal-content {
+		    background: white; border-radius: 15px; width: 90%; max-width: 600px;
+		    box-shadow: 0 5px 25px rgba(0,0,0,0.2); overflow: hidden;
+		}
+		.modal-header {
+		    display: flex; justify-content: space-between; align-items: center;
+		    padding: 1rem 1.5rem; border-bottom: 1px solid #eee;
+		}
+		.close-btn {
+		    background: none; border: none; font-size: 2em; cursor: pointer; color: #888;
+		}
+		.modal-body {
+		    padding: 1.5rem; max-height: 60vh; overflow-y: auto;
+		}
+		.file-item {
+		    display: block; width: 100%; text-align: left; padding: 1rem;
+		    border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;
+		    cursor: pointer; transition: all 0.2s ease;
+		}
+		.file-item:hover { background: #f0f5f9; border-color: #3498db; }
 	</style>
 </head>
 <body>
@@ -713,18 +739,27 @@
 		                                <textarea id="notes" rows="3" placeholder="Notas adicionales del entreno..."></textarea>
 		                            </div>
 
-									<!-- Interfaz Simplificada para Asociar Archivos -->
 									<div class="form-group">
-									    <label for="pdf-link">📄 Sesión de Entrenamiento (Opcional):</label>
-									    
-									    <!-- Contenedor para mostrar el estado -->
-									    <div id="pdf-status-container" style="margin-bottom: 10px;">
-									        <!-- El JS llenará esto con el enlace si ya existe -->
+									    <label>📄 Sesión de Entrenamiento:</label>
+									    <div id="pdf-status-container">
+									        <!-- El JS llenará esto -->
 									    </div>
+									    <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="openFilePicker()">
+									        📂 Seleccionar Sesión de Drive
+									    </button>
+									</div>
 									
-									    <!-- Input para pegar el enlace de Drive -->
-									    <input type="text" id="pdf-link" placeholder="Pega aquí el enlace de Google Drive">
-									    <small style="color: #7f8c8d; font-size: 0.8em;">Obtén el enlace desde Drive > Compartir > Copiar enlace.</small>
+									<!-- MODAL PARA EL SELECTOR DE ARCHIVOS (añade esto al final del <body>) -->
+									<div id="file-picker-modal" class="modal-overlay" style="display:none;">
+									    <div class="modal-content">
+									        <div class="modal-header">
+									            <h3>Seleccionar Archivo de Sesión</h3>
+									            <button class="close-btn" onclick="closeFilePicker()">&times;</button>
+									        </div>
+									        <div id="file-picker-list" class="modal-body">
+									            <!-- La lista de archivos se cargará aquí -->
+									        </div>
+									    </div>
 									</div>
 
 									<!-- Contenedor de botones con Flexbox y Flex-wrap -->
@@ -1800,7 +1835,7 @@
 		        end: document.getElementById('end-time').value,
 		        location: document.getElementById('location').value,
 		        notes: document.getElementById('notes').value,
-		        pdfId: pdfId
+		        pdfId: selectedFileId || (trainings[selectedDate] ? trainings[selectedDate].pdfId : '')
 		    };
 		    console.log("saveTraining: Detalles del entreno a guardar ->", trainingDetails);
 		
@@ -2103,6 +2138,53 @@
 		    if (element) {
 		        element.style.width = width;
 		    }
+		}
+
+		let selectedFileId = null; // Variable global temporal para guardar el ID seleccionado
+
+		async function openFilePicker() {
+		    const modal = document.getElementById('file-picker-modal');
+		    const fileListDiv = document.getElementById('file-picker-list');
+		    modal.style.display = 'flex';
+		    fileListDiv.innerHTML = '<div class="spinner"></div><p>Cargando archivos...</p>';
+		
+		    try {
+		        // 1. Obtener el ID de la carpeta del equipo desde la hoja Equipos
+		        const selectedTeamId = document.getElementById('team-selector').value;
+		        const teamFolderId = await getTeamFolderId(selectedTeamId); // Necesitamos esta nueva función en el backend
+		
+		        // 2. Pedir al backend la lista de archivos de esa carpeta
+		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=listFilesByFolderId&folderId=${teamFolderId}`);
+		        const data = await response.json();
+		
+		        if (data.filesData.success) {
+		            fileListDiv.innerHTML = '';
+		            data.filesData.files.forEach(file => {
+		                const fileButton = document.createElement('button');
+		                fileButton.className = 'file-item';
+		                fileButton.textContent = file.name;
+		                fileButton.onclick = () => selectFile(file.id, file.name);
+		                fileListDiv.appendChild(fileButton);
+		            });
+		        } else {
+		            throw new Error(data.filesData.error);
+		        }
+		    } catch (error) {
+		        fileListDiv.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		    }
+		}
+		
+		function selectFile(fileId, fileName) {
+		    selectedFileId = fileId; // Guardamos el ID
+		    // Actualizamos la UI del sidebar
+		    document.getElementById('pdf-status-container').innerHTML = `
+		        <div class="alert alert-success">Seleccionado: <strong>${fileName}</strong></div>
+		    `;
+		    closeFilePicker();
+		}
+		
+		function closeFilePicker() {
+		    document.getElementById('file-picker-modal').style.display = 'none';
 		}
     </script>
 </body>
