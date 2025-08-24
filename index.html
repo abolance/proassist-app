@@ -1795,9 +1795,6 @@
 		    document.getElementById('location').value = training.location || '';
 		    document.getElementById('notes').value = training.notes || '';
 		    
-		    // Rellenar estado del PDF
-			document.getElementById('pdf-link').value = ''; // Limpiamos el campo de texto
-			
 			if (training.pdfId) {
 			    pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
 			} else {
@@ -2185,6 +2182,33 @@
 		
 		function closeFilePicker() {
 		    document.getElementById('file-picker-modal').style.display = 'none';
+		}
+
+		/**
+		 * Pide al backend el ID de la carpeta de sesiones de un equipo.
+		 * @param {string} teamId El ID del equipo.
+		 * @returns {string} El ID de la carpeta de Google Drive.
+		 */
+		async function getTeamFolderId(teamId) {
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getTeamFolderId');
+		        url.searchParams.append('userEmail', currentUser.email); // Seguridad
+		        url.searchParams.append('teamId', teamId);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.folderData.success) {
+		            return data.folderData.folderId;
+		        } else {
+		            throw new Error(data.error || data.folderData.error);
+		        }
+		    } catch (error) {
+		        console.error("Error obteniendo el ID de la carpeta del equipo:", error);
+		        // Devolvemos una promesa rechazada para que el 'catch' en openFilePicker la maneje
+		        return Promise.reject(error);
+		    }
 		}
     </script>
 </body>
