@@ -1806,12 +1806,12 @@
 		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
 		    const selectedTeamId = document.getElementById('team-selector').value;
 		    if (!selectedTeamId) return showAlert('No se ha seleccionado ningún equipo.', 'warning');
-		    
-		    // --- ¡LÓGICA CORREGIDA PARA OBTENER EL ID DEL PDF! ---
-		    // 1. Usamos el ID guardado en nuestra variable global `selectedFileId`.
-		    // 2. Si no se ha seleccionado un nuevo archivo (selectedFileId es null),
-		    //    mantenemos el que ya estaba guardado en el entrenamiento.
+		    		    
+		    // 1. Obtenemos el ID del PDF que ya pudiera existir para este entreno.
 		    const existingPdfId = trainings[selectedDate] ? trainings[selectedDate].pdfId : '';
+		    
+		    // 2. Usamos el nuevo archivo seleccionado (si lo hay) o mantenemos el antiguo.
+		    //    La variable 'selectedFileId' la rellena la función 'selectFile' del modal.
 		    const finalPdfId = selectedFileId || existingPdfId;
 		
 		    const trainingDetails = {
@@ -1820,24 +1820,29 @@
 		        end: document.getElementById('end-time').value,
 		        location: document.getElementById('location').value,
 		        notes: document.getElementById('notes').value,
-		        pdfId: finalPdfId // <-- Usamos el ID correcto
+		        pdfId: finalPdfId // <-- Ahora usamos el ID correcto
 		    };
 		
 		    try {
-		        // ... (el resto de la lógica de fetch y la URL se queda exactamente igual) ...
 		        const url = new URL(CONFIG.SCRIPT_URL);
 		        url.searchParams.append('action', 'saveTraining');
 		        url.searchParams.append('userEmail', currentUser.email);
 		        url.searchParams.append('teamId', selectedTeamId);
-		        Object.keys(trainingDetails).forEach(key => url.searchParams.append(key, trainingDetails[key]));
 		        
+		        // Enviamos todos los detalles, incluyendo el pdfId correcto
+		        Object.keys(trainingDetails).forEach(key => {
+		            url.searchParams.append(key, trainingDetails[key])
+		        });
+		        
+		        console.log("Intentando guardar con URL:", url.toString()); // Mantenemos el debug
 		        const response = await fetch(url);
 		        const data = await response.json();
 		
 		        if (data.success && data.result && data.result.success) {
+		            // Actualizamos nuestro estado local para que la UI se refresque
 		            trainings[selectedDate] = trainingDetails;
-		            loadTrainingData(selectedDate); 
-		            renderCalendarView(); // <-- Verificamos que esta llamada está bien escrita
+		            loadTrainingData(selectedDate);
+		            renderCalendarView(); // Usamos la función maestra
 		            showAlert(data.result.message, 'success');
 		        } else {
 		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
@@ -1847,8 +1852,7 @@
 		        console.error('Error de conexión al guardar:', error);
 		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
 		    } finally {
-		        // --- BUENA PRÁCTICA: Reseteamos el ID del archivo seleccionado ---
-		        // para que no se asigne accidentalmente al siguiente entreno que editemos.
+		        // ¡Importante! Reseteamos la selección para el próximo uso.
 		        selectedFileId = null;
 		    }
 		}        
