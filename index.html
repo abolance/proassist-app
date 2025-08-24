@@ -1729,10 +1729,13 @@
 		                        <strong>📝 Notas:</strong> ${training.notes || 'Sin notas'}
 		                    </p>
 		                    ${training.pdfId ? `
-		                    <p class="detail-item">
-		                        <strong>📄 Sesión:</strong> <a href="https://docs.google.com/document/d/${training.pdfId}/edit?usp=sharing" target="_blank">Ver PDF</a>
-		                    </p>
-		                    ` : ''}
+							<div class="detail-item">
+							    <strong>📄 Sesión:</strong>
+							    <a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.9em; margin-left: 10px;">
+							        Ver Sesión Adjunta
+							    </a>
+							</div>
+							` : ''}
 		                </div>
 		            </div>
 		        `;
