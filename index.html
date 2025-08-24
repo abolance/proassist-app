@@ -1837,7 +1837,7 @@
 		        if (data.success && data.result && data.result.success) {
 		            trainings[selectedDate] = trainingDetails;
 		            loadTrainingData(selectedDate); 
-		            renderCalendar(); // <-- Verificamos que esta llamada está bien escrita
+		            renderCalendarView(); // <-- Verificamos que esta llamada está bien escrita
 		            showAlert(data.result.message, 'success');
 		        } else {
 		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
