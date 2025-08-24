@@ -1803,28 +1803,16 @@
 		}
 
 		async function saveTraining() {
-		    console.log("--- saveTraining: INICIO ---");
-		    
-		    if (!selectedDate) {
-		        console.log("saveTraining: ERROR - No hay selectedDate.");
-		        return showAlert('Por favor, selecciona una fecha.', 'warning');
-		    }
-		    
+		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
 		    const selectedTeamId = document.getElementById('team-selector').value;
-		    if (!selectedTeamId) {
-		        console.log("saveTraining: ERROR - No hay selectedTeamId.");
-		        return showAlert('No se ha seleccionado ningún equipo.', 'warning');
-		    }
+		    if (!selectedTeamId) return showAlert('No se ha seleccionado ningún equipo.', 'warning');
 		    
-		    const pdfLink = document.getElementById('pdf-link').value;
-		    let pdfId = '';
-		    if (pdfLink.includes('/d/')) {
-		        const match = pdfLink.match(/\/d\/(.+?)\//);
-		        if (match && match[1]) { pdfId = match[1]; }
-		    } else if (pdfLink.length > 30) {
-		         pdfId = pdfLink;
-		    }
-		    console.log(`saveTraining: PDF ID extraído -> "${pdfId}"`);
+		    // --- ¡LÓGICA CORREGIDA PARA OBTENER EL ID DEL PDF! ---
+		    // 1. Usamos el ID guardado en nuestra variable global `selectedFileId`.
+		    // 2. Si no se ha seleccionado un nuevo archivo (selectedFileId es null),
+		    //    mantenemos el que ya estaba guardado en el entrenamiento.
+		    const existingPdfId = trainings[selectedDate] ? trainings[selectedDate].pdfId : '';
+		    const finalPdfId = selectedFileId || existingPdfId;
 		
 		    const trainingDetails = {
 		        fecha: selectedDate,
@@ -1832,46 +1820,36 @@
 		        end: document.getElementById('end-time').value,
 		        location: document.getElementById('location').value,
 		        notes: document.getElementById('notes').value,
-		        pdfId: selectedFileId || (trainings[selectedDate] ? trainings[selectedDate].pdfId : '')
+		        pdfId: finalPdfId // <-- Usamos el ID correcto
 		    };
-		    console.log("saveTraining: Detalles del entreno a guardar ->", trainingDetails);
 		
 		    try {
+		        // ... (el resto de la lógica de fetch y la URL se queda exactamente igual) ...
 		        const url = new URL(CONFIG.SCRIPT_URL);
 		        url.searchParams.append('action', 'saveTraining');
 		        url.searchParams.append('userEmail', currentUser.email);
 		        url.searchParams.append('teamId', selectedTeamId);
 		        Object.keys(trainingDetails).forEach(key => url.searchParams.append(key, trainingDetails[key]));
 		        
-		        console.log("saveTraining: URL construida ->", url.toString());
-		
 		        const response = await fetch(url);
-		        console.log("saveTraining: Respuesta recibida del fetch ->", response);
-		
-		        if (!response.ok) {
-		            const errorText = await response.text();
-		            console.error("saveTraining: La respuesta del servidor no fue OK.", errorText);
-		            throw new Error(`Error del servidor: ${response.status}`);
-		        }
-		
 		        const data = await response.json();
-		        console.log("saveTraining: Datos JSON parseados ->", data);
 		
 		        if (data.success && data.result && data.result.success) {
-		            console.log("saveTraining: El guardado fue exitoso. Actualizando UI.");
 		            trainings[selectedDate] = trainingDetails;
 		            loadTrainingData(selectedDate); 
-		            renderCalendar();
+		            renderCalendar(); // <-- Verificamos que esta llamada está bien escrita
 		            showAlert(data.result.message, 'success');
 		        } else {
-		            const errorMessage = data.error || data.result?.error || "Error desconocido en la respuesta.";
-		            console.error("saveTraining: El backend devolvió un error ->", errorMessage);
+		            const errorMessage = data.error || data.result?.error || "Error desconocido.";
 		            showAlert('Error al guardar: ' + errorMessage, 'warning');
 		        }
 		    } catch (error) {
-		        console.error('--- saveTraining: ERROR CATASTRÓFICO EN CATCH ---');
-		        console.error(error);
+		        console.error('Error de conexión al guardar:', error);
 		        showAlert('Error de conexión. No se pudo guardar el entrenamiento.', 'warning');
+		    } finally {
+		        // --- BUENA PRÁCTICA: Reseteamos el ID del archivo seleccionado ---
+		        // para que no se asigne accidentalmente al siguiente entreno que editemos.
+		        selectedFileId = null;
 		    }
 		}        
 
