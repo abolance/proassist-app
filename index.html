@@ -2160,7 +2160,7 @@
 		    setTimeout(() => alert.remove(), 4000); // Duración un poco más corta
 		}
 
-		document.addEventListener('visibilitychange', async function handleVisibilityChange()() {
+		document.addEventListener('visibilitychange', async function handleVisibilityChange() {
 		    // Solo actúa si la pestaña se vuelve visible Y hay un usuario logueado
 		    if (document.hidden === false && currentUser) {		        
 				if (document.getElementById('player-dashboard').style.display === 'block') {
