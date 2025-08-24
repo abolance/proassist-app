@@ -999,22 +999,32 @@
         });
 
         function initializeApp() {
-		    // 1. Configurar nuestro propio botón de "Cerrar Sesión"
-		    // Buscamos TODOS los botones con la clase 'logout-btn' y les asignamos la función signOut		    
-			document.querySelectorAll('.logout-btn').forEach(button => { button.addEventListener('click', signOut); });
+		    // --- 1. CONFIGURAR EVENTOS DE LA PÁGINA ---
+			
+		    // Asignamos la función signOut a todos los botones de cerrar sesión
+		    document.querySelectorAll('.logout-btn').forEach(button => {
+		        button.addEventListener('click', signOut);
+		    });
 		
-		    // 2. Si la librería de Google está disponible, la inicializamos
+		    // Asignamos nuestra función nombrada al evento de visibilidad
+		    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+			// --- 2. INICIALIZAR GOOGLE SIGN-IN ---
+			
+		    // Si la librería de Google está disponible, la inicializamos
 		    if (typeof google !== 'undefined' && google.accounts) {
 		        google.accounts.id.initialize({
 		            client_id: CONFIG.CLIENT_ID,
 		            callback: handleCredentialResponse // Esta es la función que se llamará tras un login exitoso
 		        });
 		        
-		        // 3. Dibujamos el nuevo botón de Google en su contenedor
+		        // Dibujamos el nuevo botón de Google en su contenedor
 		        renderGoogleButton();
 		    }
-		
-		    // 4. Mostramos una frase motivadora aleatoria en el login
+
+			// --- 3. PREPARAR LA UI INICIAL ---
+			
+		    // Mostramos una frase motivadora aleatoria en el login
 		    setRandomLoginPhrase();
 		
 		    // 5. Comprobamos si ya existe una sesión activa para no tener que loguearse de nuevo
@@ -2160,24 +2170,28 @@
 		    setTimeout(() => alert.remove(), 4000); // Duración un poco más corta
 		}
 
-		document.addEventListener('visibilitychange', async function handleVisibilityChange() {
-		    // Solo actúa si la pestaña se vuelve visible Y hay un usuario logueado
-		    if (document.hidden === false && currentUser) {		        
-				if (document.getElementById('player-dashboard').style.display === 'block') {
-				    const playerTeamId = currentUser.teams[0];
-				    if (playerTeamId) {
-				        await loadPlayerFormState(playerTeamId); // <-- Llamada corregida
-				    }
-				}
-				else if (document.getElementById('admin-panel').style.display === 'block') {
-		            console.log("Pestaña visible: Panel de admin activo, refrescando datos del equipo...");
+		/**
+		 * Se activa cuando el usuario vuelve a la pestaña de la app.
+		 * Refresca los datos de la vista activa.
+		 */
+		async function handleVisibilityChange() {
+		    if (document.hidden === false && currentUser) {
+		        if (document.getElementById('player-dashboard').style.display === 'block') {
+		            const playerTeamId = currentUser.teams[0];
+		            if (playerTeamId) {
+		                // Refrescamos toda la info de la jugadora
+		                await loadPlayerFormState(playerTeamId);
+		                await loadUserStats(playerTeamId);
+		                await loadUserHistory(playerTeamId);
+		            }
+		        } else if (document.getElementById('admin-panel').style.display === 'block') {
 		            const selectedTeamId = document.getElementById('team-selector').value;
 		            if (selectedTeamId) {
 		                await initializeAdminPanel(selectedTeamId);
 		            }
 		        }
 		    }
-		});  
+		}  
 
 		/**
 		 * Asigna texto a un elemento de forma segura. Si el elemento no existe, no hace nada.
