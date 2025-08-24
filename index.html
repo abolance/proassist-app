@@ -617,7 +617,7 @@
 	                <span id="greeting"></span>
 	            </div>
 	            <div>
-	                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
+	                <button class="btn btn-danger">🚪 Cerrar Sesión</button>
 	            </div>
 	        </header>
 	
@@ -686,7 +686,7 @@
 	                <span id="role-badge" class="admin-badge"></span>
 	            </div>
 	            <div style="display: flex; gap: 10px;">
-	                <button class="btn btn-danger" onclick="signOut()">🚪 Cerrar Sesión</button>
+	                <button class="btn btn-danger">🚪 Cerrar Sesión</button>
 	            </div>
 	        </header>
 			<!-- NUEVO: SELECTOR DE EQUIPO PARA EL COACH -->
@@ -1086,6 +1086,11 @@
         }
 
         async function loginUser(userInfo) {
+			// --- NUEVA LÓGICA DE CARGA (SPINNER) ---
+		    // Ocultamos el botón de Google y mostramos el spinner
+		    document.getElementById('loginLoading').style.display = 'block';
+		    document.getElementById('google-signin-button').style.display = 'none';
+			
             try {
                 const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkAccess&email=${encodeURIComponent(userInfo.email)}&app=player`);
                 if (!response.ok) {
@@ -1120,11 +1125,16 @@
         }
 
         function signOut() {
-            currentUser = null;
-            sessionStorage.removeItem('proassist_user');
-            stopAutoRefresh();
-            showLoginScreen();
-        }
+		    // Primero, detenemos cualquier refresco automático
+		    stopAutoRefresh();
+		    
+		    // Luego, reseteamos el usuario
+		    currentUser = null;
+		    sessionStorage.removeItem('proassist_user');
+		    
+		    // Finalmente, mostramos la pantalla de login
+		    showLoginScreen();
+		}
 
         // ========================
         // ROUTER Y NAVEGACIÓN
