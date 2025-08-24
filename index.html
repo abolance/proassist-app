@@ -62,7 +62,7 @@
 		}
 		
 		.app-logo-container {
-		    background: transparent;
+		    background: linear-gradient(135deg, #3498db, #1abc9c);
 		    width: 100px;
 		    height: 100px;
 		    border-radius: 50%;
@@ -1198,10 +1198,19 @@
             resetLoginScreen();
         }
 
-        function resetLoginScreen() {
-            document.getElementById('loginLoading').style.display = 'none';
-            document.getElementById('signInButton').style.display = 'flex';
-        }
+		function resetLoginScreen() {
+		    // Ocultamos el spinner de carga
+		    const loginLoading = document.getElementById('loginLoading');
+		    if (loginLoading) {
+		        loginLoading.style.display = 'none';
+		    }
+		    
+		    // Mostramos el contenedor del botón de Google
+		    const googleButtonContainer = document.getElementById('google-signin-button');
+		    if (googleButtonContainer) {
+		        googleButtonContainer.style.display = 'block';
+		    }
+		}        
 
         // ========================
         // LÓGICA DASHBOARD JUGADORA
