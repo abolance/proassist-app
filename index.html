@@ -1305,6 +1305,15 @@
 		    // Widget de Comparación (ahora también es seguro)
 		    safeSetText('myAttendanceRate', `${attendance}%`);
 		    safeSetWidth('myAttendanceProgress', `${attendance}%`);
+
+			// Rellenamos los campos del widget "Comparación con Equipo"
+		    document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
+		    document.getElementById('myAttendanceProgress').style.width = `${stats.attendanceRate || 0}%`;
+		    
+		    // Rellenamos la media del equipo con el nuevo dato del backend
+		    const teamAverage = stats.teamAverage || 0;
+		    document.getElementById('teamAverageRate').textContent = `${teamAverage}%`;
+		    document.getElementById('teamAverageProgress').style.width = `${teamAverage}%`;
 		}
 		
 		function showDefaultStats() {
@@ -1316,6 +1325,13 @@
 		
 		    safeSetText('myAttendanceRate', '0%');
 		    safeSetWidth('myAttendanceProgress', '0%');
+
+			document.getElementById('myAttendanceRate').textContent = '0%';
+		    document.getElementById('myAttendanceProgress').style.width = '0%';
+		    
+		    // Reiniciamos los campos de la media del equipo
+		    document.getElementById('teamAverageRate').textContent = '0%';
+		    document.getElementById('teamAverageProgress').style.width = '0%';
 		}
 		
         async function loadUserHistory(teamId) {
