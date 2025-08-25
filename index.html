@@ -580,14 +580,15 @@
 		}
 		.file-item:hover { background: #f0f5f9; border-color: #3498db; }
 
-		#player-stats-table { width: 100%; border-collapse: collapse; }
-		#player-stats-table th, #player-stats-table td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; }
-		#player-stats-table th { background-color: #f8f9fa; font-size: 0.9em; }
+		#player-stats-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+		#player-stats-table th, #player-stats-table td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+		#player-stats-table th { background-color: #f8f9fa; font-size: 0.9em; text-transform: uppercase; }
 		#player-stats-table tbody tr:hover { background-color: #f0f5f9; }
-		.attendance-bar { display: flex; align-items: center; gap: 8px; }
-		.bar { height: 10px; background-color: #ddd; border-radius: 5px; flex-grow: 1; }
-		.bar-fill { height: 100%; background-color: #3498db; border-radius: 5px; }
-		.attendance-history span { font-size: 1.2em; margin: 0 2px; }
+		.attendance-bar-container { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+		.bar { height: 8px; background-color: #e9ecef; border-radius: 4px; flex-grow: 1; overflow: hidden; }
+		.bar-fill { height: 100%; background-color: #3498db; border-radius: 4px; }
+		.attendance-history { font-family: monospace; font-size: 1.2em; letter-spacing: 2px; }
+		#player-search-input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }		
 	</style>
 </head>
 <body>
@@ -926,31 +927,33 @@
 					    <hr style="margin: 2rem 0;">
 
 						<!-- 2. Análisis por Jugadora (Nueva Tabla Interactiva) -->
-						<div id="player-stats-section">
-						    <h3 style="margin-bottom: 1rem;">Análisis de Jugadoras</h3>
-						    <!-- Controles de Filtro -->
-						    <div id="player-table-controls" style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-						        <input type="text" id="player-search" placeholder="🔍 Buscar por nombre..." onkeyup="filterPlayerTable()">
-						        <!-- Añadiremos más filtros aquí más tarde -->
-						    </div>
-						    <!-- Contenedor de la Tabla -->
-						    <div id="player-table-container" style="overflow-x: auto;">
-						        <table id="player-stats-table">
-						            <thead>
-						                <tr>
-						                    <th>Nombre</th>
-						                    <th>Posición</th>
-						                    <th>Asistencia</th>
-						                    <th>Últ. 5 Entrenos</th>
-						                    <th>Última Menstruación</th>
-						                </tr>
-						            </thead>
-						            <tbody id="player-table-body">
-						                <!-- El JS llenará esta tabla -->
-						            </tbody>
-						        </table>
-						    </div>
-						</div>										    								        
+					    <div id="player-stats-section">
+					        <h3 style="margin-bottom: 1rem;">Análisis de Jugadoras</h3>
+					        
+					        <!-- Controles de Filtro -->
+					        <div id="player-table-controls" style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+					            <input type="text" id="player-search-input" placeholder="🔍 Buscar por nombre..." onkeyup="filterPlayerTable()" style="flex-grow: 1; min-width: 200px;">
+					            <!-- Aquí añadiremos los filtros de Posición y Menstruación -->
+					        </div>
+					        
+					        <!-- Contenedor de la Tabla -->
+					        <div id="player-table-container" style="overflow-x: auto;">
+					            <table id="player-stats-table">
+					                <thead>
+					                    <tr>
+					                        <th>Nombre</th>
+					                        <th>Posición</th>
+					                        <th>Asistencia</th>
+					                        <th>Últimos 5 Entrenos</th>
+					                        <th>Última Menstruación</th>
+					                    </tr>
+					                </thead>
+					                <tbody id="player-table-body">
+					                    <!-- El JavaScript llenará esta tabla -->
+					                </tbody>
+					            </table>
+					        </div>
+					    </div>																    								        
 		                <div class="training-list">
 		                    <h3 style="padding: 1rem; background: #f8f9fa; margin: 0;">📅 Próximos Entrenamientos</h3>
 		                    <div id="upcoming-trainings">
