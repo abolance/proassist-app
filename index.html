@@ -971,6 +971,43 @@
 	    </div>
     </div>
 
+	<!-- DASHBOARD AYUDANTE (ASSISTANT) -->
+	<div id="assistant-dashboard" style="display: none;">
+	    <div class="container">
+	        <header class="header">
+	            <div class="logo">
+	                ⚽ ProAssist
+	                <span id="assistant-role-badge" class="admin-badge" style="background-color: #f39c12;">ASSISTANT</span>
+	            </div>
+	            <div>
+	                <button class="btn btn-danger logout-btn">🚪 Cerrar Sesión</button>
+	            </div>
+	        </header>
+	
+	        <div id="assistant-team-selector-header" class="header">
+	             <div style="display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%;">
+	                <label for="assistant-team-selector" style="font-weight: bold; flex-shrink: 0;">Selecciona un equipo:</label>
+	                <select id="assistant-team-selector" class="btn" style="background-color: white; color: black; max-width: 400px;"></select>
+	            </div>
+	        </div>
+	
+	        <div class="admin-content">
+	            <div class="tabs">
+	                <button class="tab active" onclick="showAssistantTab('daily_view')">🗓️ Próximo Entreno</button>
+	                <button class="tab" onclick="showAssistantTab('player_responses')">📋 Respuestas del Día</button>
+	            </div>
+	            <div class="content">
+	                <div id="assistant-daily-view-tab" class="tab-panel active">
+	                    <!-- La vista del día del próximo entreno se cargará aquí -->
+	                </div>
+	                <div id="assistant-player-responses-tab" class="tab-panel">
+	                    <!-- La tabla con las respuestas de las jugadoras se cargará aquí -->
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
     <!-- INDICADOR DE AUTO-REFRESH -->
     <div id="refreshIndicator" class="refresh-indicator hidden">
         🔄
@@ -1229,7 +1266,11 @@
                 } else {
                     showAlert('No tienes equipos asignados.', 'warning');
                 }
-            } else if (role === 'PLAYER') {                
+            } else if (role === 'ASSISTANT') {
+			    document.getElementById('assistant-dashboard').style.display = 'block';
+			    // Llamaremos a una nueva función que cargue los datos del ayudante
+			    initializeAssistantPanel();					
+			} else if (role === 'PLAYER') {                
 				document.getElementById('player-dashboard').style.display = 'block';
 			    showMotivationalMessage();
 			    
@@ -2169,6 +2210,146 @@
 		        player.name.toLowerCase().includes(searchTerm)
 		    );
 		    renderPlayerTable(filteredData);
+		}
+
+		// ========================
+        // ASSISTANT
+        // ========================
+		
+		let nextTrainingForAssistant = null; // Variable global para guardar el próximo entreno
+
+		/**
+		 * Inicializa el panel del Ayudante, manejando el selector de equipo.
+		 */
+		async function initializeAssistantPanel() {
+		    const teamSelector = document.getElementById('assistant-team-selector');
+		    teamSelector.innerHTML = '';
+		    
+		    if (currentUser.teams && currentUser.teams.length > 1) {
+		        document.getElementById('assistant-team-selector-header').style.display = 'flex';
+		        currentUser.teams.forEach(teamId => {
+		            const option = document.createElement('option');
+		            option.value = teamId;
+		            option.textContent = currentUser.teamMap[teamId] || teamId;
+		            teamSelector.appendChild(option);
+		        });
+		        teamSelector.onchange = () => loadAssistantData(teamSelector.value);
+		        await loadAssistantData(currentUser.teams[0]);
+		    } else if (currentUser.teams && currentUser.teams.length === 1) {
+		        document.getElementById('assistant-team-selector-header').style.display = 'none';
+		        await loadAssistantData(currentUser.teams[0]);
+		    } else {
+		        showAlert('No tienes equipos asignados.', 'warning');
+		    }
+		}
+		
+		/**
+		 * Carga los datos para la vista activa del Ayudante.
+		 */
+		async function loadAssistantData(teamId) {
+		    // Obtenemos el próximo entreno una sola vez
+		    const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
+		    const stateData = await stateResponse.json();
+		    nextTrainingForAssistant = stateData.playerState.trainingInfo;
+		    
+		    // Cargamos la pestaña que esté activa
+		    const activeTabButton = document.querySelector('#assistant-dashboard .tab.active');
+		    if (activeTabButton) {
+		        const tabName = activeTabButton.getAttribute('onclick').match(/'(.*?)'/)[1];
+		        showAssistantTab(tabName);
+		    }
+		}
+		
+		/**
+		 * Muestra la pestaña seleccionada en el dashboard del Ayudante.
+		 */
+		function showAssistantTab(tabName) {
+		    document.querySelectorAll('#assistant-dashboard .tab').forEach(tab => tab.classList.remove('active'));
+		    document.querySelectorAll('#assistant-dashboard .tab-panel').forEach(panel => panel.classList.remove('active'));
+		    event.currentTarget.classList.add('active');
+		    document.getElementById(`assistant-${tabName}-tab`).classList.add('active');
+		
+		    const selectedTeamId = document.getElementById('assistant-team-selector').value || currentUser.teams[0];
+		
+		    if (tabName === 'daily_view') {
+		        renderAssistantDailyView();
+		    } else if (tabName === 'player_responses') {
+		        renderPlayerResponsesTable(selectedTeamId);
+		    }
+		}
+		
+		/**
+		 * Dibuja la vista del próximo entreno para el Ayudante.
+		 */
+		function renderAssistantDailyView() {
+		    const container = document.getElementById('assistant-daily-view-tab');
+		    if (nextTrainingForAssistant) {
+		        const info = nextTrainingForAssistant;
+		        container.innerHTML = `
+		            <div class="day-view-card" style="margin:0; box-shadow:none;">
+		                <h3>Próximo Entreno: ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</h3>
+		                <div class="details">
+		                    <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
+		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'N/A'}</p>
+		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'N/A'}</p>
+		                    ${info.pdfId ? `<p class="detail-item"><strong>📄 Sesión:</strong> <a href="https://drive.google.com/file/d/${info.pdfId}/view" target="_blank" class="btn btn-secondary">Ver PDF</a></p>` : ''}
+		                </div>
+		            </div>`;
+		    } else {
+		        container.innerHTML = '<div class="day-view-card"><h3>No hay próximos entrenamientos.</h3></div>';
+		    }
+		}
+		
+		/**
+		 * Carga y dibuja la tabla de respuestas de las jugadoras.
+		 */
+		async function renderPlayerResponsesTable(teamId) {
+		    const container = document.getElementById('assistant-player-responses-tab');
+		    container.innerHTML = '<div class="spinner"></div>';
+		    
+		    if (!nextTrainingForAssistant) {
+		        container.innerHTML = '<p>No hay un próximo entrenamiento para ver las respuestas.</p>';
+		        return;
+		    }
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getResponsesForTraining');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', teamId);
+		        url.searchParams.append('date', nextTrainingForAssistant.fecha);
+		        
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.data.success) {
+		            const responses = data.data.responses;
+		            if (responses.length === 0) {
+		                container.innerHTML = '<p>Aún no hay respuestas para este entrenamiento.</p>';
+		                return;
+		            }
+		            
+		            // Creamos la tabla dinámicamente
+		            const headers = Object.keys(responses[0]);
+		            let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
+		            headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
+		            tableHtml += '</tr></thead><tbody>';
+		
+		            responses.forEach(row => {
+		                tableHtml += '<tr>';
+		                headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
+		                tableHtml += '</tr>';
+		            });
+		
+		            tableHtml += '</tbody></table></div>';
+		            container.innerHTML = tableHtml;
+		
+		        } else {
+		            throw new Error(data.error || data.data.error);
+		        }
+		    } catch (error) {
+		        container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		    }
 		}
         
         // ========================
