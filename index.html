@@ -588,7 +588,18 @@
 		.bar { height: 8px; background-color: #e9ecef; border-radius: 4px; flex-grow: 1; overflow: hidden; }
 		.bar-fill { height: 100%; background-color: #3498db; border-radius: 4px; }
 		.attendance-history { font-family: monospace; font-size: 1.2em; letter-spacing: 2px; }
-		#player-search-input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }		
+		#player-search-input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+
+		/* Estilos para los símbolos del historial de asistencia */
+		.attendance-history .check {
+			color: #27ae60; /* Verde */
+		}
+		.attendance-history .cross {
+			color: #e74c3c; /* Rojo */
+		}
+		.attendance-history .question {
+			color: #3498db; /* Azul */
+		}
 	</style>
 </head>
 <body>
@@ -953,14 +964,7 @@
 					                </tbody>
 					            </table>
 					        </div>
-					    </div>																    								        
-		                <div class="training-list">
-		                    <h3 style="padding: 1rem; background: #f8f9fa; margin: 0;">📅 Próximos Entrenamientos</h3>
-		                    <div id="upcoming-trainings">
-		                        <!-- Se genera con JavaScript -->
-		                    </div>
-		                </div>
-						
+					    </div>																    								        		                						
 		            </div>
 		        </div>
 			</div>
@@ -2055,39 +2059,38 @@
             }
         }
 
-        async function loadAdminStats(teamId) {
-            if (!teamId) return;
-            document.getElementById('stat-avg-attendance').textContent = '...';
-            document.getElementById('stat-total-trainings').textContent = '...';
-            document.getElementById('stat-upcoming-trainings').textContent = '...';
-            document.getElementById('stat-total-players').textContent = '...';
-            document.getElementById('player-selector').innerHTML = '<option>Cargando...</option>';
-            try {
-                let response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamStats&teamId=${teamId}&userEmail=${currentUser.email}`);
-                let data = await response.json();
-                if (data.success) {
-                    document.getElementById('stat-avg-attendance').textContent = `${data.stats.avgAttendance}%`;
-                    document.getElementById('stat-total-trainings').textContent = data.stats.totalTrainings;
-                    document.getElementById('stat-upcoming-trainings').textContent = data.stats.upcomingTrainings;
-                    document.getElementById('stat-total-players').textContent = data.stats.totalPlayers;
-                }
-                response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayersByTeam&teamId=${teamId}&userEmail=${currentUser.email}`);
-                data = await response.json();
-                if (data.success) {
-                    const playerSelector = document.getElementById('player-selector');
-                    playerSelector.innerHTML = '<option value="">-- Selecciona una jugadora --</option>';
-                    data.players.forEach(player => {
-                        const option = document.createElement('option');
-                        option.value = player.email;
-                        option.textContent = player.name;
-                        playerSelector.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error("Error al cargar estadísticas del admin:", error);
-                showAlert('No se pudieron cargar las estadísticas del equipo.', 'warning');
-            }
-        }
+		async function loadAdminStats(teamId) {
+		    if (!teamId) return;
+		
+		    // Muestra placeholders de carga SOLO para las tarjetas de equipo
+		    document.getElementById('stat-avg-attendance').textContent = '...';
+		    document.getElementById('stat-total-trainings').textContent = '...';
+		    document.getElementById('stat-upcoming-trainings').textContent = '...';
+		    document.getElementById('stat-total-players').textContent = '...';
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getTeamStats');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', teamId);
+		        
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success) {
+		            const stats = data.stats;
+		            document.getElementById('stat-avg-attendance').textContent = `${stats.avgAttendance}%`;
+		            document.getElementById('stat-total-trainings').textContent = stats.totalTrainings;
+		            document.getElementById('stat-upcoming-trainings').textContent = stats.upcomingTrainings;
+		            document.getElementById('stat-total-players').textContent = stats.totalPlayers;
+		        } else {
+		            throw new Error(data.error);
+		        }
+		    } catch (error) {
+		        console.error("Error al cargar estadísticas del equipo:", error);
+		        showAlert('No se pudieron cargar las estadísticas del equipo.', 'warning');
+		    }
+		}        
 
         let allPlayersData = []; // Variable global para guardar los datos y poder filtrarlos
 
@@ -2147,7 +2150,14 @@
 		                    </div>
 		                </div>
 		            </td>
-		            <td><span class="attendance-history">${player.lastFive || ''}</span></td>
+			  		<span class="attendance-history">
+				        ${player.lastFive.split(' ').map(symbol => {
+				            if (symbol === '✔️') return `<span class="check">${symbol}</span>`;
+				            if (symbol === '❌') return `<span class="cross">${symbol}</span>`;
+				            if (symbol === '❓') return `<span class="question">${symbol}</span>`;
+				            return '';
+				        }).join(' ')}
+				    </span>		            
 		            <td>${player.lastMenstruation}</td>
 		        `;
 		    });
