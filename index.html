@@ -1639,6 +1639,7 @@
             if (tabName === 'stats') {
                 const selectedTeamId = document.getElementById('team-selector').value;
                 loadAdminStats(selectedTeamId);
+				loadPlayerTable(selectedTeamId);
             }
             sessionStorage.setItem('proassist_active_tab', tabName);
         }
@@ -2088,40 +2089,77 @@
             }
         }
 
-        async function onPlayerSelected() {
-            const playerSelector = document.getElementById('player-selector');
-            const selectedEmail = playerSelector.value;
-            const statsContainer = document.getElementById('individual-player-stats');
-            if (!selectedEmail) {
-                statsContainer.style.display = 'none';
-                return;
-            }
-            statsContainer.style.display = 'grid';
-            statsContainer.innerHTML = '<div class="card"><div class="spinner"></div><p>Cargando estadísticas...</p></div>';
-            const selectedTeamId = document.getElementById('team-selector').value;
-            try {
-                const url = new URL(CONFIG.SCRIPT_URL);
-                url.searchParams.append('action', 'getPlayerStats');
-                url.searchParams.append('userEmail', currentUser.email);
-                url.searchParams.append('playerEmail', selectedEmail);
-                url.searchParams.append('teamId', selectedTeamId);
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.success) {
-                    const stats = data.stats;
-                    statsContainer.innerHTML = `
-                        <div class="card"><div class="stat-value">${stats.attendanceRate}%</div><div class="stat-label">Tasa de Asistencia</div></div>
-                        <div class="card"><div class="stat-value">${stats.attendedCount} / ${stats.totalResponses}</div><div class="stat-label">Respuestas Afirmativas</div></div>
-                        <div class="card"><div class="stat-value">${stats.lastResponse}</div><div class="stat-label">Última Respuesta</div></div>
-                    `;
-                } else {
-                    statsContainer.innerHTML = `<div class="alert alert-warning">No se pudieron cargar las estadísticas.</div>`;
-                }
-            } catch (error) {
-                console.error("Error al cargar stats de jugadora:", error);
-                statsContainer.innerHTML = `<div class="alert alert-warning">Error de conexión.</div>`;
-            }
-        }
+        let allPlayersData = []; // Variable global para guardar los datos y poder filtrarlos
+
+		/**
+		 * Carga todos los datos de las jugadoras del equipo y renderiza la tabla.
+		 * @param {string} teamId El ID del equipo seleccionado.
+		 */
+		async function loadPlayerTable(teamId) {
+		    if (!teamId) return;
+		    const tableBody = document.getElementById('player-table-body');
+		    tableBody.innerHTML = '<tr><td colspan="5"><div class="spinner"></div><p style="text-align:center;">Cargando datos de jugadoras...</p></td></tr>';
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getPlayerDataForTable');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', teamId);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.data.success) {
+		            allPlayersData = data.data.players; // Guardamos los datos en la variable global
+		            renderPlayerTable(allPlayersData); // Renderizamos la tabla completa
+		        } else {
+		            throw new Error(data.error || data.data.error);
+		        }
+		    } catch (error) {
+		        console.error("Error al cargar datos para la tabla de jugadoras:", error);
+		        tableBody.innerHTML = `<tr><td colspan="5"><div class="alert alert-warning">${error.message}</div></td></tr>`;
+		    }
+		}
+		
+		/**
+		 * Dibuja las filas de la tabla de jugadoras a partir de un array de datos.
+		 * @param {Array} playersData El array de jugadoras con sus estadísticas.
+		 */
+		function renderPlayerTable(playersData) {
+		    const tableBody = document.getElementById('player-table-body');
+		    tableBody.innerHTML = ''; // Limpiamos la tabla
+		
+		    if (playersData.length === 0) {
+		        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No hay jugadoras que mostrar.</td></tr>';
+		        return;
+		    }
+		
+		    playersData.forEach(player => {
+		        const row = tableBody.insertRow();
+		        row.innerHTML = `
+		            <td><strong>${player.name}</strong></td>
+		            <td>${player.position || 'N/A'}</td>
+		            <td>
+		                <div class="attendance-bar-container">
+		                    <span>${player.attendanceRate}%</span>
+		                    <div class="bar">
+		                        <div class="bar-fill" style="width: ${player.attendanceRate}%;"></div>
+		                    </div>
+		                </div>
+		            </td>
+		            <td><span class="attendance-history">${player.lastFive || ''}</span></td>
+		            <td>${player.lastMenstruation}</td>
+		        `;
+		    });
+		}
+
+		function filterPlayerTable() {
+		    const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
+		    const filteredData = allPlayersData.filter(player => 
+		        player.name.toLowerCase().includes(searchTerm)
+		    );
+		    renderPlayerTable(filteredData);
+		}
         
         // ========================
         // OTRAS FUNCIONES Y LISTENERS
