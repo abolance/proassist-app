@@ -2278,7 +2278,7 @@
 		    try {
 		        console.log("[ASSISTANT] Pidiendo estado del jugador/próximo entreno...");
 		        const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
-		        const stateData = await response.json(); // <-- ¡ERROR DE TIPEO! Debería ser stateResponse.json()
+		        const stateData = await stateResponse.json();
 		        
 		        console.log("[ASSISTANT] Estado recibido:", stateData);
 		        if (!stateData.success || !stateData.playerState.success) {
