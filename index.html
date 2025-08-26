@@ -2261,71 +2261,114 @@
 		        teamSelectorHeader.style.display = 'none';
 		    }
 		}
-		
-		
+
 		/**
-		 * Función maestra que carga TODOS los datos para el dashboard del Ayudante
-		 * y renderiza las vistas correspondientes.
+		 * Función maestra que carga TODOS los datos para el dashboard del Ayudante.
+		 * VERSIÓN FINAL.
 		 * @param {string} teamId El ID del equipo a cargar.
 		 */
 		async function loadAssistantDashboard(teamId) {
 		    console.log(`[ASSISTANT] Iniciando carga para equipo: ${teamId}`);
-		    const dailyViewContainer = document.getElementById('assistant-daily-view-tab');
-		    const responsesContainer = document.getElementById('assistant-player-responses-tab');
-		    dailyViewContainer.innerHTML = '<div class="spinner"></div>';
-		    responsesContainer.innerHTML = '<div class="spinner"></div>';
+		    // Limpiamos AMBAS pestañas al inicio
+		    document.getElementById('assistant-daily-view-tab').innerHTML = '<div class="spinner"></div>';
+		    document.getElementById('assistant-player-responses-tab').innerHTML = '<div class="spinner"></div>';
 		
 		    try {
-		        console.log("[ASSISTANT] Pidiendo estado del jugador/próximo entreno...");
-				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getAssistantState&email=${currentUser.email}&teamId=${teamId}`);
-        		const data = await response.json();
-		        console.log("[ASSISTANT] Estado recibido:", data);
-
-				if (!data.success || !data.assistantState.success) {
-		            throw new Error(data.error || data.assistantState.error);
-		        }
-				
-				nextTrainingForAssistant = data.assistantState.trainingInfo;
-				console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
-				renderAssistantDailyView();
-		        console.log("[ASSISTANT] Vista diaria renderizada.");
-
-				if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
-					console.log("[ASSISTANT] ¡Hay entreno hoy! Cargando respuestas...");
-		            await renderPlayerResponsesTable(teamId);
-					console.log("[ASSISTANT] Tabla de respuestas renderizada. Mostrando pestaña.");
-		            //showAssistantTab('player_responses');
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getPlayerState');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', teamId);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		        
+		        if (!data.success) throw new Error(data.error);
+		
+		        // Guardamos el próximo entreno en la variable global
+		        nextTrainingForAssistant = data.trainingInfo;
+		        console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
+		
+		        // Renderizamos SIEMPRE la vista del día
+		        renderAssistantDailyView();
+		
+		        // DECISIÓN LÓGICA: ¿Hay entreno hoy?
+		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
+		            console.log("[ASSISTANT] ¡Hay entreno hoy! Mostrando pestaña de respuestas.");
+		            // Si hay entreno hoy, cambiamos a la pestaña de respuestas
+		            showAssistantTab('player_responses'); 
 		        } else {
-					console.log("[ASSISTANT] No hay entreno hoy. Limpiando tabla y mostrando vista diaria.");
-		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
+		            console.log("[ASSISTANT] No hay entreno hoy. Mostrando pestaña de próximo entreno.");
+		            // Si no, nos aseguramos de que la pestaña por defecto es la del día
 		            showAssistantTab('daily_view');
-		        }		        
+		        }
 		    } catch (error) {
 		        console.error("[ASSISTANT] Error CATASTRÓFICO:", error);
-		        dailyViewContainer.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
-		        responsesContainer.innerHTML = '';
+		        document.getElementById('assistant-daily-view-tab').innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		    }
 		}
 
 		/**
-		* Muestra la pestaña seleccionada en el dashboard del Ayudante.
-		* @param {string} tabName El nombre de la pestaña a mostrar ('daily_view' o 'player_responses').
-		*/	
-		function showAssistantTab(tabName) {
+		 * Muestra la pestaña seleccionada y CARGA su contenido si es necesario.
+		 * VERSIÓN FINAL.
+		 */
+		async function showAssistantTab(tabName) {
 		    document.querySelectorAll('#assistant-dashboard .tab').forEach(tab => tab.classList.remove('active'));
 		    document.querySelectorAll('#assistant-dashboard .tab-panel').forEach(panel => panel.classList.remove('active'));
 		    
-		    const buttonId = `assistant-tab-${tabName}`;
-		    const panelId = `assistant-${tabName}-tab`; 
-		    
-		    const buttonToActivate = document.getElementById(buttonId);
-		    const panelToActivate = document.getElementById(panelId);
+		    document.getElementById(`assistant-tab-${tabName}`).classList.add('active');
+		    document.getElementById(`assistant-${tabName}-tab`).classList.add('active');
 		
-		    if (buttonToActivate) buttonToActivate.classList.add('active');
-		    if (panelToActivate) panelToActivate.classList.add('active');
+		    const selectedTeamId = document.getElementById('assistant-team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
+		    if (!selectedTeamId) return;
+		
+		    if (tabName === 'player_responses') {
+		        const container = document.getElementById('assistant-player-responses-tab');
+		        container.innerHTML = '<div class="spinner"></div>'; // Mostrar carga
+		
+		        if (!nextTrainingForAssistant) {
+		            container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay un próximo entrenamiento definido.</p>';
+		            return;
+		        }
+		
+		        try {
+		            const url = new URL(CONFIG.SCRIPT_URL);
+		            url.searchParams.append('action', 'getResponsesForTraining');
+		            url.searchParams.append('userEmail', currentUser.email);
+		            url.searchParams.append('teamId', selectedTeamId);
+		            url.searchParams.append('date', nextTrainingForAssistant.fecha);
+		            
+		            const response = await fetch(url);
+		            const data = await response.json();
+		
+		            if (data.success && data.data.success) {
+		                const responses = data.data.responses;
+		                if (responses.length === 0) {
+		                    container.innerHTML = '<p style="text-align:center; padding: 2rem;">Aún no hay respuestas para este entrenamiento.</p>';
+		                    return;
+		                }
+		                
+		                const headers = Object.keys(responses[0]);
+		                let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
+		                headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
+		                tableHtml += '</tr></thead><tbody>';
+		
+		                responses.forEach(row => {
+		                    tableHtml += '<tr>';
+		                    headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
+		                    tableHtml += '</tr>';
+		                });
+		
+		                tableHtml += '</tbody></table></div>';
+		                container.innerHTML = tableHtml;
+		            } else {
+		                throw new Error(data.error || data.data.error);
+		            }
+		        } catch (error) {
+		            container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		        }
+		    }
 		    
 		    sessionStorage.setItem('assistant_active_tab', tabName);
-		    // YA NO CARGAMOS DATOS AQUÍ. La carga se hace una sola vez en loadAssistantDashboard.
 		}						
 				
 		/**
@@ -2366,59 +2409,7 @@
 		        contentHtml = `<div class="day-view-card"><div style="font-size: 3rem; margin-bottom: 1rem;">😴</div><h3>No hay próximos entrenamientos programados.</h3></div>`;
 		    }
 		    container.innerHTML = contentHtml;
-		}				
-		
-		/**
-		 * Carga y dibuja la tabla de respuestas de las jugadoras.
-		 */
-		async function renderPlayerResponsesTable(teamId) {
-		    const container = document.getElementById('assistant-player-responses-tab');
-		    container.innerHTML = '<div class="spinner"></div>';
-		    
-		    if (!nextTrainingForAssistant) {
-		        container.innerHTML = '<p>No hay un próximo entrenamiento para ver las respuestas.</p>';
-		        return;
-		    }
-		
-		    try {
-		        const url = new URL(CONFIG.SCRIPT_URL);
-		        url.searchParams.append('action', 'getResponsesForTraining');
-		        url.searchParams.append('userEmail', currentUser.email);
-		        url.searchParams.append('teamId', teamId);
-		        url.searchParams.append('date', nextTrainingForAssistant.fecha);
-		        
-		        const response = await fetch(url);
-		        const data = await response.json();
-		
-		        if (data.success && data.data.success) {
-		            const responses = data.data.responses;
-		            if (responses.length === 0) {
-		                container.innerHTML = '<p>Aún no hay respuestas para este entrenamiento.</p>';
-		                return;
-		            }
-		            
-		            // Creamos la tabla dinámicamente
-		            const headers = Object.keys(responses[0]);
-		            let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
-		            headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
-		            tableHtml += '</tr></thead><tbody>';
-		
-		            responses.forEach(row => {
-		                tableHtml += '<tr>';
-		                headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
-		                tableHtml += '</tr>';
-		            });
-		
-		            tableHtml += '</tbody></table></div>';
-		            container.innerHTML = tableHtml;
-		
-		        } else {
-		            throw new Error(data.error || data.data.error);
-		        }
-		    } catch (error) {
-		        container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
-		    }
-		}
+		}						
         
         // ========================
         // OTRAS FUNCIONES Y LISTENERS
