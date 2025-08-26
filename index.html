@@ -1226,16 +1226,20 @@
 		        
 		        if (currentUser.teams && currentUser.teams.length > 1 && role !== 'ASSISTANT') {
 		            teamSelectorHeader.style.display = 'flex';
-		            // ... (código para rellenar el selector)
-		            teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
-		            await initializeAdminPanel(currentUser.teams[0]);
-		        } else if (currentUser.teams && currentUser.teams.length > 0) {
-		            teamSelectorHeader.style.display = 'none';
-		            await initializeAdminPanel(currentUser.teams[0]);
-		        } else {
-		            showAlert('No tienes equipos asignados.', 'warning');
-		        }
-		
+                    currentUser.teams.forEach(teamId => {
+                        const option = document.createElement('option');
+                        option.value = teamId;
+                        option.textContent = currentUser.teamMap[teamId] || teamId;
+                        teamSelector.appendChild(option);
+                    });
+                    teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
+                    await initializeAdminPanel(currentUser.teams[0]);
+                } else if (currentUser.teams && currentUser.teams.length === 1) {
+                    teamSelectorHeader.style.display = 'none';
+                    await initializeAdminPanel(currentUser.teams[0]);
+                } else {
+                    showAlert('No tienes equipos asignados.', 'warning');
+				}		
 		    } else if (role === 'PLAYER') {
 		        document.getElementById('player-dashboard').style.display = 'block';
 			    showMotivationalMessage();
