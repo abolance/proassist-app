@@ -2219,76 +2219,114 @@
 		let nextTrainingForAssistant = null; // Variable global para guardar el próximo entreno
 
 		/**
-		 * Inicializa el panel del Ayudante, manejando el selector de equipo.
+		 * Inicializa el panel del Ayudante.
+		 * Su única responsabilidad es configurar el selector de equipos (si es necesario)
+		 * y luego llamar a la función maestra que carga todos los datos del dashboard.
 		 */
 		async function initializeAssistantPanel() {
 		    const teamSelector = document.getElementById('assistant-team-selector');
-		    teamSelector.innerHTML = '';
+		    teamSelector.innerHTML = ''; // Limpiamos opciones previas
 		    
-		    if (currentUser.teams && currentUser.teams.length > 1) {
-		        document.getElementById('assistant-team-selector-header').style.display = 'flex';
-		        currentUser.teams.forEach(teamId => {
-		            const option = document.createElement('option');
-		            option.value = teamId;
-		            option.textContent = currentUser.teamMap[teamId] || teamId;
-		            teamSelector.appendChild(option);
-		        });
-		        teamSelector.onchange = () => loadAssistantData(teamSelector.value);
-		        await loadAssistantData(currentUser.teams[0]);
-		    } else if (currentUser.teams && currentUser.teams.length === 1) {
-		        document.getElementById('assistant-team-selector-header').style.display = 'none';
-		        await loadAssistantData(currentUser.teams[0]);
+		    // Obtenemos la referencia al contenedor del selector
+		    const teamSelectorHeader = document.getElementById('assistant-team-selector-header');
+		
+		    // Comprobamos si el usuario tiene equipos asignados
+		    if (currentUser.teams && currentUser.teams.length > 0) {
+		        
+		        if (currentUser.teams.length > 1) {
+		            // Si tiene MÁS de un equipo, mostramos y rellenamos el selector
+		            teamSelectorHeader.style.display = 'flex';
+		            currentUser.teams.forEach(teamId => {
+		                const option = document.createElement('option');
+		                option.value = teamId;
+		                option.textContent = currentUser.teamMap[teamId] || teamId;
+		                teamSelector.appendChild(option);
+		            });
+		            // Cuando el coach cambie de equipo, recargamos todo el dashboard
+		            teamSelector.onchange = () => loadAssistantDashboard(teamSelector.value);
+		            
+		        } else {
+		            // Si tiene SOLO un equipo, ocultamos el selector
+		            teamSelectorHeader.style.display = 'none';
+		        }
+		
+		        // --- LLAMADA A LA FUNCIÓN MAESTRA ---
+		        // Cargamos el dashboard para el primer equipo de la lista por defecto.
+		        await loadAssistantDashboard(currentUser.teams[0]);
+		
 		    } else {
-		        showAlert('No tienes equipos asignados.', 'warning');
+		        // Si no tiene equipos, mostramos un aviso.
+		        showAlert('No tienes equipos asignados. Contacta con un administrador.', 'warning');
+		        // Ocultamos el selector por si acaso
+		        teamSelectorHeader.style.display = 'none';
 		    }
 		}
 		
+		
 		/**
-		 * Carga los datos para la vista activa del Ayudante.
+		 * Función maestra que carga TODOS los datos para el dashboard del Ayudante
+		 * y renderiza las vistas correspondientes.
+		 * @param {string} teamId El ID del equipo a cargar.
 		 */
-		async function loadAssistantData(teamId) {
-		    // Obtenemos el próximo entreno una sola vez
-		    const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
-		    const stateData = await stateResponse.json();
-		    nextTrainingForAssistant = stateData.playerState.trainingInfo;		    		    
-
-			// Obtenemos la pestaña activa guardada o usamos 'daily_view' por defecto
-			const activeTabName = sessionStorage.getItem('assistant_active_tab') || 'daily_view';
-			// La llamada ahora es simple, sin parámetros extra
-			showAssistantTab(activeTabName);			
+		async function loadAssistantDashboard(teamId) {
+		    // Mostramos un estado de carga general
+		    document.getElementById('assistant-daily-view-tab').innerHTML = '<div class="spinner"></div>';
+		    document.getElementById('assistant-player-responses-tab').innerHTML = '<div class="spinner"></div>';
+		
+		    try {
+		        // 1. Obtenemos el estado del próximo entrenamiento
+		        const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
+		        const stateData = await stateResponse.json();
+		        
+		        if (!stateData.success || !stateData.playerState.success) {
+		            throw new Error(stateData.error || stateData.playerState.error);
+		        }
+		
+		        const info = stateData.playerState.trainingInfo;
+		        
+		        // Guardamos el próximo entreno en la variable global
+		        nextTrainingForAssistant = info;
+		
+		        // 2. Renderizamos la vista del próximo entreno
+		        renderAssistantDailyView();
+		
+		        // 3. DECISIÓN LÓGICA: ¿Hay entreno hoy?
+		        if (info && info.fecha === toYYYYMMDD(new Date())) {
+		            // Si hay entreno hoy, cargamos las respuestas y mostramos esa pestaña
+		            await renderPlayerResponsesTable(teamId);
+		            showAssistantTab('player_responses');
+		        } else {
+		            // Si no hay entreno hoy, limpiamos la tabla de respuestas y mostramos la vista del día
+		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
+		            showAssistantTab('daily_view');
+		        }
+		    } catch (error) {
+		        console.error("Error cargando el dashboard del Ayudante:", error);
+		        document.getElementById('assistant-daily-view-tab').innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		        document.getElementById('assistant-player-responses-tab').innerHTML = '';
+		    }
 		}
 
 		/**
 		* Muestra la pestaña seleccionada en el dashboard del Ayudante.
 		* @param {string} tabName El nombre de la pestaña a mostrar ('daily_view' o 'player_responses').
-		*/		 
+		*/	
 		function showAssistantTab(tabName) {
-			// Ocultamos todo
 		    document.querySelectorAll('#assistant-dashboard .tab').forEach(tab => tab.classList.remove('active'));
 		    document.querySelectorAll('#assistant-dashboard .tab-panel').forEach(panel => panel.classList.remove('active'));
 		    
-		    // --- LÓGICA CORREGIDA ---
-		    // Construimos los IDs de forma predecible y segura, usando guiones normales
 		    const buttonId = `assistant-tab-${tabName}`;
 		    const panelId = `assistant-${tabName}-tab`; 
-		
+		    
 		    const buttonToActivate = document.getElementById(buttonId);
 		    const panelToActivate = document.getElementById(panelId);
 		
 		    if (buttonToActivate) buttonToActivate.classList.add('active');
 		    if (panelToActivate) panelToActivate.classList.add('active');
 		    
-		    const selectedTeamId = document.getElementById('assistant-team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
-		    if (!selectedTeamId) return;
-		
-		    if (tabName === 'daily_view') {
-		        renderAssistantDailyView();
-		    } else if (tabName === 'player_responses') {
-		        renderPlayerResponsesTable(selectedTeamId);
-		    }
-		    
 		    sessionStorage.setItem('assistant_active_tab', tabName);
-		}		
+		    // YA NO CARGAMOS DATOS AQUÍ. La carga se hace una sola vez en loadAssistantDashboard.
+		}						
 		
 		/**
 		 * Dibuja la vista del próximo entreno para el Ayudante.
