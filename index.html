@@ -969,44 +969,7 @@
 		        </div>
 			</div>
 	    </div>
-    </div>
-
-	<!-- DASHBOARD AYUDANTE (ASSISTANT) -->
-	<div id="assistant-dashboard" style="display: none;">
-	    <div class="container">
-	        <header class="header">
-	            <div class="logo">
-	                ⚽ ProAssist
-	                <span id="assistant-role-badge" class="admin-badge" style="background-color: #f39c12;">ASSISTANT</span>
-	            </div>
-	            <div>
-	                <button class="btn btn-danger logout-btn">🚪 Cerrar Sesión</button>
-	            </div>
-	        </header>
-	
-	        <div id="assistant-team-selector-header" class="header">
-	             <div style="display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%;">
-	                <label for="assistant-team-selector" style="font-weight: bold; flex-shrink: 0;">Selecciona un equipo:</label>
-	                <select id="assistant-team-selector" class="btn" style="background-color: white; color: black; max-width: 400px;"></select>
-	            </div>
-	        </div>
-	
-	        <div class="admin-content">
-	            <div class="tabs">
-	                <button id="assistant-tab-daily-view" class="tab active" onclick="showAssistantTab('daily_view')">🗓️ Próximo Entreno</button>
-					<button id="assistant-tab-player-responses" class="tab" onclick="showAssistantTab('player_responses')">📋 Respuestas del Día</button>
-	            </div>
-	            <div class="content">
-	                <div id="assistant-daily-view-tab" class="tab-panel active">
-	                    <!-- La vista del día del próximo entreno se cargará aquí -->
-	                </div>
-	                <div id="assistant-player-responses-tab" class="tab-panel">
-	                    <!-- La tabla con las respuestas de las jugadoras se cargará aquí -->
-	                </div>
-	            </div>
-	        </div>
-	    </div>
-	</div>
+    </div>	
 
     <!-- INDICADOR DE AUTO-REFRESH -->
     <div id="refreshIndicator" class="refresh-indicator hidden">
@@ -1222,70 +1185,51 @@
         // ROUTER Y NAVEGACIÓN
         // ========================
         async function showDashboardBasedOnRole(role) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('player-dashboard').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'none';
-            const configTabButton = document.getElementById('config-tab-button');
-
-            if (role === 'ADMIN' || role === 'COACH') {
-                document.getElementById('admin-panel').style.display = 'block';
-
-				// --- LÓGICA PARA EL BADGE DE ROL ---
-			    const roleBadge = document.getElementById('role-badge');
-			    roleBadge.textContent = role; // Pone "ADMIN" o "COACH"
-			    if (role === 'COACH') {
-			        roleBadge.style.backgroundColor = '#3498db'; // Color azul para COACH
-			    } else {
-			        roleBadge.style.backgroundColor = '#e74c3c'; // Color rojo para ADMIN
-			    }
-								
-                if (role === 'COACH') {
-                    configTabButton.style.display = 'none';
-                    document.querySelector('.tab[onclick="showTab(\'calendar\')"]').click();
-                } else {
-                    configTabButton.style.display = 'flex';
-                }
-                
-                const teamSelectorHeader = document.getElementById('team-selector-header');
-                const teamSelector = document.getElementById('team-selector');
-                teamSelector.innerHTML = '';
-
-                if (currentUser.teams && currentUser.teams.length > 1) {
-                    teamSelectorHeader.style.display = 'flex';
-                    currentUser.teams.forEach(teamId => {
-                        const option = document.createElement('option');
-                        option.value = teamId;
-                        option.textContent = currentUser.teamMap[teamId] || teamId;
-                        teamSelector.appendChild(option);
-                    });
-                    teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
-                    await initializeAdminPanel(currentUser.teams[0]);
-                } else if (currentUser.teams && currentUser.teams.length === 1) {
-                    teamSelectorHeader.style.display = 'none';
-                    await initializeAdminPanel(currentUser.teams[0]);
-                } else {
-                    showAlert('No tienes equipos asignados.', 'warning');
-                }
-            } else if (role === 'ASSISTANT') {
-			    document.getElementById('assistant-dashboard').style.display = 'block';
-			    // Llamaremos a una nueva función que cargue los datos del ayudante
-			    initializeAssistantPanel();					
-			} else if (role === 'PLAYER') {                
-				document.getElementById('player-dashboard').style.display = 'block';
-			    showMotivationalMessage();
-			    
-			    // --- LLAMADA CORRECTA ---
-			    // Obtenemos el teamId y llamamos a nuestra nueva función maestra
-			    const playerTeamId = currentUser.teams[0];
-			    if (playerTeamId) {
-			        await loadPlayerFormState(playerTeamId);
-					await loadUserStats(playerTeamId);
-        			await loadUserHistory(playerTeamId);
-			    } else {
-			        showError("No estás asignada a ningún equipo.");
-			    }
-            }
-        }
+		    document.getElementById('loginScreen').style.display = 'none';
+		    document.getElementById('player-dashboard').style.display = 'none';
+		    document.getElementById('admin-panel').style.display = 'none';
+		
+		    if (role === 'ADMIN' || role === 'COACH' || role === 'ASSISTANT') {
+		        // TODOS los roles de staff ven el MISMO panel
+		        document.getElementById('admin-panel').style.display = 'block';
+		
+		        // --- AHORA, PERSONALIZAMOS LA VISTA SEGÚN EL ROL ---
+		        const configTab = document.getElementById('config-tab-button');
+		        const actionButtons = document.getElementById('action-buttons-container');
+		        const filePickerButton = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		
+		        if (role === 'ASSISTANT') {
+		            configTab.style.display = 'none';
+		            actionButtons.style.display = 'none';
+		            filePickerButton.style.display = 'none';
+		            // Cambiamos el badge
+		            document.getElementById('role-badge').textContent = 'ASSISTANT';
+		            document.getElementById('role-badge').style.backgroundColor = '#f39c12'; // Naranja
+		            // Nos aseguramos de que la pestaña por defecto sea el calendario
+		            document.querySelector('#admin-panel .tab[onclick="showTab(\'calendar\')"]').click();
+		
+		        } else if (role === 'COACH') {
+		            configTab.style.display = 'none';
+		            actionButtons.style.display = 'block';
+		            filePickerButton.style.display = 'block';
+		            document.getElementById('role-badge').textContent = 'COACH';
+		            document.getElementById('role-badge').style.backgroundColor = '#3498db'; // Azul
+		        } else { // ADMIN
+		            configTab.style.display = 'flex';
+		            actionButtons.style.display = 'block';
+		            filePickerButton.style.display = 'block';
+		            document.getElementById('role-badge').textContent = 'ADMIN';
+		            document.getElementById('role-badge').style.backgroundColor = '#e74c3c'; // Rojo
+		        }
+		        
+		        // La lógica de inicialización es la MISMA para todos
+		        await initializeAdminPanel();
+		
+		    } else if (role === 'PLAYER') {
+		        document.getElementById('player-dashboard').style.display = 'block';
+		        await initializePlayerPanel();
+		    }
+		}
 
         function showLoginScreen() {
             document.getElementById('loginScreen').style.display = 'flex';
@@ -2210,205 +2154,7 @@
 		        player.name.toLowerCase().includes(searchTerm)
 		    );
 		    renderPlayerTable(filteredData);
-		}
-
-		// ========================
-        // ASSISTANT
-        // ========================
-		
-		let nextTrainingForAssistant = null; // Variable global para guardar el próximo entreno
-
-		/**
-		 * Inicializa el panel del Ayudante.
-		 * Su única responsabilidad es configurar el selector de equipos (si es necesario)
-		 * y luego llamar a la función maestra que carga todos los datos del dashboard.
-		 */
-		async function initializeAssistantPanel() {
-		    const teamSelector = document.getElementById('assistant-team-selector');
-		    teamSelector.innerHTML = ''; // Limpiamos opciones previas
-		    
-		    // Obtenemos la referencia al contenedor del selector
-		    const teamSelectorHeader = document.getElementById('assistant-team-selector-header');
-		
-		    // Comprobamos si el usuario tiene equipos asignados
-		    if (currentUser.teams && currentUser.teams.length > 0) {
-		        
-		        if (currentUser.teams.length > 1) {
-		            // Si tiene MÁS de un equipo, mostramos y rellenamos el selector
-		            teamSelectorHeader.style.display = 'flex';
-		            currentUser.teams.forEach(teamId => {
-		                const option = document.createElement('option');
-		                option.value = teamId;
-		                option.textContent = currentUser.teamMap[teamId] || teamId;
-		                teamSelector.appendChild(option);
-		            });
-		            // Cuando el coach cambie de equipo, recargamos todo el dashboard
-		            teamSelector.onchange = () => loadAssistantDashboard(teamSelector.value);
-		            
-		        } else {
-		            // Si tiene SOLO un equipo, ocultamos el selector
-		            teamSelectorHeader.style.display = 'none';
-		        }
-		
-		        // --- LLAMADA A LA FUNCIÓN MAESTRA ---
-		        // Cargamos el dashboard para el primer equipo de la lista por defecto.
-		        await loadAssistantDashboard(currentUser.teams[0]);
-		
-		    } else {
-		        // Si no tiene equipos, mostramos un aviso.
-		        showAlert('No tienes equipos asignados. Contacta con un administrador.', 'warning');
-		        // Ocultamos el selector por si acaso
-		        teamSelectorHeader.style.display = 'none';
-		    }
-		}
-
-		/**
-		 * Función maestra que carga TODOS los datos para el dashboard del Ayudante.
-		 * VERSIÓN FINAL que usa el endpoint 'getAssistantState'.
-		 * @param {string} teamId El ID del equipo a cargar.
-		 */
-		async function loadAssistantDashboard(teamId) {
-		    console.log(`[ASSISTANT] Iniciando carga para equipo: ${teamId}`);
-		    const dailyViewContainer = document.getElementById('assistant-daily-view-tab');
-		    const responsesContainer = document.getElementById('assistant-player-responses-tab');
-		    dailyViewContainer.innerHTML = '<div class="spinner"></div>';
-		    responsesContainer.innerHTML = '<div class="spinner"></div>';
-		
-		    try {
-		        // --- LLAMADA AL NUEVO ENDPOINT EXCLUSIVO ---
-		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getAssistantState&email=${currentUser.email}&teamId=${teamId}`);
-		        const data = await response.json();
-		        
-		        console.log("[ASSISTANT] Estado recibido:", data);
-		        if (!data.success) {
-		            throw new Error(data.error);
-		        }
-		
-		        // Guardamos el próximo entreno en la variable global
-		        nextTrainingForAssistant = data.trainingInfo;
-		        
-		        // Renderizamos la vista del próximo entreno (que ahora recibirá el pdfId)
-		        renderAssistantDailyView();
-		
-		        // DECISIÓN LÓGICA: ¿Hay entreno hoy?
-		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
-		            console.log("[ASSISTANT] ¡Hay entreno hoy! Mostrando pestaña de respuestas.");
-		            showAssistantTab('player_responses'); // Automáticamente carga y muestra la tabla
-		        } else {
-		            console.log("[ASSISTANT] No hay entreno hoy. Mostrando vista diaria.");
-		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
-		            showAssistantTab('daily_view');
-		        }
-		    } catch (error) {
-		        console.error("[ASSISTANT] Error CATASTRÓFICO:", error);
-		        const errorMessage = error.message || "Error de conexión o al procesar la respuesta.";
-		        dailyViewContainer.innerHTML = `<div class="alert alert-warning">${errorMessage}</div>`;
-		    }
-		}		
-
-		/**
-		 * Muestra la pestaña seleccionada y CARGA su contenido si es necesario.
-		 * VERSIÓN FINAL.
-		 */
-		async function showAssistantTab(tabName) {
-		    document.querySelectorAll('#assistant-dashboard .tab').forEach(tab => tab.classList.remove('active'));
-		    document.querySelectorAll('#assistant-dashboard .tab-panel').forEach(panel => panel.classList.remove('active'));
-		    
-		    document.getElementById(`assistant-tab-${tabName}`).classList.add('active');
-		    document.getElementById(`assistant-${tabName}-tab`).classList.add('active');
-		
-		    const selectedTeamId = document.getElementById('assistant-team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
-		    if (!selectedTeamId) return;
-		
-		    if (tabName === 'player_responses') {
-		        const container = document.getElementById('assistant-player-responses-tab');
-		        container.innerHTML = '<div class="spinner"></div>'; // Mostrar carga
-		
-		        if (!nextTrainingForAssistant) {
-		            container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay un próximo entrenamiento definido.</p>';
-		            return;
-		        }
-		
-		        try {
-		            const url = new URL(CONFIG.SCRIPT_URL);
-		            url.searchParams.append('action', 'getResponsesForTraining');
-		            url.searchParams.append('userEmail', currentUser.email);
-		            url.searchParams.append('teamId', selectedTeamId);
-		            url.searchParams.append('date', nextTrainingForAssistant.fecha);
-		            
-		            const response = await fetch(url);
-		            const data = await response.json();
-		
-		            if (data.success && data.data.success) {
-		                const responses = data.data.responses;
-		                if (responses.length === 0) {
-		                    container.innerHTML = '<p style="text-align:center; padding: 2rem;">Aún no hay respuestas para este entrenamiento.</p>';
-		                    return;
-		                }
-		                
-		                const headers = Object.keys(responses[0]);
-		                let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
-		                headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
-		                tableHtml += '</tr></thead><tbody>';
-		
-		                responses.forEach(row => {
-		                    tableHtml += '<tr>';
-		                    headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
-		                    tableHtml += '</tr>';
-		                });
-		
-		                tableHtml += '</tbody></table></div>';
-		                container.innerHTML = tableHtml;
-		            } else {
-		                throw new Error(data.error || data.data.error);
-		            }
-		        } catch (error) {
-		            container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
-		        }
-		    }
-		    
-		    sessionStorage.setItem('assistant_active_tab', tabName);
-		}						
-				
-		/**
-		 * Dibuja la vista del próximo entreno para el Ayudante.
-		 * Muestra los detalles y el enlace al PDF, pero NUNCA el botón del formulario.
-		 */
-		function renderAssistantDailyView() {
-		    const container = document.getElementById('assistant-daily-view-tab');
-		    let contentHtml = '';
-		    
-		    if (nextTrainingForAssistant) {
-		        const info = nextTrainingForAssistant;
-		        const date = new Date(info.fecha + 'T12:00:00');
-		        const displayDate = date.toLocaleDateString('es-ES', {
-		            weekday: 'long', day: 'numeric', month: 'long'
-		        });
-		        
-		        // Usamos la misma estructura visual que la del coach
-		        contentHtml = `
-		            <div class="day-view-card">
-		                <h3>Próximo Entrenamiento: ${displayDate}</h3>
-		                <div class="details">
-		                    <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
-		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'No especificada'}</p>
-		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'Sin notas'}</p>
-		                    
-		                    <!-- Lógica del PDF para el Ayudante -->
-		                    ${info.pdfId ? `
-		                    <div class="detail-item">
-		                        <strong>📄 Sesión:</strong>
-		                        <a href="https://drive.google.com/file/d/${info.pdfId}/view" target="_blank" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.9em; margin-left: 10px;">
-		                            Ver PDF de la Sesión
-		                        </a>
-		                    </div>` : '<p class="detail-item"><strong>📄 Sesión:</strong> No hay PDF adjunto.</p>'}
-		                </div>
-		            </div>`;
-		    } else {
-		        contentHtml = `<div class="day-view-card"><div style="font-size: 3rem; margin-bottom: 1rem;">😴</div><h3>No hay próximos entrenamientos programados.</h3></div>`;
-		    }
-		    container.innerHTML = contentHtml;
-		}						
+		}								
         
         // ========================
         // OTRAS FUNCIONES Y LISTENERS
