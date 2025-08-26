@@ -725,16 +725,19 @@
 		            <button id="config-tab-button" class="tab" onclick="showTab('config')">
 		                ⚙️ Configuración
 		            </button>
-		            <button class="tab" onclick="showTab('stats')">
+		            <button id="stats-tab-button" class="tab" onclick="showTab('stats')">
 		                📊 Estadísticas
 		            </button>
+					<button id="attendance-tab-button" class="tab" onclick="showTab('attendance')" style="display: none;">
+						📋 Asistencia
+					</button>
 		        </div>
 		
 		        <div class="content">
 		            <!-- CALENDARIO TAB -->
 		            <div id="calendar-tab" class="tab-panel active">
 		                <div class="calendar-container">
-		                    <div class="calendar">
+		                    <div id="calendar-main" class="calendar">
 		                        <div class="calendar-header">
 								    <!-- Contenedor para el título y la navegación -->
 								    <div class="calendar-title-nav">
@@ -755,7 +758,7 @@
 		                        </div>
 		                    </div>
 		                    
-		                    <div class="sidebar">
+		                    <div id="calendar-sidebar" class="sidebar">
 		                        <h3>📝 Entreno Seleccionado</h3>
 		                        <div id="training-details-form">
 		                            <div class="form-group">
@@ -966,6 +969,13 @@
 					        </div>
 					    </div>																    								        		                						
 		            </div>
+					<!-- ASISTENCIA PARA EL ENTRENADOR -->
+					<div id="attendance-tab" class="tab-panel">
+					    <h3 id="attendance-title">Asistencia para el Entreno</h3>
+					    <div id="attendance-table-container">
+					        <!-- La tabla de respuestas se cargará aquí -->
+					    </div>
+					</div>
 		        </div>
 			</div>
 	    </div>
@@ -1194,27 +1204,33 @@
 		        
 		        // --- LÓGICA DE PERSONALIZACIÓN DE VISTA ---
 		        const configTab = document.getElementById('config-tab-button');
-		        const actionButtons = document.getElementById('action-buttons-container');
-		        const filePickerButton = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
-		        const calendarNav = document.querySelector('.calendar-title-nav');
-		        const viewSwitcher = document.getElementById('view-switcher');
+		        const statsTab = document.getElementById('stats-tab-button');
+		        const attendanceTab = document.getElementById('attendance-tab-button');
+		        const calendarSidebar = document.getElementById('calendar-sidebar');
+		        const calendarMain = document.getElementById('calendar-main');
 		
+		        // --- LÓGICA DE PERSONALIZACIÓN DE VISTA ---
 		        if (role === 'ASSISTANT') {
+		            // Vista del Ayudante
 		            configTab.style.display = 'none';
-		            actionButtons.style.display = 'none';
-		            filePickerButton.style.display = 'none';
-		            calendarNav.style.display = 'none'; // Ocultamos flechas de navegación
-		            viewSwitcher.style.display = 'none'; // Ocultamos selector de vista
-		            setView('day'); // Forzamos la vista de día
+		            statsTab.style.display = 'none';
+		            attendanceTab.style.display = 'flex'; // Mostramos la nueva pestaña
+		            calendarSidebar.style.display = 'none'; // Ocultamos el formulario de edición
+		            // Hacemos que el calendario ocupe todo el ancho
+		            calendarMain.parentElement.style.gridTemplateColumns = '1fr'; 
+		            
 		            document.getElementById('role-badge').textContent = 'ASSISTANT';
 		            document.getElementById('role-badge').style.backgroundColor = '#f39c12';
-		        } else {
-		            // Restauramos visibilidad para ADMIN y COACH
+		            // Forzamos que la pestaña por defecto sea el calendario
+		            document.querySelector('#admin-panel .tab[onclick="showTab(\'calendar\')"]').click();
+		
+		        } else { // ADMIN y COACH
 		            configTab.style.display = role === 'ADMIN' ? 'flex' : 'none';
-		            actionButtons.style.display = 'block';
-		            filePickerButton.style.display = 'block';
-		            calendarNav.style.display = 'flex';
-		            viewSwitcher.style.display = 'block';
+		            statsTab.style.display = 'flex'; // Mostramos estadísticas
+		            attendanceTab.style.display = 'none'; // Ocultamos asistencia (o la dejamos, como prefieras)
+		            calendarSidebar.style.display = 'block'; // Mostramos el formulario
+		            calendarMain.parentElement.style.gridTemplateColumns = '1fr 300px';
+		
 		            document.getElementById('role-badge').textContent = role;
 		            document.getElementById('role-badge').style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';
 		        }
@@ -1654,7 +1670,9 @@
                 const selectedTeamId = document.getElementById('team-selector').value;
                 loadAdminStats(selectedTeamId);
 				loadPlayerTable(selectedTeamId);
-            }
+            }else if (tabName === 'attendance') {
+		        loadAttendanceTable();
+		    }
             sessionStorage.setItem('proassist_active_tab', tabName);
         }
 
@@ -2181,7 +2199,75 @@
 		        player.name.toLowerCase().includes(searchTerm)
 		    );
 		    renderPlayerTable(filteredData);
-		}								
+		}
+
+		/**
+		 * Carga y muestra la tabla de respuestas para el día seleccionado.
+		 * Es llamada por showTab cuando se activa la pestaña 'attendance'.
+		 */
+		async function loadAttendanceTable() {
+		    const container = document.getElementById('attendance-table-container');
+		    const title = document.getElementById('attendance-title');
+		
+		    if (!selectedDate) {
+		        title.textContent = "Asistencia de Entreno";
+		        container.innerHTML = `<p style="text-align:center; padding:1.5rem;">Selecciona un día en el calendario para ver la asistencia.</p>`;
+		        return;
+		    }
+		
+		    const training = trainings[selectedDate];
+		    const displayDate = new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+		    title.textContent = `Asistencia para el Entreno del ${displayDate}`;
+		
+		    if (!training || !training.formId) {
+		        container.innerHTML = `<p style="text-align:center; padding:1.5rem;">El formulario para este día aún no ha sido preparado.</p>`;
+		        return;
+		    }
+		
+		    container.innerHTML = '<div class="spinner"></div>';
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getResponsesForTraining');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', selectedTeamId);
+		        url.searchParams.append('date', selectedDate);
+		        
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.data.success) {
+		            // Reutilizamos la lógica de renderPlayerResponsesTable que ya habíamos hecho
+		            renderPlayerResponsesTable(data.data.responses, container);
+		        } else {
+		            throw new Error(data.error || data.data.error);
+		        }
+		    } catch (error) {
+		        container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		    }
+		}
+
+		function renderPlayerResponsesTable(responses, container) {
+		    if (responses.length === 0) {
+		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">Aún no hay respuestas para este entrenamiento.</p>';
+		        return;
+		    }
+		    
+		    const headers = Object.keys(responses[0]);
+		    let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
+		    headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
+		    tableHtml += '</tr></thead><tbody>';
+		
+		    responses.forEach(row => {
+		        tableHtml += '<tr>';
+		        headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
+		        tableHtml += '</tr>';
+		    });
+		
+		    tableHtml += '</tbody></table></div>';
+		    container.innerHTML = tableHtml;
+		}
         
         // ========================
         // OTRAS FUNCIONES Y LISTENERS
