@@ -993,8 +993,8 @@
 	
 	        <div class="admin-content">
 	            <div class="tabs">
-	                <button class="tab active" onclick="showAssistantTab('daily_view', this)">🗓️ Próximo Entreno</button>
-	                <button class="tab" onclick="showAssistantTab('player_responses', this)">📋 Respuestas del Día</button>
+	                <button id="assistant-tab-daily_view" class="tab active" onclick="showAssistantTab('daily_view')">🗓️ Próximo Entreno</button>
+					<button id="assistant-tab-player_responses" class="tab" onclick="showAssistantTab('player_responses')">📋 Respuestas del Día</button>
 	            </div>
 	            <div class="content">
 	                <div id="assistant-daily-view-tab" class="tab-panel active">
@@ -2254,40 +2254,37 @@
 
 			// Obtenemos la pestaña activa guardada o usamos 'daily_view' por defecto
 			const activeTabName = sessionStorage.getItem('assistant_active_tab') || 'daily_view';
-			// Llamamos a la función sin el segundo parámetro
-			showAssistantTab(activeTabName);
+			// La llamada ahora es simple, sin parámetros extra
+			showAssistantTab(activeTabName);			
 		}
-		
+
 		/**
 		 * Muestra la pestaña seleccionada en el dashboard del Ayudante.
+		 * VERSIÓN FINAL Y ROBUSTA.
 		 * @param {string} tabName El nombre de la pestaña a mostrar.
-		 * @param {HTMLElement} [clickedButton=null] El elemento del botón que fue clickeado.
 		 */
-		function showAssistantTab(tabName, clickedButton = null) {
+		function showAssistantTab(tabName) {
+		    // Ocultamos todos los paneles y quitamos 'active' de todos los botones de pestaña
 		    document.querySelectorAll('#assistant-dashboard .tab').forEach(tab => tab.classList.remove('active'));
 		    document.querySelectorAll('#assistant-dashboard .tab-panel').forEach(panel => panel.classList.remove('active'));
 		    
-		    // Usamos el botón clickeado si se pasó, si no, lo buscamos por su onclick
-		    const buttonToActivate = clickedButton || document.querySelector(`#assistant-dashboard .tab[onclick*="'${tabName}'"]`);
-		    if (buttonToActivate) {
-		        buttonToActivate.classList.add('active');
-		    }
-		    
+		    // Activamos el botón y el panel correctos usando el ID
+		    document.getElementById(`assistant-tab-${tabName}`).classList.add('active');
 		    document.getElementById(`assistant-${tabName}-tab`).classList.add('active');
 		
+		    // Obtenemos el equipo seleccionado
 		    const selectedTeamId = document.getElementById('assistant-team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
-		
 		    if (!selectedTeamId) return;
 		
+		    // Cargamos los datos para la pestaña activada
 		    if (tabName === 'daily_view') {
 		        renderAssistantDailyView();
 		    } else if (tabName === 'player_responses') {
 		        renderPlayerResponsesTable(selectedTeamId);
 		    }
-
-			// Guardamos la pestaña para recordarla al recargar
-    		sessionStorage.setItem('assistant_active_tab', tabName);
-		}
+		    
+		    sessionStorage.setItem('assistant_active_tab', tabName);
+		}		
 		
 		/**
 		 * Dibuja la vista del próximo entreno para el Ayudante.
