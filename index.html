@@ -2269,30 +2269,42 @@
 		 * @param {string} teamId El ID del equipo a cargar.
 		 */
 		async function loadAssistantDashboard(teamId) {
-		    document.getElementById('assistant-daily-view-tab').innerHTML = '<div class="spinner"></div>';
-		    document.getElementById('assistant-player-responses-tab').innerHTML = '<div class="spinner"></div>';
+		    console.log(`[ASSISTANT] Iniciando carga para equipo: ${teamId}`);
+		    const dailyViewContainer = document.getElementById('assistant-daily-view-tab');
+		    const responsesContainer = document.getElementById('assistant-player-responses-tab');
+		    dailyViewContainer.innerHTML = '<div class="spinner"></div>';
+		    responsesContainer.innerHTML = '<div class="spinner"></div>';
 		
 		    try {
+		        console.log("[ASSISTANT] Pidiendo estado del jugador/próximo entreno...");
 		        const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
-		        const stateData = await stateResponse.json();
+		        const stateData = await response.json(); // <-- ¡ERROR DE TIPEO! Debería ser stateResponse.json()
 		        
+		        console.log("[ASSISTANT] Estado recibido:", stateData);
 		        if (!stateData.success || !stateData.playerState.success) {
 		            throw new Error(stateData.error || stateData.playerState.error);
 		        }
 		
 		        nextTrainingForAssistant = stateData.playerState.trainingInfo;
+		        console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
+		
 		        renderAssistantDailyView();
+		        console.log("[ASSISTANT] Vista diaria renderizada.");
 		
 		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
+		            console.log("[ASSISTANT] ¡Hay entreno hoy! Cargando respuestas...");
 		            await renderPlayerResponsesTable(teamId);
+		            console.log("[ASSISTANT] Tabla de respuestas renderizada. Mostrando pestaña.");
 		            showAssistantTab('player_responses');
 		        } else {
-		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
+		            console.log("[ASSISTANT] No hay entreno hoy. Limpiando tabla y mostrando vista diaria.");
+		            responsesContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
 		            showAssistantTab('daily_view');
 		        }
 		    } catch (error) {
-		        document.getElementById('assistant-daily-view-tab').innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
-		        document.getElementById('assistant-player-responses-tab').innerHTML = '';
+		        console.error("[ASSISTANT] Error CATASTRÓFICO:", error);
+		        dailyViewContainer.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		        responsesContainer.innerHTML = '';
 		    }
 		}
 
