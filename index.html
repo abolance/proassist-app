@@ -2278,17 +2278,16 @@
 		    try {
 		        console.log("[ASSISTANT] Pidiendo estado del jugador/próximo entreno...");
 		        const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
-		        const stateData = await stateResponse.json();
-		        
-		        console.log("[ASSISTANT] Estado recibido:", stateData);
-		        if (!stateData.success || !stateData.playerState.success) {
-		            throw new Error(stateData.error || stateData.playerState.error);
-		        }
-		
-		        nextTrainingForAssistant = stateData.playerState.trainingInfo;
-		        console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
-		
-		        renderAssistantDailyView();
+				const data = await stateResponse.json(); // <-- 'data' es ahora el objeto que queremos
+				console.log("[ASSISTANT] Estado recibido:", data);
+
+				if (!data.success) { // Leemos directamente de 'data'
+				    throw new Error(data.error);
+				}
+				
+				nextTrainingForAssistant = data.trainingInfo;
+				console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
+				renderAssistantDailyView();
 		        console.log("[ASSISTANT] Vista diaria renderizada.");
 		
 		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
