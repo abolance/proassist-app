@@ -2288,7 +2288,7 @@
 		        nextTrainingForAssistant = info;
 		
 		        // 2. Renderizamos la vista del próximo entreno
-		        renderAssistantDailyView();
+		        //renderAssistantDailyView();
 		
 		        // 3. DECISIÓN LÓGICA: ¿Hay entreno hoy?
 		        if (info && info.fecha === toYYYYMMDD(new Date())) {
@@ -2333,22 +2333,33 @@
 		 */
 		function renderAssistantDailyView() {
 		    const container = document.getElementById('assistant-daily-view-tab');
+		    let contentHtml = '';
+		    
 		    if (nextTrainingForAssistant) {
 		        const info = nextTrainingForAssistant;
-		        container.innerHTML = `
-		            <div class="day-view-card" style="margin:0; box-shadow:none;">
-		                <h3>Próximo Entreno: ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</h3>
+		        // Usamos la misma estructura HTML que en la vista de día del coach
+		        contentHtml = `
+		            <div class="day-view-card">
+		                <h3>Próximo Entrenamiento</h3>
 		                <div class="details">
+		                    <p class="detail-item"><strong>🗓️ Fecha:</strong> ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
 		                    <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
 		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'N/A'}</p>
 		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'N/A'}</p>
-		                    ${info.pdfId ? `<p class="detail-item"><strong>📄 Sesión:</strong> <a href="https://drive.google.com/file/d/${info.pdfId}/view" target="_blank" class="btn btn-secondary">Ver PDF</a></p>` : ''}
+		                    ${info.pdfId ? `
+		                    <div class="detail-item">
+		                        <strong>📄 Sesión:</strong>
+		                        <a href="https://drive.google.com/file/d/${info.pdfId}/view" target="_blank" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.9em; margin-left: 10px;">
+		                            Ver PDF de la Sesión
+		                        </a>
+		                    </div>` : ''}
 		                </div>
 		            </div>`;
 		    } else {
-		        container.innerHTML = '<div class="day-view-card"><h3>No hay próximos entrenamientos.</h3></div>';
+		        contentHtml = `<div class="day-view-card"><div style="font-size: 3rem; margin-bottom: 1rem;">😴</div><h3>No hay próximos entrenamientos programados.</h3></div>`;
 		    }
-		}
+		    container.innerHTML = contentHtml;
+		}		
 		
 		/**
 		 * Carga y dibuja la tabla de respuestas de las jugadoras.
