@@ -997,10 +997,10 @@
 					<button id="assistant-tab-player-responses" class="tab" onclick="showAssistantTab('player_responses')">📋 Respuestas del Día</button>
 	            </div>
 	            <div class="content">
-	                <div id="assistant_daily_view_tab" class="tab-panel active">
+	                <div id="assistant-daily-view-tab" class="tab-panel active">
 	                    <!-- La vista del día del próximo entreno se cargará aquí -->
 	                </div>
-	                <div id="assistant_player_responses_tab" class="tab-panel">
+	                <div id="assistant-player-responses-tab" class="tab-panel">
 	                    <!-- La tabla con las respuestas de las jugadoras se cargará aquí -->
 	                </div>
 	            </div>
@@ -2259,31 +2259,25 @@
 		}
 
 		/**
-		 * Muestra la pestaña seleccionada en el dashboard del Ayudante.
-		 * @param {string} tabName El nombre de la pestaña a mostrar ('daily_view' o 'player_responses').
-		 */
+		* Muestra la pestaña seleccionada en el dashboard del Ayudante.
+		* @param {string} tabName El nombre de la pestaña a mostrar ('daily_view' o 'player_responses').
+		*/		 
 		function showAssistantTab(tabName) {
-		    // Ocultamos todos los paneles y quitamos 'active' de todos los botones
+			// Ocultamos todo
 		    document.querySelectorAll('#assistant-dashboard .tab').forEach(tab => tab.classList.remove('active'));
 		    document.querySelectorAll('#assistant-dashboard .tab-panel').forEach(panel => panel.classList.remove('active'));
 		    
 		    // --- LÓGICA CORREGIDA ---
-		    // Construimos los IDs de forma predecible y segura
+		    // Construimos los IDs de forma predecible y segura, usando guiones normales
 		    const buttonId = `assistant-tab-${tabName}`;
-		    const panelId = `assistant_${tabName}_tab`; // <-- Usa el nuevo ID con guion bajo
+		    const panelId = `assistant-${tabName}-tab`; 
 		
-		    // Activamos el botón y el panel correctos
 		    const buttonToActivate = document.getElementById(buttonId);
 		    const panelToActivate = document.getElementById(panelId);
 		
-		    if (buttonToActivate) {
-		        buttonToActivate.classList.add('active');
-		    }
-		    if (panelToActivate) {
-		        panelToActivate.classList.add('active');
-		    }
+		    if (buttonToActivate) buttonToActivate.classList.add('active');
+		    if (panelToActivate) panelToActivate.classList.add('active');
 		    
-		    // --- El resto de la lógica se queda igual ---
 		    const selectedTeamId = document.getElementById('assistant-team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
 		    if (!selectedTeamId) return;
 		
