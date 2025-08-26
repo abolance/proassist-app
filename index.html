@@ -993,8 +993,8 @@
 	
 	        <div class="admin-content">
 	            <div class="tabs">
-	                <button id="assistant_tab_daily_view" class="tab active" onclick="showAssistantTab('daily_view')">🗓️ Próximo Entreno</button>
-					<button id="assistant_tab_player_responses" class="tab" onclick="showAssistantTab('player_responses')">📋 Respuestas del Día</button>
+	                <button id="assistant-tab-daily-view" class="tab active" onclick="showAssistantTab('daily_view')">🗓️ Próximo Entreno</button>
+					<button id="assistant-tab-player-responses" class="tab" onclick="showAssistantTab('player_responses')">📋 Respuestas del Día</button>
 	            </div>
 	            <div class="content">
 	                <div id="assistant_daily_view_tab" class="tab-panel active">
@@ -2269,10 +2269,8 @@
 		    
 		    // --- LÓGICA CORREGIDA ---
 		    // Construimos los IDs de forma predecible y segura
-		    //const buttonId = `assistant_tab_${tabName}`;
-			const buttonId = `assistant_tab_daily_view`;			
-		    //const panelId = `assistant_${tabName}_tab`;
-			const panelId = `assistant_tab_player_responses`;
+		    const buttonId = `assistant-tab-${tabName}`;
+		    const panelId = `assistant_${tabName}_tab`; // <-- Usa el nuevo ID con guion bajo
 		
 		    // Activamos el botón y el panel correctos
 		    const buttonToActivate = document.getElementById(buttonId);
