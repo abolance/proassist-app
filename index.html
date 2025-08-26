@@ -2277,29 +2277,29 @@
 		
 		    try {
 		        console.log("[ASSISTANT] Pidiendo estado del jugador/próximo entreno...");
-		        const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
-				const data = await stateResponse.json(); // <-- 'data' es ahora el objeto que queremos
-				console.log("[ASSISTANT] Estado recibido:", data);
+				const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getAssistantState&email=${currentUser.email}&teamId=${teamId}`);
+        		const data = await response.json();
+		        console.log("[ASSISTANT] Estado recibido:", data);
 
-				if (!data.success) { // Leemos directamente de 'data'
-				    throw new Error(data.error);
-				}
+				if (!data.success || !data.assistantState.success) {
+		            throw new Error(data.error || data.assistantState.error);
+		        }
 				
-				nextTrainingForAssistant = data.trainingInfo;
+				nextTrainingForAssistant = data.assistantState.trainingInfo;
 				console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
 				renderAssistantDailyView();
 		        console.log("[ASSISTANT] Vista diaria renderizada.");
-		
-		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
-		            console.log("[ASSISTANT] ¡Hay entreno hoy! Cargando respuestas...");
+
+				if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
+					console.log("[ASSISTANT] ¡Hay entreno hoy! Cargando respuestas...");
 		            await renderPlayerResponsesTable(teamId);
-		            console.log("[ASSISTANT] Tabla de respuestas renderizada. Mostrando pestaña.");
+					console.log("[ASSISTANT] Tabla de respuestas renderizada. Mostrando pestaña.");
 		            showAssistantTab('player_responses');
 		        } else {
-		            console.log("[ASSISTANT] No hay entreno hoy. Limpiando tabla y mostrando vista diaria.");
-		            responsesContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
+					console.log("[ASSISTANT] No hay entreno hoy. Limpiando tabla y mostrando vista diaria.");
+		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
 		            showAssistantTab('daily_view');
-		        }
+		        }		        
 		    } catch (error) {
 		        console.error("[ASSISTANT] Error CATASTRÓFICO:", error);
 		        dailyViewContainer.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
@@ -2327,9 +2327,10 @@
 		    sessionStorage.setItem('assistant_active_tab', tabName);
 		    // YA NO CARGAMOS DATOS AQUÍ. La carga se hace una sola vez en loadAssistantDashboard.
 		}						
-		
+				
 		/**
 		 * Dibuja la vista del próximo entreno para el Ayudante.
+		 * Muestra los detalles y el enlace al PDF, pero NUNCA el botón del formulario.
 		 */
 		function renderAssistantDailyView() {
 		    const container = document.getElementById('assistant-daily-view-tab');
@@ -2337,29 +2338,35 @@
 		    
 		    if (nextTrainingForAssistant) {
 		        const info = nextTrainingForAssistant;
-		        // Usamos la misma estructura HTML que en la vista de día del coach
+		        const date = new Date(info.fecha + 'T12:00:00');
+		        const displayDate = date.toLocaleDateString('es-ES', {
+		            weekday: 'long', day: 'numeric', month: 'long'
+		        });
+		        
+		        // Usamos la misma estructura visual que la del coach
 		        contentHtml = `
 		            <div class="day-view-card">
-		                <h3>Próximo Entrenamiento</h3>
+		                <h3>Próximo Entrenamiento: ${displayDate}</h3>
 		                <div class="details">
-		                    <p class="detail-item"><strong>🗓️ Fecha:</strong> ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
 		                    <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
-		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'N/A'}</p>
-		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'N/A'}</p>
+		                    <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'No especificada'}</p>
+		                    <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'Sin notas'}</p>
+		                    
+		                    <!-- Lógica del PDF para el Ayudante -->
 		                    ${info.pdfId ? `
 		                    <div class="detail-item">
 		                        <strong>📄 Sesión:</strong>
 		                        <a href="https://drive.google.com/file/d/${info.pdfId}/view" target="_blank" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.9em; margin-left: 10px;">
 		                            Ver PDF de la Sesión
 		                        </a>
-		                    </div>` : ''}
+		                    </div>` : '<p class="detail-item"><strong>📄 Sesión:</strong> No hay PDF adjunto.</p>'}
 		                </div>
 		            </div>`;
 		    } else {
 		        contentHtml = `<div class="day-view-card"><div style="font-size: 3rem; margin-bottom: 1rem;">😴</div><h3>No hay próximos entrenamientos programados.</h3></div>`;
 		    }
 		    container.innerHTML = contentHtml;
-		}		
+		}				
 		
 		/**
 		 * Carga y dibuja la tabla de respuestas de las jugadoras.
