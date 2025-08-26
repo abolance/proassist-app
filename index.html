@@ -1930,9 +1930,9 @@
 		}
 
 		/**
-		 * Carga los datos de un entrenamiento seleccionado en el sidebar, gestionando la
-		 * visibilidad y el estado de todos los campos y botones según la fecha.
-		 * @param {string} dateString La fecha seleccionada en formato 'YYYY-MM-DD'.
+		 * Carga los datos de un entrenamiento seleccionado en el sidebar, OCULTANDO los
+		 * botones de acción y el selector de archivos para fechas pasadas.
+		 * @param {string} dateString La fecha seleccionada en formato 'YYYY--MM-DD'.
 		 */
 		function loadTrainingData(dateString) {
 		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
@@ -1948,19 +1948,19 @@
 		    const hasTraining = dateString && trainings[dateString];
 		    const training = trainings[dateString] || {};
 		
-		    // --- 3. LÓGICA DE VISIBILIDAD Y HABILITACIÓN ---
+		    // --- 3. LÓGICA DE VISIBILIDAD ---
 		    trainingForm.style.display = 'block';
 		    buttonContainer.style.display = 'block';
+		    if (filePickerButton) filePickerButton.style.display = 'block'; // Mostramos el botón por defecto
 		    formInputs.forEach(input => input.disabled = false);
-		    if (filePickerButton) filePickerButton.disabled = false; // Habilitamos el botón de seleccionar archivo
 		
 		    if (isPastDate && !hasTraining) {
 		        trainingForm.style.display = 'none';
 		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
 		    } else if (isPastDate && hasTraining) {
 		        buttonContainer.style.display = 'none'; // Ocultamos Guardar/Eliminar/Preparar
+		        if (filePickerButton) filePickerButton.style.display = 'none'; // <-- OCULTAMOS EL BOTÓN
 		        formInputs.forEach(input => input.disabled = true);
-		        if (filePickerButton) filePickerButton.disabled = true; // Deshabilitamos el botón de seleccionar archivo
 		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
 		    }
 		
