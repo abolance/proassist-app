@@ -2264,48 +2264,47 @@
 
 		/**
 		 * Función maestra que carga TODOS los datos para el dashboard del Ayudante.
-		 * VERSIÓN FINAL.
+		 * VERSIÓN FINAL que usa el endpoint 'getAssistantState'.
 		 * @param {string} teamId El ID del equipo a cargar.
 		 */
 		async function loadAssistantDashboard(teamId) {
 		    console.log(`[ASSISTANT] Iniciando carga para equipo: ${teamId}`);
-		    // Limpiamos AMBAS pestañas al inicio
-		    document.getElementById('assistant-daily-view-tab').innerHTML = '<div class="spinner"></div>';
-		    document.getElementById('assistant-player-responses-tab').innerHTML = '<div class="spinner"></div>';
+		    const dailyViewContainer = document.getElementById('assistant-daily-view-tab');
+		    const responsesContainer = document.getElementById('assistant-player-responses-tab');
+		    dailyViewContainer.innerHTML = '<div class="spinner"></div>';
+		    responsesContainer.innerHTML = '<div class="spinner"></div>';
 		
 		    try {
-		        const url = new URL(CONFIG.SCRIPT_URL);
-		        url.searchParams.append('action', 'getPlayerState');
-		        url.searchParams.append('userEmail', currentUser.email);
-		        url.searchParams.append('teamId', teamId);
-		
-		        const response = await fetch(url);
+		        // --- LLAMADA AL NUEVO ENDPOINT EXCLUSIVO ---
+		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getAssistantState&email=${currentUser.email}&teamId=${teamId}`);
 		        const data = await response.json();
 		        
-		        if (!data.success) throw new Error(data.error);
+		        console.log("[ASSISTANT] Estado recibido:", data);
+		        if (!data.success) {
+		            throw new Error(data.error);
+		        }
 		
 		        // Guardamos el próximo entreno en la variable global
 		        nextTrainingForAssistant = data.trainingInfo;
-		        console.log("[ASSISTANT] Próximo entreno guardado:", nextTrainingForAssistant);
-		
-		        // Renderizamos SIEMPRE la vista del día
+		        
+		        // Renderizamos la vista del próximo entreno (que ahora recibirá el pdfId)
 		        renderAssistantDailyView();
 		
 		        // DECISIÓN LÓGICA: ¿Hay entreno hoy?
 		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
 		            console.log("[ASSISTANT] ¡Hay entreno hoy! Mostrando pestaña de respuestas.");
-		            // Si hay entreno hoy, cambiamos a la pestaña de respuestas
-		            showAssistantTab('player_responses'); 
+		            showAssistantTab('player_responses'); // Automáticamente carga y muestra la tabla
 		        } else {
-		            console.log("[ASSISTANT] No hay entreno hoy. Mostrando pestaña de próximo entreno.");
-		            // Si no, nos aseguramos de que la pestaña por defecto es la del día
+		            console.log("[ASSISTANT] No hay entreno hoy. Mostrando vista diaria.");
+		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
 		            showAssistantTab('daily_view');
 		        }
 		    } catch (error) {
 		        console.error("[ASSISTANT] Error CATASTRÓFICO:", error);
-		        document.getElementById('assistant-daily-view-tab').innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		        const errorMessage = error.message || "Error de conexión o al procesar la respuesta.";
+		        dailyViewContainer.innerHTML = `<div class="alert alert-warning">${errorMessage}</div>`;
 		    }
-		}
+		}		
 
 		/**
 		 * Muestra la pestaña seleccionada y CARGA su contenido si es necesario.
