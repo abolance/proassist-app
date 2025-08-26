@@ -1216,8 +1216,12 @@
 		            statsTab.style.display = 'none';
 		            attendanceTab.style.display = 'flex'; // Mostramos la nueva pestaña
 		            calendarSidebar.style.display = 'none'; // Ocultamos el formulario de edición
-		            // Hacemos que el calendario ocupe todo el ancho
-		            calendarMain.parentElement.style.gridTemplateColumns = '1fr'; 
+					calendarNav.style.display = 'none'; // Ocultamos flechas
+            		viewSwitcher.style.display = 'none'; // Ocultamos selector Mes/Semana/Día
+
+					// Forzamos la vista de día y actualizamos el título
+		            currentCalendarView = 'day';
+		            renderCalendarView();
 		            
 		            document.getElementById('role-badge').textContent = 'ASSISTANT';
 		            document.getElementById('role-badge').style.backgroundColor = '#f39c12';
@@ -1227,7 +1231,7 @@
 		        } else { // ADMIN y COACH
 		            configTab.style.display = role === 'ADMIN' ? 'flex' : 'none';
 		            statsTab.style.display = 'flex'; // Mostramos estadísticas
-		            attendanceTab.style.display = 'none'; // Ocultamos asistencia (o la dejamos, como prefieras)
+					attendanceTab.style.display = 'flex';		            
 		            calendarSidebar.style.display = 'block'; // Mostramos el formulario
 		            calendarMain.parentElement.style.gridTemplateColumns = '1fr 300px';
 		
@@ -2246,7 +2250,7 @@
 		    } catch (error) {
 		        container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		    }
-		}
+		}		
 
 		function renderPlayerResponsesTable(responses, container) {
 		    if (responses.length === 0) {
