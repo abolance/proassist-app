@@ -2269,12 +2269,10 @@
 		 * @param {string} teamId El ID del equipo a cargar.
 		 */
 		async function loadAssistantDashboard(teamId) {
-		    // Mostramos un estado de carga general
 		    document.getElementById('assistant-daily-view-tab').innerHTML = '<div class="spinner"></div>';
 		    document.getElementById('assistant-player-responses-tab').innerHTML = '<div class="spinner"></div>';
 		
 		    try {
-		        // 1. Obtenemos el estado del próximo entrenamiento
 		        const stateResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
 		        const stateData = await stateResponse.json();
 		        
@@ -2282,26 +2280,17 @@
 		            throw new Error(stateData.error || stateData.playerState.error);
 		        }
 		
-		        const info = stateData.playerState.trainingInfo;
-		        
-		        // Guardamos el próximo entreno en la variable global
-		        nextTrainingForAssistant = info;
+		        nextTrainingForAssistant = stateData.playerState.trainingInfo;
+		        renderAssistantDailyView();
 		
-		        // 2. Renderizamos la vista del próximo entreno
-		        //renderAssistantDailyView();
-		
-		        // 3. DECISIÓN LÓGICA: ¿Hay entreno hoy?
-		        if (info && info.fecha === toYYYYMMDD(new Date())) {
-		            // Si hay entreno hoy, cargamos las respuestas y mostramos esa pestaña
+		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
 		            await renderPlayerResponsesTable(teamId);
 		            showAssistantTab('player_responses');
 		        } else {
-		            // Si no hay entreno hoy, limpiamos la tabla de respuestas y mostramos la vista del día
 		            document.getElementById('assistant-player-responses-tab').innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
 		            showAssistantTab('daily_view');
 		        }
 		    } catch (error) {
-		        console.error("Error cargando el dashboard del Ayudante:", error);
 		        document.getElementById('assistant-daily-view-tab').innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		        document.getElementById('assistant-player-responses-tab').innerHTML = '';
 		    }
