@@ -1184,60 +1184,62 @@
         // ========================
         // ROUTER Y NAVEGACIÓN
         // ========================
-        async function showDashboardBasedOnRole(role) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('player-dashboard').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'none';
-            const configTabButton = document.getElementById('config-tab-button');
-
-            if (role === 'ADMIN' || role === 'COACH') {
-                document.getElementById('admin-panel').style.display = 'block';
-
-				// --- LÓGICA PARA EL BADGE DE ROL ---
-			    const roleBadge = document.getElementById('role-badge');
-			    roleBadge.textContent = role; // Pone "ADMIN" o "COACH"
-			    if (role === 'COACH') {
-			        roleBadge.style.backgroundColor = '#3498db'; // Color azul para COACH
-			    } else {
-			        roleBadge.style.backgroundColor = '#e74c3c'; // Color rojo para ADMIN
-			    }
-								
-                if (role === 'COACH') {
-                    configTabButton.style.display = 'none';
-                    document.querySelector('.tab[onclick="showTab(\'calendar\')"]').click();
-                } else {
-                    configTabButton.style.display = 'flex';
-                }
-                
-                const teamSelectorHeader = document.getElementById('team-selector-header');
-                const teamSelector = document.getElementById('team-selector');
-                teamSelector.innerHTML = '';
-
-                if (currentUser.teams && currentUser.teams.length > 1) {
-                    teamSelectorHeader.style.display = 'flex';
-                    currentUser.teams.forEach(teamId => {
-                        const option = document.createElement('option');
-                        option.value = teamId;
-                        option.textContent = currentUser.teamMap[teamId] || teamId;
-                        teamSelector.appendChild(option);
-                    });
-                    teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
-                    await initializeAdminPanel(currentUser.teams[0]);
-                } else if (currentUser.teams && currentUser.teams.length === 1) {
-                    teamSelectorHeader.style.display = 'none';
-                    await initializeAdminPanel(currentUser.teams[0]);
-                } else {
-                    showAlert('No tienes equipos asignados.', 'warning');
-                }
-            } else if (role === 'ASSISTANT') {
-			    document.getElementById('assistant-dashboard').style.display = 'block';
-			    // Llamaremos a una nueva función que cargue los datos del ayudante
-			    initializeAssistantPanel();					
-			} else if (role === 'PLAYER') {                
-				document.getElementById('player-dashboard').style.display = 'block';
+        async function showDashboardBasedOnRole(role) {			
+		    document.getElementById('loginScreen').style.display = 'none';
+		    document.getElementById('player-dashboard').style.display = 'none';
+		    document.getElementById('admin-panel').style.display = 'none';
+		
+		    if (role === 'ADMIN' || role === 'COACH' || role === 'ASSISTANT') {
+		        document.getElementById('admin-panel').style.display = 'block';
+		        
+		        // --- LÓGICA DE PERSONALIZACIÓN DE VISTA ---
+		        const configTab = document.getElementById('config-tab-button');
+		        const actionButtons = document.getElementById('action-buttons-container');
+		        const filePickerButton = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		        const calendarNav = document.querySelector('.calendar-title-nav');
+		        const viewSwitcher = document.getElementById('view-switcher');
+		
+		        if (role === 'ASSISTANT') {
+		            configTab.style.display = 'none';
+		            actionButtons.style.display = 'none';
+		            filePickerButton.style.display = 'none';
+		            calendarNav.style.display = 'none'; // Ocultamos flechas de navegación
+		            viewSwitcher.style.display = 'none'; // Ocultamos selector de vista
+		            setView('day'); // Forzamos la vista de día
+		            document.getElementById('role-badge').textContent = 'ASSISTANT';
+		            document.getElementById('role-badge').style.backgroundColor = '#f39c12';
+		        } else {
+		            // Restauramos visibilidad para ADMIN y COACH
+		            configTab.style.display = role === 'ADMIN' ? 'flex' : 'none';
+		            actionButtons.style.display = 'block';
+		            filePickerButton.style.display = 'block';
+		            calendarNav.style.display = 'flex';
+		            viewSwitcher.style.display = 'block';
+		            document.getElementById('role-badge').textContent = role;
+		            document.getElementById('role-badge').style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';
+		        }
+		
+		        // --- LÓGICA DE CARGA DE DATOS (CORREGIDA) ---
+		        const teamSelectorHeader = document.getElementById('team-selector-header');
+		        const teamSelector = document.getElementById('team-selector');
+		        teamSelector.innerHTML = '';
+		        
+		        if (currentUser.teams && currentUser.teams.length > 1 && role !== 'ASSISTANT') {
+		            teamSelectorHeader.style.display = 'flex';
+		            // ... (código para rellenar el selector)
+		            teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
+		            await initializeAdminPanel(currentUser.teams[0]);
+		        } else if (currentUser.teams && currentUser.teams.length > 0) {
+		            teamSelectorHeader.style.display = 'none';
+		            await initializeAdminPanel(currentUser.teams[0]);
+		        } else {
+		            showAlert('No tienes equipos asignados.', 'warning');
+		        }
+		
+		    } else if (role === 'PLAYER') {
+		        document.getElementById('player-dashboard').style.display = 'block';
 			    showMotivationalMessage();
 			    
-			    // --- LLAMADA CORRECTA ---
 			    // Obtenemos el teamId y llamamos a nuestra nueva función maestra
 			    const playerTeamId = currentUser.teams[0];
 			    if (playerTeamId) {
@@ -1247,8 +1249,8 @@
 			    } else {
 			        showError("No estás asignada a ningún equipo.");
 			    }
-            }
-        }
+		    }
+		}
 
         function showLoginScreen() {
             document.getElementById('loginScreen').style.display = 'flex';
