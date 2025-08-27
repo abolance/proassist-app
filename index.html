@@ -2208,13 +2208,14 @@
 		}
 
 		/**
-		 * Carga y muestra la tabla de respuestas para el día seleccionado.
-		 * Es llamada por showTab cuando se activa la pestaña 'attendance'.
+		 * Carga y muestra la tabla de respuestas para el día seleccionado,
+		 * manejando todos los posibles estados del día.
 		 */
 		async function loadAttendanceTable() {
 		    const container = document.getElementById('attendance-table-container');
 		    const title = document.getElementById('attendance-title');
 		
+		    // 1. Manejar el caso de que no haya ninguna fecha seleccionada
 		    if (!selectedDate) {
 		        title.textContent = "Asistencia de Entreno";
 		        container.innerHTML = `<p style="text-align:center; padding:1.5rem;">Selecciona un día en el calendario para ver la asistencia.</p>`;
@@ -2225,13 +2226,25 @@
 		    const displayDate = new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
 		    title.textContent = `Asistencia para el Entreno del ${displayDate}`;
 		
-		    if (!training || !training.formId) {
-		        container.innerHTML = `<p style="text-align:center; padding:1.5rem;">El formulario para este día aún no ha sido preparado.</p>`;
+		    // 2. Manejar el caso de que sea un DÍA DE DESCANSO
+		    if (!training) {
+		        container.innerHTML = `
+		            <div style="text-align: center; padding: 2rem;">
+		                <div style="font-size: 2.5rem; margin-bottom: 1rem;">😴</div>
+		                <p>Es un día de descanso. No hay asistencia que mostrar.</p>
+		            </div>`;
 		        return;
 		    }
 		
+		    // 3. Manejar el caso de que el FORMULARIO NO ESTÉ LISTO
+		    if (!training.formId) {
+		        container.innerHTML = `<p style="text-align:center; padding:1.5rem;">El formulario para este día aún no ha sido preparado por el entrenador.</p>`;
+		        return;
+		    }
+		
+		    // 4. Si todo está bien, CARGAR LAS RESPUESTAS
 		    container.innerHTML = '<div class="spinner"></div>';
-		    const selectedTeamId = document.getElementById('team-selector').value;
+		    const selectedTeamId = document.getElementById('team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
 		
 		    try {
 		        const url = new URL(CONFIG.SCRIPT_URL);
@@ -2244,7 +2257,7 @@
 		        const data = await response.json();
 		
 		        if (data.success && data.data.success) {
-		            // Reutilizamos la lógica de renderPlayerResponsesTable que ya habíamos hecho
+		            // Reutilizamos la función que dibuja la tabla
 		            renderPlayerResponsesTable(data.data.responses, container);
 		        } else {
 		            throw new Error(data.error || data.data.error);
@@ -2252,7 +2265,7 @@
 		    } catch (error) {
 		        container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		    }
-		}		
+		}				
 
 		function renderPlayerResponsesTable(responses, container) {
 		    if (responses.length === 0) {
