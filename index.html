@@ -1240,6 +1240,9 @@
 		
 		        // --- Lógica de Personalización ---
 		        if (role === 'ASSISTANT') {
+					// Forzamos la fecha global a ser 'hoy' cada vez que un ASSISTANT inicia sesión.
+    				currentDate = new Date();
+					
 		            configTab.style.display = 'none';
 		            statsTab.style.display = 'none';
 		            attendanceTab.style.display = 'flex';
