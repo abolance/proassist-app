@@ -1194,87 +1194,86 @@
         // ========================
         // ROUTER Y NAVEGACIÓN
         // ========================
-        async function showDashboardBasedOnRole(role) {			
+		async function showDashboardBasedOnRole(role) {
+		    // 1. Ocultamos todos los dashboards para un estado limpio
 		    document.getElementById('loginScreen').style.display = 'none';
 		    document.getElementById('player-dashboard').style.display = 'none';
 		    document.getElementById('admin-panel').style.display = 'none';
 		
+		    // 2. Lógica para los roles de STAFF (ADMIN, COACH, ASSISTANT)
 		    if (role === 'ADMIN' || role === 'COACH' || role === 'ASSISTANT') {
-		        document.getElementById('admin-panel').style.display = 'block';
 		        
-		        // --- LÓGICA DE PERSONALIZACIÓN DE VISTA ---
+		        document.getElementById('admin-panel').style.display = 'block';
+		
+		        // Obtenemos referencias a todos los elementos que vamos a manipular
 		        const configTab = document.getElementById('config-tab-button');
 		        const statsTab = document.getElementById('stats-tab-button');
 		        const attendanceTab = document.getElementById('attendance-tab-button');
 		        const calendarSidebar = document.getElementById('calendar-sidebar');
-		        const calendarMain = document.getElementById('calendar-main');
+		        const calendarNav = document.querySelector('#admin-panel .calendar-title-nav');
+		        const viewSwitcher = document.getElementById('view-switcher');
+		        const roleBadge = document.getElementById('role-badge');
 		
-		        // --- LÓGICA DE PERSONALIZACIÓN DE VISTA ---
+		        // Personalizamos la UI según el rol específico
 		        if (role === 'ASSISTANT') {
-		            // Vista del Ayudante
 		            configTab.style.display = 'none';
 		            statsTab.style.display = 'none';
-		            attendanceTab.style.display = 'flex'; // Mostramos la nueva pestaña
-		            calendarSidebar.style.display = 'none'; // Ocultamos el formulario de edición
-					calendarNav.style.display = 'none'; // Ocultamos flechas
-            		viewSwitcher.style.display = 'none'; // Ocultamos selector Mes/Semana/Día
-
-					// Forzamos la vista de día y actualizamos el título
-		            currentCalendarView = 'day';
-		            renderCalendarView();
-		            
-		            document.getElementById('role-badge').textContent = 'ASSISTANT';
-		            document.getElementById('role-badge').style.backgroundColor = '#f39c12';
-		            // Forzamos que la pestaña por defecto sea el calendario
+		            attendanceTab.style.display = 'flex';
+		            calendarSidebar.style.display = 'none';
+		            if (calendarNav) calendarNav.style.display = 'none';
+		            if (viewSwitcher) viewSwitcher.style.display = 'none';
+		            roleBadge.textContent = 'ASSISTANT';
+		            roleBadge.style.backgroundColor = '#f39c12';
+		            setView('day'); 
 		            document.querySelector('#admin-panel .tab[onclick="showTab(\'calendar\')"]').click();
 		
 		        } else { // ADMIN y COACH
 		            configTab.style.display = role === 'ADMIN' ? 'flex' : 'none';
-		            statsTab.style.display = 'flex'; // Mostramos estadísticas
-					attendanceTab.style.display = 'flex';		            
-		            calendarSidebar.style.display = 'block'; // Mostramos el formulario
-		            calendarMain.parentElement.style.gridTemplateColumns = '1fr 300px';
-		
-		            document.getElementById('role-badge').textContent = role;
-		            document.getElementById('role-badge').style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';
+		            statsTab.style.display = 'flex';
+		            attendanceTab.style.display = 'flex';
+		            calendarSidebar.style.display = 'block';
+		            if (calendarNav) calendarNav.style.display = 'flex';
+		            if (viewSwitcher) viewSwitcher.style.display = 'block';
+		            roleBadge.textContent = role;
+		            roleBadge.style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';
 		        }
-		
-		        // --- LÓGICA DE CARGA DE DATOS ---
+		        
+		        // Lógica de carga de datos y selector de equipos
 		        const teamSelectorHeader = document.getElementById('team-selector-header');
 		        const teamSelector = document.getElementById('team-selector');
 		        teamSelector.innerHTML = '';
 		        
 		        if (currentUser.teams && currentUser.teams.length > 1 && role !== 'ASSISTANT') {
 		            teamSelectorHeader.style.display = 'flex';
-                    currentUser.teams.forEach(teamId => {
-                        const option = document.createElement('option');
-                        option.value = teamId;
-                        option.textContent = currentUser.teamMap[teamId] || teamId;
-                        teamSelector.appendChild(option);
-                    });
-                    teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
-                    await initializeAdminPanel(currentUser.teams[0]);
-                } else if (currentUser.teams && currentUser.teams.length === 1) {
-                    teamSelectorHeader.style.display = 'none';
-                    await initializeAdminPanel(currentUser.teams[0]);
-                } else {
-                    showAlert('No tienes equipos asignados.', 'warning');
-				}		
+		            currentUser.teams.forEach(teamId => {
+		                const option = document.createElement('option');
+		                option.value = teamId;
+		                option.textContent = currentUser.teamMap[teamId] || teamId;
+		                teamSelector.appendChild(option);
+		            });
+		            teamSelector.onchange = () => initializeAdminPanel(teamSelector.value);
+		            await initializeAdminPanel(currentUser.teams[0]);
+		        } else if (currentUser.teams && currentUser.teams.length > 0) {
+		            teamSelectorHeader.style.display = 'none';
+		            await initializeAdminPanel(currentUser.teams[0]);
+		        } else {
+		            showAlert('No tienes equipos asignados.', 'warning');
+		        }
+		
+		    // 3. Lógica para el rol PLAYER (TU CÓDIGO CORRECTO)
 		    } else if (role === 'PLAYER') {
 		        document.getElementById('player-dashboard').style.display = 'block';
-			    showMotivationalMessage();
-			    
-			    // Obtenemos el teamId y llamamos a nuestra nueva función maestra
-			    const playerTeamId = currentUser.teams[0];
-			    if (playerTeamId) {
-			        await loadPlayerFormState(playerTeamId);
-					await loadUserStats(playerTeamId);
-        			await loadUserHistory(playerTeamId);
-			    } else {
-			        showError("No estás asignada a ningún equipo.");
-			    }
+		        showMotivationalMessage();
+		        
+		        const playerTeamId = currentUser.teams[0];
+		        if (playerTeamId) {
+		            // Renombramos la llamada a la función unificada para el panel de jugador
+		            await initializePlayerPanel(playerTeamId);
+		        } else {
+		            showError("No estás asignada a ningún equipo.");
+		        }
 		    }
-		}
+		}      
 
         function showLoginScreen() {
             document.getElementById('loginScreen').style.display = 'flex';
@@ -1309,7 +1308,7 @@
             document.getElementById('greeting').textContent = `${greeting}, ${firstName}!`;
         }
 
-		async function loadUserData() {
+		async function initializePlayerPanel() {
 		    if (!currentUser || !currentUser.email) {
 		        return showError('No hay información de usuario disponible');
 		    }
@@ -1326,8 +1325,7 @@
 		        await loadUserHistory(playerTeamId);
 		        
 		        console.log("Cargando formulario del día...");
-		        //await loadTodaysForm(playerTeamId);
-				await loadPlayerFormState(playerTeamId)
+		        await loadPlayerFormState(playerTeamId)
 		
 		    } catch (error) {
 		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
@@ -2304,13 +2302,7 @@
 		    stopAutoRefresh();
 		    refreshInterval = setInterval(async () => {
 		        showRefreshIndicator();
-		        
-		        // --- ¡AQUÍ ESTÁ LA LÓGICA CONTEXTUAL! ---
-		        // Comprobamos qué dashboard está visible actualmente
-		        //if (document.getElementById('player-dashboard').style.display === 'block') {
-		        //    console.log("Auto-refresh: Refrescando datos de la jugadora...");
-		        //    await loadUserData();
-		        //} 
+				        
 				if (document.getElementById('player-dashboard').style.display === 'block') {
 				    const playerTeamId = currentUser.teams[0];
 				    if (playerTeamId) {
