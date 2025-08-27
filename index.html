@@ -2317,9 +2317,9 @@
 		    // --- 1. DEFINIMOS EL ORDEN Y TÍTULOS DE NUESTRAS COLUMNAS ---
 		    const columns = [
 		        { key: 'Jugadora', title: 'Jugadora' },
-		        { key: 'Respuesta_Previa', title: 'Respuesta Previa' },
+		        { key: 'Respuesta_Previa', title: 'Respuesta' },
 		        { key: 'Asistencia_Confirmada', title: 'Asist.' },
-		        { key: 'Fisico', title: 'Estado Físico' },
+		        { key: 'Físico', title: 'Físico' },
 		        { key: 'Notas', title: 'Notas' }
 		    ];
 		
@@ -2355,9 +2355,20 @@
 		    tableHtml += '</tbody></table></div>';
 		    
 		    // --- 3. AÑADIMOS EL BOTÓN DE GUARDAR SI ES NECESARIO ---
-		    if (!(isPastDate && currentUser.role === 'ASSISTANT')) {
-		        tableHtml += `<div style="text-align: right; margin-top: 1.5rem;"><button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button></div>`;
-		    }
+			let showSaveButton = true; // Por defecto, mostramos el botón
+
+			if (isPastDate && currentUser.role === 'ASSISTANT') {
+			    // Si el entreno ha pasado Y el usuario es un Ayudante, OCULTAMOS el botón
+			    showSaveButton = false;
+			}
+			
+			if (showSaveButton) {
+			    tableHtml += `
+			        <div style="text-align: right; margin-top: 1.5rem;">
+			            <button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button>
+			        </div>
+			    `;
+			}		    
 		    
 		    container.innerHTML = tableHtml;
 		}				
