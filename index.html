@@ -367,27 +367,38 @@
 
 		.calendar-header {
 		    display: flex;
-		    justify-content: center; /* Centra el contenido horizontalmente */
+		    justify-content: space-between;
 		    align-items: center;
-		    position: relative; /* Necesario para posicionar los controles */
-		    padding: 1rem; /* Padding base */
-		    flex-wrap: wrap;
-		    gap: 1rem;
-		}	
-
-		.calendar-title-container {
-		    /* El título se queda en el centro */
+		    padding: 0.5rem 1rem; /* Padding reducido */
+			/*flex-direction: column;*/ /* Apilamos título y controles */
 		}
-
-		.calendar-controls {
-		    /* Contenedor para todos los botones */
+		
+		.calendar-title-container {
+		    flex-grow: 1; /* Permite que el título ocupe el espacio central */
+		    text-align: center;
+		}
+		
+		/* Contenedores para los controles a izquierda y derecha */
+		.calendar-nav-left, .calendar-controls-right {
 		    display: flex;
 		    align-items: center;
 		    gap: 1rem;
-		    /* Posicionamos los controles a la derecha en pantallas grandes */
-		    position: absolute;
-		    right: 1.5rem;
+		    flex-shrink: 0; /* Evita que los controles se encojan */
 		}
+		
+		/* Estilos para los botones que ya teníamos */
+		.calendar-nav {
+		    background: #3498db;
+		    border: none;
+		    color: white;
+		    font-size: 1.5em;
+		    cursor: pointer;
+		    padding: 5px 10px;
+		    border-radius: 5px;
+		    transition: background 0.2s ease;
+		    line-height: 1;
+		}
+		.calendar-nav:hover { background: #2980b9; }
 
 		.calendar-title-nav {
 		    /* Quitamos estilos antiguos y solo lo usamos para agrupar flechas */
@@ -440,8 +451,7 @@
 	        border-radius: 8px;
 	        padding: 1.5rem;
 	    }
-		
-	
+			
 	    /* ======================================== */
 	    /* ======== 7. RESPONSIVE DESIGN ========== */
 	    /* ======================================== */
@@ -468,11 +478,7 @@
 	        
 	        .tabs {
 	            flex-direction: column; /* Apila las pestañas del admin */
-	        }
-
-			.calendar-header {
-		        flex-direction: column; /* Apilamos título y controles */
-		    }
+	        }			
 			
 		    .calendar-controls {
 		        position: static; /* Quitamos el posicionamiento absoluto */
@@ -521,21 +527,6 @@
 		.view-btn.active {
 		    background: #3498db; /* Azul claro para el botón activo */
 		    color: white;
-		}
-		
-		.calendar-nav {
-		    background: #3498db; /* Azul claro (como el día seleccionado) */
-		    border: none;
-		    color: white;
-		    font-size: 1.5em;
-		    cursor: pointer;
-		    padding: 5px 10px;
-		    border-radius: 5px;
-		    transition: background 0.2s ease;
-		    line-height: 1;
-		}
-		.calendar-nav:hover {
-		    background: #2980b9; /* Un azul un poco más oscuro al pasar el ratón */
 		}
 
 		/* Estilos para la Vista Diaria */
@@ -765,24 +756,25 @@
 		                <div class="calendar-container">
 		                    <div id="calendar-main" class="calendar">
 								<div class="calendar-header">
-								    <!-- Contenedor del TÍTULO (siempre visible) -->
-								    <div class="calendar-title-container">
-								        <h2 id="calendar-month">Agosto 2025</h2>
-								    </div>								    
-								    <!-- Contenedor de CONTROLES (se puede ocultar) -->
-								    <div class="calendar-controls">
-								        <!-- Navegación de Período -->
-								        <div class="calendar-title-nav">
-								            <button class="calendar-nav" onclick="previousPeriod()">‹</button>
-								            <button class="calendar-nav" onclick="nextPeriod()">›</button>
-								        </div>
-								        <!-- Selector de Vistas -->
-								        <div id="view-switcher">
-								            <button id="month-view-btn" class="view-btn" onclick="setView('month')">Mes</button>
-								            <button id="week-view-btn" class="view-btn active" onclick="setView('week')">Semana</button>
-								            <button id="day-view-btn" class="view-btn" onclick="setView('day')">Día</button>
-								        </div>
-								    </div>								
+								   <!-- Flecha Izquierda -->
+								   <div class="calendar-nav-left">
+								      <button class="calendar-nav" onclick="previousPeriod()">‹</button>
+								   </div>
+								
+								   <!-- Título Central -->
+								   <div class="calendar-title-container">
+								      <h2 id="calendar-month">Agosto 2025</h2>
+								   </div>                     
+								   
+								   <!-- Controles Derechos -->
+								   <div class="calendar-controls-right">
+								      <button class="calendar-nav" onclick="nextPeriod()">›</button>
+								      <div id="view-switcher">
+								         <button id="month-view-btn" class="view-btn" onclick="setView('month')">Mes</button>
+								         <button id="week-view-btn" class="view-btn active" onclick="setView('week')">Semana</button>
+								         <button id="day-view-btn" class="view-btn" onclick="setView('day')">Día</button>
+								      </div>
+								   </div>               
 								</div>		                        
 		                        <div class="calendar-grid" id="calendar-grid">
 		                            <!-- Se genera con JavaScript -->
@@ -1258,6 +1250,16 @@
 		            if (calendarContainer) calendarContainer.classList.add('full-width');
 		            if (calendarNav) calendarNav.style.display = 'none';
 		            if (viewSwitcher) viewSwitcher.style.display = 'none';
+
+					if (document.querySelector('#admin-panel .calendar-nav-left')) {
+					    document.querySelector('#admin-panel .calendar-nav-left').style.display = 'none';
+					}
+					if (document.querySelector('#admin-panel .calendar-controls-right')) {
+					    document.querySelector('#admin-panel .calendar-controls-right').style.display = 'none';
+					}
+					// Centramos el título que ha quedado solo
+					document.querySelector('#admin-panel .calendar-header').style.justifyContent = 'center';
+
 		            roleBadge.textContent = 'ASSISTANT';
 		            roleBadge.style.backgroundColor = '#f39c12';
 		            setView('day'); 
@@ -1271,6 +1273,15 @@
 		            if (calendarNav) calendarNav.style.display = 'flex';
 		            if (viewSwitcher) viewSwitcher.style.display = 'block';
 					if (calendarControls) calendarControls.style.display = 'flex';
+
+					if (document.querySelector('#admin-panel .calendar-nav-left')) {
+					    document.querySelector('#admin-panel .calendar-nav-left').style.display = 'flex';
+					}
+					if (document.querySelector('#admin-panel .calendar-controls-right')) {
+					    document.querySelector('#admin-panel .calendar-controls-right').style.display = 'flex';
+					}
+					document.querySelector('#admin-panel .calendar-header').style.justifyContent = 'space-between';
+					
 		            roleBadge.textContent = role;
 		            roleBadge.style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';		            
 		        }
