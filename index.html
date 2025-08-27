@@ -2303,38 +2303,56 @@
 		    }
 		}				
 
+		/**
+		 * Dibuja la tabla de respuestas/asistencia, ahora con checkboxes y lógica de permisos.
+		 * @param {Array} responses El array de datos de jugadoras.
+		 * @param {HTMLElement} container El div donde se dibujará la tabla.
+		 */
 		function renderPlayerResponsesTable(responses, container) {
-		    if (responses.length === 0) {
-		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">Aún no hay respuestas para este entrenamiento.</p>';
+		    if (!responses || responses.length === 0) {
+		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay jugadoras en este equipo.</p>';
 		        return;
 		    }
 		    
-		    const headers = ["Jugadora", "Asistencia Confirmada", "Respuesta Previa", "Estado Físico", "Notas"];
-			let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
-			headers.forEach(h => tableHtml += `<th>${h}</th>`);
-			tableHtml += '</tr></thead><tbody>';
+		    // Obtenemos los encabezados del primer objeto para construir la tabla dinámicamente
+		    const headers = Object.keys(responses[0]);
+		    let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
 			
-			responses.forEach((player, index) => {
-			    // El 'name' del checkbox es el email de la jugadora
-			    const checkboxId = `attendance-check-${index}`;
-			    tableHtml += `
-			        <tr>
-			            <td>${player['Jugadora']}</td>
-			            <td>
-			                <input type="checkbox" id="${checkboxId}" data-email="${player['Dirección de correo electrónico']}" data-name="${player['Jugadora']}">
-			            </td>
-			            <td>${player['Asistencia']}</td>
-			            <td>${player['Estado Físico']}</td>
-			            <td>${player['Notas']}</td>
-			        </tr>
-			    `;
-			});
-			
-			tableHtml += '</tbody></table></div>';
-			// Añadimos el botón de Guardar al final
-			tableHtml += `<div style="text-align: right; margin-top: 1.5rem;"><button class="btn btn-success" onclick="submitAttendance()">Guardar Lista de Asistencia</button></div>`;
-			container.innerHTML = tableHtml;
-		}
+		    headers.forEach(h => {
+		        // Hacemos el título de la columna "Asistencia" más corto
+		        const displayName = h === 'Asistencia' ? 'Asist.' : h.replace(/_/g, ' ');
+		        tableHtml += `<th>${displayName}</th>`;
+		    });
+		    tableHtml += '</tr></thead><tbody>';
+		
+		    // Comprobamos si el entreno es una fecha pasada
+		    const isPastDate = selectedDate && selectedDate < toYYYYMMDD(new Date());
+		    
+		    responses.forEach((player, index) => {
+		        tableHtml += '<tr>';
+				headers.forEach(header => {
+				    if (header === 'Asistencia') {
+				        const isChecked = player[header] === true ? 'checked' : '';
+				        const isDisabled = isPastDate && currentUser.role === 'ASSISTANT' ? 'disabled' : '';
+				        // Usamos la nueva columna "Email" para el data-email
+				        tableHtml += `<td><input type="checkbox" data-email="${player['Email']}" ${isChecked} ${isDisabled}></td>`;
+				    } else if (header !== 'Email') { // Ocultamos la columna de email en la tabla
+				        tableHtml += `<td>${player[header]}</td>`;
+				    }
+				});						        
+		        tableHtml += '</tr>';
+		    });
+		
+		    tableHtml += '</tbody></table></div>';
+		    
+		    // --- LÓGICA DEL BOTÓN DE GUARDAR ---
+		    // El botón solo se muestra si NO es un ASSISTANT en un entreno pasado
+		    if (!(isPastDate && currentUser.role === 'ASSISTANT')) {
+		        tableHtml += `<div style="text-align: right; margin-top: 1.5rem;"><button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button></div>`;
+		    }
+		    
+		    container.innerHTML = tableHtml;
+		}		
 
 		/**
 		 * Recopila los datos de los checkboxes de asistencia y los envía al backend.
