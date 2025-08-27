@@ -361,6 +361,10 @@
 	        gap: 1.5rem;
 	    }
 
+		.calendar-container.full-width {
+		    grid-template-columns: 1fr; /* Fuerza al grid a tener una sola columna */
+		}
+		
 		.calendar-header {
 		    /* Hacemos que el header sea un flexbox */
 		    display: flex;
@@ -430,6 +434,7 @@
 	        border-radius: 8px;
 	        padding: 1.5rem;
 	    }
+		
 	
 	    /* ======================================== */
 	    /* ======== 7. RESPONSIVE DESIGN ========== */
@@ -1209,6 +1214,7 @@
 		        const configTab = document.getElementById('config-tab-button');
 		        const statsTab = document.getElementById('stats-tab-button');
 		        const attendanceTab = document.getElementById('attendance-tab-button');
+				const calendarContainer = document.querySelector('#admin-panel .calendar-container');
 		        const calendarSidebar = document.getElementById('calendar-sidebar');
 		        const calendarNav = document.querySelector('#admin-panel .calendar-title-nav');
 		        const viewSwitcher = document.getElementById('view-switcher');
@@ -1220,6 +1226,7 @@
 		            statsTab.style.display = 'none';
 		            attendanceTab.style.display = 'flex';
 		            calendarSidebar.style.display = 'none';
+					if (calendarContainer) calendarContainer.classList.add('full-width');
 		            if (calendarNav) calendarNav.style.display = 'none';
 		            if (viewSwitcher) viewSwitcher.style.display = 'none';
 		            roleBadge.textContent = 'ASSISTANT';
@@ -1232,6 +1239,7 @@
 		            statsTab.style.display = 'flex';
 		            attendanceTab.style.display = 'flex';
 		            calendarSidebar.style.display = 'block';
+					if (calendarContainer) calendarContainer.classList.remove('full-width');
 		            if (calendarNav) calendarNav.style.display = 'flex';
 		            if (viewSwitcher) viewSwitcher.style.display = 'block';
 		            roleBadge.textContent = role;
