@@ -364,35 +364,41 @@
 		.calendar-container.full-width {
 		    grid-template-columns: 1fr; /* Fuerza al grid a tener una sola columna */
 		}
-		
+
 		.calendar-header {
-		    /* Hacemos que el header sea un flexbox */
 		    display: flex;
-		    justify-content: space-between; /* Empuja los elementos a los extremos */
+		    justify-content: center; /* Centra el contenido horizontalmente */
 		    align-items: center;
-		    flex-wrap: wrap; /* Permite que los elementos se coloquen abajo si no caben */
-		    gap: 1rem; /* Espacio entre los bloques por si se apilan */
+		    position: relative; /* Necesario para posicionar los controles */
+		    padding: 1rem; /* Padding base */
+		    flex-wrap: wrap;
+		    gap: 1rem;
+		}	
+
+		.calendar-title-container {
+		    /* El título se queda en el centro */
 		}
-		
-		.calendar-title-nav {
+
+		.calendar-controls {
+		    /* Contenedor para todos los botones */
 		    display: flex;
 		    align-items: center;
 		    gap: 1rem;
-		    flex-grow: 1; /* Permite que este bloque crezca */
-		    justify-content: center; /* Centra el título y las flechas */
+		    /* Posicionamos los controles a la derecha en pantallas grandes */
+		    position: absolute;
+		    right: 1.5rem;
 		}
+
+		.calendar-title-nav {
+		    /* Quitamos estilos antiguos y solo lo usamos para agrupar flechas */
+		    display: flex;
+		    gap: 0.5rem;
+		}		
 		
 		#calendar-month {
 		    min-width: 200px;
 		    text-align: center;
-		}
-		
-		/* En pantallas muy pequeñas, centramos todo */
-		@media (max-width: 500px) {
-		    .calendar-header {
-		        justify-content: center;
-		    }
-		}
+		}						
 		
 	    .calendar-grid {
 	        display: grid;
@@ -463,7 +469,22 @@
 	        .tabs {
 	            flex-direction: column; /* Apila las pestañas del admin */
 	        }
+
+			.calendar-header {
+		        flex-direction: column; /* Apilamos título y controles */
+		    }
+			
+		    .calendar-controls {
+		        position: static; /* Quitamos el posicionamiento absoluto */
+		    }
 	    }
+
+		/* En pantallas muy pequeñas, centramos todo */
+		@media (max-width: 500px) {
+		    .calendar-header {
+		        justify-content: center;
+		    }
+		}
 
 		/* Estilo para las alertas flotantes */
 		.alert-popup {
@@ -743,21 +764,26 @@
 		            <div id="calendar-tab" class="tab-panel active">
 		                <div class="calendar-container">
 		                    <div id="calendar-main" class="calendar">
-		                        <div class="calendar-header">
-								    <!-- Contenedor para el título y la navegación -->
-								    <div class="calendar-title-nav">
-								        <button class="calendar-nav" onclick="previousPeriod()">‹</button>
+								<div class="calendar-header">
+								    <!-- Contenedor del TÍTULO (siempre visible) -->
+								    <div class="calendar-title-container">
 								        <h2 id="calendar-month">Agosto 2025</h2>
-								        <button class="calendar-nav" onclick="nextPeriod()">›</button>
-								    </div>
-								    
-								    <!-- El selector de vistas se queda como está -->
-								    <div id="view-switcher">
-								        <button id="month-view-btn" class="view-btn" onclick="setView('month')">Mes</button>
-								        <button id="week-view-btn" class="view-btn active" onclick="setView('week')">Semana</button>
-								        <button id="day-view-btn" class="view-btn" onclick="setView('day')">Día</button>
-								    </div>
-								</div>
+								    </div>								    
+								    <!-- Contenedor de CONTROLES (se puede ocultar) -->
+								    <div class="calendar-controls">
+								        <!-- Navegación de Período -->
+								        <div class="calendar-title-nav">
+								            <button class="calendar-nav" onclick="previousPeriod()">‹</button>
+								            <button class="calendar-nav" onclick="nextPeriod()">›</button>
+								        </div>
+								        <!-- Selector de Vistas -->
+								        <div id="view-switcher">
+								            <button id="month-view-btn" class="view-btn" onclick="setView('month')">Mes</button>
+								            <button id="week-view-btn" class="view-btn active" onclick="setView('week')">Semana</button>
+								            <button id="day-view-btn" class="view-btn" onclick="setView('day')">Día</button>
+								        </div>
+								    </div>								
+								</div>		                        
 		                        <div class="calendar-grid" id="calendar-grid">
 		                            <!-- Se genera con JavaScript -->
 		                        </div>
@@ -1204,36 +1230,38 @@
 		    document.getElementById('loginScreen').style.display = 'none';
 		    document.getElementById('player-dashboard').style.display = 'none';
 		    document.getElementById('admin-panel').style.display = 'none';
-		
-		    // 2. Lógica para los roles de STAFF (ADMIN, COACH, ASSISTANT)
+
+			// 2. Lógica para los roles de STAFF (ADMIN, COACH, ASSISTANT)
 		    if (role === 'ADMIN' || role === 'COACH' || role === 'ASSISTANT') {
-		        
 		        document.getElementById('admin-panel').style.display = 'block';
-		
-		        // Obtenemos referencias a todos los elementos que vamos a manipular
-		        const configTab = document.getElementById('config-tab-button');
+
+				// Obtenemos referencias a todos los elementos que vamos a manipular
 		        const statsTab = document.getElementById('stats-tab-button');
 		        const attendanceTab = document.getElementById('attendance-tab-button');
 				const calendarContainer = document.querySelector('#admin-panel .calendar-container');
-		        const calendarSidebar = document.getElementById('calendar-sidebar');
 		        const calendarNav = document.querySelector('#admin-panel .calendar-title-nav');
-		        const viewSwitcher = document.getElementById('view-switcher');
+		        const viewSwitcher = document.getElementById('view-switcher');	
+				const configTab = document.getElementById('config-tab-button');
+		        const calendarSidebar = document.getElementById('calendar-sidebar');
+		        const calendarControls = document.querySelector('#admin-panel .calendar-controls'); // <-- NUEVA REFERENCIA
 		        const roleBadge = document.getElementById('role-badge');
 		
-		        // Personalizamos la UI según el rol específico
+		        // --- Lógica de Personalización ---
 		        if (role === 'ASSISTANT') {
 		            configTab.style.display = 'none';
 		            statsTab.style.display = 'none';
 		            attendanceTab.style.display = 'flex';
 		            calendarSidebar.style.display = 'none';
-					if (calendarContainer) calendarContainer.classList.add('full-width');
+		            
+		            // Ocultamos solo el contenedor de los controles
+		            if (calendarControls) calendarControls.style.display = 'none';		            
+		            if (calendarContainer) calendarContainer.classList.add('full-width');
 		            if (calendarNav) calendarNav.style.display = 'none';
 		            if (viewSwitcher) viewSwitcher.style.display = 'none';
 		            roleBadge.textContent = 'ASSISTANT';
 		            roleBadge.style.backgroundColor = '#f39c12';
 		            setView('day'); 
-		            document.querySelector('#admin-panel .tab[onclick="showTab(\'calendar\')"]').click();
-		
+		            document.querySelector('#admin-panel .tab[onclick="showTab(\'calendar\')"]').click();		            
 		        } else { // ADMIN y COACH
 		            configTab.style.display = role === 'ADMIN' ? 'flex' : 'none';
 		            statsTab.style.display = 'flex';
@@ -1242,8 +1270,9 @@
 					if (calendarContainer) calendarContainer.classList.remove('full-width');
 		            if (calendarNav) calendarNav.style.display = 'flex';
 		            if (viewSwitcher) viewSwitcher.style.display = 'block';
+					if (calendarControls) calendarControls.style.display = 'flex';
 		            roleBadge.textContent = role;
-		            roleBadge.style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';
+		            roleBadge.style.backgroundColor = role === 'COACH' ? '#3498db' : '#e74c3c';		            
 		        }
 		        
 		        // Lógica de carga de datos y selector de equipos
@@ -1267,8 +1296,7 @@
 		        } else {
 		            showAlert('No tienes equipos asignados.', 'warning');
 		        }
-		
-		    // 3. Lógica para el rol PLAYER (TU CÓDIGO CORRECTO)
+			// 3. Lógica para el rol PLAYER
 		    } else if (role === 'PLAYER') {
 		        document.getElementById('player-dashboard').style.display = 'block';
 		        showMotivationalMessage();
@@ -1281,7 +1309,7 @@
 		            showError("No estás asignada a ningún equipo.");
 		        }
 		    }
-		}      
+		}		      
 
         function showLoginScreen() {
             document.getElementById('loginScreen').style.display = 'flex';
@@ -2281,19 +2309,81 @@
 		        return;
 		    }
 		    
-		    const headers = Object.keys(responses[0]);
-		    let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
-		    headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
-		    tableHtml += '</tr></thead><tbody>';
-		
-		    responses.forEach(row => {
-		        tableHtml += '<tr>';
-		        headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
-		        tableHtml += '</tr>';
+		    const headers = ["Jugadora", "Asistencia Confirmada", "Respuesta Previa", "Estado Físico", "Notas"];
+			let tableHtml = '<div style="overflow-x:auto;"><table id="player-stats-table"><thead><tr>';
+			headers.forEach(h => tableHtml += `<th>${h}</th>`);
+			tableHtml += '</tr></thead><tbody>';
+			
+			responses.forEach((player, index) => {
+			    // El 'name' del checkbox es el email de la jugadora
+			    const checkboxId = `attendance-check-${index}`;
+			    tableHtml += `
+			        <tr>
+			            <td>${player['Jugadora']}</td>
+			            <td>
+			                <input type="checkbox" id="${checkboxId}" data-email="${player['Dirección de correo electrónico']}" data-name="${player['Jugadora']}">
+			            </td>
+			            <td>${player['Asistencia']}</td>
+			            <td>${player['Estado Físico']}</td>
+			            <td>${player['Notas']}</td>
+			        </tr>
+			    `;
+			});
+			
+			tableHtml += '</tbody></table></div>';
+			// Añadimos el botón de Guardar al final
+			tableHtml += `<div style="text-align: right; margin-top: 1.5rem;"><button class="btn btn-success" onclick="submitAttendance()">Guardar Lista de Asistencia</button></div>`;
+			container.innerHTML = tableHtml;
+		}
+
+		/**
+		 * Recopila los datos de los checkboxes de asistencia y los envía al backend.
+		 */
+		async function submitAttendance() {
+		    const checkboxes = document.querySelectorAll('#attendance-table-container input[type="checkbox"]');
+		    const attendanceData = [];
+		    
+		    checkboxes.forEach(cb => {
+		        attendanceData.push({
+		            email: cb.dataset.email,
+		            name: cb.dataset.name,
+		            isPresent: cb.checked
+		        });
 		    });
 		
-		    tableHtml += '</tbody></table></div>';
-		    container.innerHTML = tableHtml;
+		    const selectedTeamId = document.getElementById('assistant-team-selector').value || currentUser.teams[0];
+		    const trainingDate = nextTrainingForAssistant.fecha;
+		
+		    // Muestra un estado de carga...
+		    const saveButton = event.currentTarget;
+		    saveButton.disabled = true;
+		    saveButton.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Guardando...';
+		
+		    try {
+		        const response = await fetch(CONFIG.SCRIPT_URL, {
+		            method: 'POST', // ¡Necesitamos un POST para enviar este volumen de datos!
+		            headers: { 'Content-Type': 'application/json' },
+		            body: JSON.stringify({
+		                action: 'saveAttendance',
+		                userEmail: currentUser.email,
+		                teamId: selectedTeamId,
+		                trainingDate: trainingDate,
+		                attendanceData: attendanceData
+		            })
+		        });
+		        const data = await response.json();
+		
+		        if (data.success && data.result.success) {
+		            showAlert(data.result.message, 'success');
+		        } else {
+		            throw new Error(data.error || data.result.error);
+		        }
+		    } catch (error) {
+		        showAlert(`Error al guardar la asistencia: ${error.message}`, 'warning');
+		    } finally {
+		        saveButton.disabled = false;
+		        saveButton.textContent = 'Guardar Lista de Asistencia';
+		    }
 		}
         
         // ========================
