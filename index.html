@@ -1184,7 +1184,7 @@
     				document.addEventListener('visibilitychange', visibilityChangeListener);
 					
                     await showDashboardBasedOnRole(accessData.role);
-                    startAutoRefresh();
+                    //startAutoRefresh();
                 } else {
                     throw new Error(`Acceso denegado por el servidor: ${accessData.reason}`);
                 }
@@ -1201,7 +1201,7 @@
                 currentUser = JSON.parse(savedUser);
                 updateGreeting();
                 await showDashboardBasedOnRole(currentUser.role);
-                startAutoRefresh();
+                //startAutoRefresh();
             }
         }
 
@@ -1212,7 +1212,7 @@
 		    }
 			
 		    // Primero, detenemos cualquier refresco automático
-		    stopAutoRefresh();
+		    //stopAutoRefresh();
 		    
 		    // Luego, reseteamos el usuario
 		    currentUser = null;
@@ -2451,6 +2451,7 @@
             showAlert('💾 Configuración guardada localmente', 'success');
         }
 
+		/*
 		function startAutoRefresh() {
 		    stopAutoRefresh();
 		    refreshInterval = setInterval(async () => {
@@ -2471,16 +2472,21 @@
 		
 		    }, CONFIG.AUTO_REFRESH_INTERVAL);
 		}
-        
+  		*/
+
+		/*
         function stopAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
         }
+		*/
 
+		/*
         function showRefreshIndicator() {
             const indicator = document.getElementById('refreshIndicator');
             indicator.classList.remove('hidden');
             setTimeout(() => indicator.classList.add('hidden'), 2000);
         }
+		*/
 
         function parseJwt(token) {
             try {
