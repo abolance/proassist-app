@@ -2377,37 +2377,42 @@
 		 * Recopila los datos de los checkboxes de asistencia y los envía al backend.
 		 */
 		async function submitAttendance() {
+		    const saveButton = event.currentTarget;
 		    const checkboxes = document.querySelectorAll('#attendance-table-container input[type="checkbox"]');
-		    const attendanceData = [];
 		    
+		    const attendanceData = [];
 		    checkboxes.forEach(cb => {
-		        attendanceData.push({
-		            email: cb.dataset.email,
-		            name: cb.dataset.name,
-		            isPresent: cb.checked
-		        });
+		        if (cb.dataset.email) {
+		            attendanceData.push({
+		                email: cb.dataset.email,
+		                isPresent: cb.checked
+		            });
+		        }
 		    });
 		
-		    const selectedTeamId = document.getElementById('assistant-team-selector').value || currentUser.teams[0];
-		    const trainingDate = nextTrainingForAssistant.fecha;
+		    if (attendanceData.length === 0) {
+		        return showAlert("No hay datos de asistencia para guardar.", "warning");
+		    }
 		
-		    // Muestra un estado de carga...
-		    const saveButton = event.currentTarget;
+		    const selectedTeamId = document.getElementById('team-selector').value || (currentUser.teams ? currentUser.teams[0] : null);
+		    const trainingDate = selectedDate;
+		
+		    // Mostramos estado de carga
 		    saveButton.disabled = true;
-		    saveButton.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Guardando...';
+		    saveButton.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px; margin: 0;"></div>';
 		
 		    try {
-		        const response = await fetch(CONFIG.SCRIPT_URL, {
-		            method: 'POST', // ¡Necesitamos un POST para enviar este volumen de datos!
-		            headers: { 'Content-Type': 'application/json' },
-		            body: JSON.stringify({
-		                action: 'saveAttendance',
-		                userEmail: currentUser.email,
-		                teamId: selectedTeamId,
-		                trainingDate: trainingDate,
-		                attendanceData: attendanceData
-		            })
-		        });
+		        // --- CONSTRUIMOS LA URL CON GET ---
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'saveAttendance');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', selectedTeamId);
+		        url.searchParams.append('trainingDate', trainingDate);
+		        // Convertimos el array de datos a un string JSON para enviarlo como parámetro
+		        url.searchParams.append('attendanceData', JSON.stringify(attendanceData));
+		
+		        // Hacemos la petición GET
+		        const response = await fetch(url);
 		        const data = await response.json();
 		
 		        if (data.success && data.result.success) {
@@ -2419,9 +2424,9 @@
 		        showAlert(`Error al guardar la asistencia: ${error.message}`, 'warning');
 		    } finally {
 		        saveButton.disabled = false;
-		        saveButton.textContent = 'Guardar Lista de Asistencia';
+		        saveButton.textContent = 'Guardar Asistencia';
 		    }
-		}
+		}		
         
         // ========================
         // OTRAS FUNCIONES Y LISTENERS
