@@ -1358,30 +1358,58 @@
             document.getElementById('greeting').textContent = `${greeting}, ${firstName}!`;
         }
 
-		async function initializePlayerPanel() {
+		/**
+		 * Carga TODOS los datos del panel de la jugadora en PARALELO para una experiencia más rápida.
+		 * @param {string} teamId El ID del equipo de la jugadora.
+		 */
+		async function initializePlayerPanel(teamId) {
 		    if (!currentUser || !currentUser.email) {
 		        return showError('No hay información de usuario disponible');
 		    }
-		    const playerTeamId = currentUser.teams[0];
-		    if (!playerTeamId) {
-		        return showError("No estás asignada a ningún equipo.");
-		    }
+		    
+		    // --- Mostramos los spinners de carga en TODOS los widgets ---
+		    document.getElementById('totalTrainings').textContent = '...';
+		    document.getElementById('historyList').innerHTML = '<div class="spinner"></div>';
+		    document.getElementById('player-day-view-container').innerHTML = '<div class="spinner"></div>';
 		
 		    try {
-		        console.log("Cargando estadísticas de jugadora...");
-		        await loadUserStats(playerTeamId);
+		        // --- ¡AQUÍ ESTÁ LA MAGIA! ---
+		        // Lanzamos las tres llamadas al backend al mismo tiempo.
+		        const [statsData, historyData, formStateData] = await Promise.all([
+		            fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`).then(res => res.json()),
+		            fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`).then(res => res.json()),
+		            fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`).then(res => res.json())
+		        ]);
+		
+		        // --- Una vez que TODAS las respuestas han llegado, actualizamos la UI ---
 		        
-		        console.log("Cargando historial de jugadora...");
-		        await loadUserHistory(playerTeamId);
-		        
-		        console.log("Cargando formulario del día...");
-		        await loadPlayerFormState(playerTeamId)
+		        // 1. Actualizar Estadísticas
+		        if (statsData.success) {
+		            updateStatsUI(statsData); // La función ahora recibirá el objeto completo
+		        } else {
+		            showDefaultStats();
+		        }
+		
+		        // 2. Actualizar Historial
+		        if (historyData.success) {
+		            updateHistoryUI(historyData.history);
+		        } else {
+		            showHistoryError();
+		        }
+		
+		        // 3. Actualizar Sección del Formulario
+		        if (formStateData.success) {
+		            // Creamos una función nueva y dedicada para dibujar esta parte
+		            renderPlayerFormState(formStateData);
+		        } else {
+		            document.getElementById('player-day-view-container').innerHTML = `<div class="alert alert-warning">${formStateData.error}</div>`;
+		        }
 		
 		    } catch (error) {
 		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
-		        showError('Error al cargar los datos del usuario. Revisa la consola.');
+		        showError('Error al cargar los datos. Revisa la consola.');
 		    }
-		}
+		}		
         
         async function loadUserStats(teamId) {
             try {
