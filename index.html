@@ -604,7 +604,7 @@
 		.attendance-bar-container { display: flex; align-items: center; gap: 8px; min-width: 120px; }
 		.bar { height: 8px; background-color: #e9ecef; border-radius: 4px; flex-grow: 1; overflow: hidden; }
 		.bar-fill { height: 100%; background-color: #3498db; border-radius: 4px; }
-		.attendance-history { font-family: monospace; font-size: 1.2em; letter-spacing: 2px; }
+		.attendance-history { font-family: monospace; font-size: 1.3em; letter-spacing: 4px; }
 		#player-search-input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
 
 		/* Estilos para los símbolos del historial de asistencia */
@@ -2515,14 +2515,11 @@
 		                    </div>
 		                </div>
 		            </td>
-			  		<span class="attendance-history">
-				        ${player.lastFive.split(' ').map(symbol => {
-				            if (symbol === '✔️') return `<span class="check">${symbol}</span>`;
-				            if (symbol === '❌') return `<span class="cross">${symbol}</span>`;
-				            if (symbol === '❓') return `<span class="question">${symbol}</span>`;
-				            return '';
-				        }).join(' ')}
-				    </span>		            
+			  		<td>
+					    <div class="attendance-history">
+					        ${player.lastFive.map(item => `<span class="${item.class}">${item.symbol}</span>`).join('')}
+					    </div>
+					</td>		            
 		            <td>${player.lastMenstruation}</td>
 		        `;
 		    });
