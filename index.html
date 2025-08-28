@@ -607,20 +607,23 @@
 		#player-search-input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
 
 		/* Estilos para los símbolos del historial de asistencia */
-		.attendance-history span 
-		{ 
-			font-family: monospace; 
-			font-size: 1.3em; 
-			letter-spacing: 4px; 
+		.attendance-history {
+		    font-family: monospace;
+		    font-size: 1.3em;
+		    letter-spacing: 4px;
+		    white-space: nowrap; /* Evita que los símbolos se partan en dos líneas */
 		}
-		.attendance-history .check {
-			color: #27ae60; /* Verde */
+		
+		.attendance-history span.check {
+		    color: #27ae60 !important; /* Verde */
 		}
-		.attendance-history .cross {
-			color: #e74c3c; /* Rojo */
+		
+		.attendance-history span.cross {
+		    color: #e74c3c !important; /* Rojo */
 		}
-		.attendance-history .question {
-			color: #3498db; /* Azul */
+		
+		.attendance-history span.question {
+		    color: #3498db !important; /* Azul */
 		}
 	</style>
 </head>
