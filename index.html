@@ -603,11 +603,16 @@
 		#player-stats-table tbody tr:hover { background-color: #f0f5f9; }
 		.attendance-bar-container { display: flex; align-items: center; gap: 8px; min-width: 120px; }
 		.bar { height: 8px; background-color: #e9ecef; border-radius: 4px; flex-grow: 1; overflow: hidden; }
-		.bar-fill { height: 100%; background-color: #3498db; border-radius: 4px; }
-		.attendance-history { font-family: monospace; font-size: 1.3em; letter-spacing: 4px; }
+		.bar-fill { height: 100%; background-color: #3498db; border-radius: 4px; }		
 		#player-search-input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
 
 		/* Estilos para los símbolos del historial de asistencia */
+		.attendance-history span 
+		{ 
+			font-family: monospace; 
+			font-size: 1.3em; 
+			letter-spacing: 4px; 
+		}
 		.attendance-history .check {
 			color: #27ae60; /* Verde */
 		}
@@ -2519,7 +2524,7 @@
 					    <div class="attendance-history">
 					        ${player.lastFive.map(item => `<span class="${item.class}">${item.symbol}</span>`).join('')}
 					    </div>
-					</td>		            
+					</td>	 				
 		            <td>${player.lastMenstruation}</td>
 		        `;
 		    });
