@@ -1362,6 +1362,7 @@
 		 * Carga TODOS los datos del panel de la jugadora en PARALELO para una experiencia más rápida.
 		 * @param {string} teamId El ID del equipo de la jugadora.
 		 */
+		/*
 		async function initializePlayerPanel(teamId) {
 		    if (!currentUser || !currentUser.email) {
 		        return showError('No hay información de usuario disponible');
@@ -1409,8 +1410,158 @@
 		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
 		        showError('Error al cargar los datos. Revisa la consola.');
 		    }
-		}		
-        
+		}
+  		*/
+
+		/**
+		 * Carga TODOS los datos del panel de la jugadora en PARALELO.
+		 * @param {string} teamId El ID del equipo de la jugadora.
+		 */
+		async function initializePlayerPanel(teamId) {
+		    if (!currentUser || !currentUser.email) {
+		        return showError('No hay información de usuario disponible');
+		    }
+		    
+		    // Mostramos los spinners de carga en TODOS los widgets
+		    safeSetText('totalTrainings', '...');
+		    document.getElementById('historyList').innerHTML = '<div class="spinner"></div>';
+		    document.getElementById('player-day-view-container').innerHTML = '<div class="spinner"></div>';
+		
+		    try {
+		        // Lanzamos las tres llamadas al backend al mismo tiempo.
+		        const [statsResponse, historyResponse, formStateResponse] = await Promise.all([
+		            fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`),
+		            fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`),
+		            fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`)
+		        ]);
+		
+		        // Convertimos todas las respuestas a JSON
+		        const statsData = await statsResponse.json();
+		        const historyData = await historyResponse.json();
+		        const formStateData = await formStateResponse.json();
+		
+		        // Una vez que TODAS las respuestas han llegado, actualizamos la UI
+		        updateStatsUI(statsData);
+		        updateHistoryUI(historyData);
+		        renderPlayerFormState(formStateData);
+		
+		    } catch (error) {
+		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
+		        showError('Error al cargar los datos. Revisa la consola.');
+		        // Mostramos errores en los widgets
+		        showDefaultStats();
+		        showHistoryError();
+		    }
+		}
+
+		/**
+		 * Dibuja la sección del formulario del día basándose en el estado recibido.
+		 */
+		/*
+		function renderPlayerFormState(data) {
+		    const container = document.getElementById('player-day-view-container');
+		    const state = data.state;
+		    const info = data.trainingInfo;
+		    const formUrl = data.formUrl;
+		    
+		    let contentHtml = '';
+		
+		    switch (stateData.state) {
+		      case 'listo_para_responder':
+		        contentHtml += `
+		            <div style="text-align: center;">
+		                <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
+		                <a href="${stateData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
+		            </div>`;
+		        break;
+		        
+		      case 'ya_respondido':
+		        contentHtml += `
+		            <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
+		                <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
+		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
+		            </div>`;
+		        break;
+		
+		      default:
+		         contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">${stateData.error || 'No hay formulario disponible para el próximo entreno.'}</p></div>`;
+		    }		    
+	
+		    container.innerHTML = contentHtml;
+		}
+  		*/
+
+		/**
+		 * Dibuja la sección principal del dashboard de la jugadora (próximo entreno y formulario).
+		 * @param {object} formStateData El objeto de estado del formulario recibido del backend.
+		 */
+		function renderPlayerFormState(formStateData) {
+		    const container = document.getElementById('player-day-view-container');
+		    
+		    // Verificamos si la petición fue exitosa
+		    if (!formStateData || !formStateData.success) {
+		        container.innerHTML = `<div class="alert alert-warning">${formStateData.error || 'Error al cargar la información del día.'}</div>`;
+		        return;
+		    }
+		
+		    const { state, trainingInfo, formUrl } = formStateData;
+		    let contentHtml = '';
+		    
+		    // --- Parte 1: Mostrar siempre los detalles del próximo entreno (si existe) ---
+		    if (trainingInfo) {
+		        const date = new Date(trainingInfo.fecha + 'T12:00:00');
+		        const displayDate = date.toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
+		        
+		        contentHtml += `
+		            <h3 style="margin-bottom: 1rem;">Próximo Entrenamiento: ${displayDate}</h3>
+		            <div class="details">
+		                <p class="detail-item"><strong>🕒 Horario:</strong> ${trainingInfo.start} - ${trainingInfo.end}</p>
+		                <p class="detail-item"><strong>📍 Ubicación:</strong> ${trainingInfo.location || 'No especificada'}</p>
+		                <p class="detail-item"><strong>📝 Notas:</strong> ${trainingInfo.notes || 'Sin notas'}</p>
+		            </div>
+		            <hr style="margin: 2rem 0;">
+		        `;
+		    }
+		
+		    // --- Parte 2: Mostrar el estado del formulario según el "semáforo" del backend ---
+		    switch (state) {
+		        case 'listo_para_responder':
+		            contentHtml += `
+		                <div style="text-align: center;">
+		                    <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
+		                    <a href="${formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
+		                </div>`;
+		            break;
+		            
+		        case 'ya_respondido':
+		            contentHtml += `
+		                <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
+		                    <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
+		                    <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
+		                </div>`;
+		            break;
+		
+		        case 'entreno_futuro':
+		            const futureDate = new Date(trainingInfo.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+		            contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">El formulario para el entreno del ${futureDate} se activará ese mismo día.</p></div>`;
+		            break;
+		
+		        case 'form_no_preparado':
+		            contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">👨‍🏫<p style="margin-top:1rem;">El entrenador aún no ha preparado el formulario para el próximo entreno.</p></div>`;
+		            break;
+		
+		        case 'sin_entrenos':
+		            contentHtml = `<div style="text-align: center; padding: 20px; color: #666;">😴<p style="margin-top:1rem;">No hay próximos entrenamientos programados.</p></div>`;
+		            break;
+		
+		        default:
+		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
+		    }
+		    
+		    container.innerHTML = contentHtml;
+		}
+
+		/*
         async function loadUserStats(teamId) {
             try {
                 const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`);
@@ -1426,7 +1577,9 @@
                 showDefaultStats();
             }
         }
+		*/
 
+		/*
 		function updateStatsUI(stats) {
 		    const attendance = stats.attendanceRate || 0;
 		    safeSetText('totalTrainings', stats.totalTrainings || 0);
@@ -1448,6 +1601,34 @@
 		    document.getElementById('teamAverageRate').textContent = `${teamAverage}%`;
 		    document.getElementById('teamAverageProgress').style.width = `${teamAverage}%`;
 		}
+  		*/
+
+		/**
+		 * Dibuja el widget de estadísticas de la jugadora.
+		 * @param {object} statsData El objeto de estadísticas recibido del backend.
+		 */
+		function updateStatsUI(statsData) {
+		    if (!statsData || !statsData.success) {
+		        showDefaultStats();
+		        return;
+		    }
+		    const stats = statsData.stats; // Los datos están dentro de la clave 'stats'
+		    
+		    safeSetText('totalTrainings', stats.totalTrainings || 0);
+		    safeSetText('attendanceRate', `${stats.attendanceRate || 0}%`);
+		    safeSetWidth('attendanceProgress', `${stats.attendanceRate || 0}%`);
+		    safeSetText('monthlyProgress', `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`);
+		    safeSetWidth('monthlyProgressBar', `${(stats.monthlyTrainings / (stats.monthlyGoal || 1)) * 100}%`);
+		    
+		    safeSetText('myAttendanceRate', `${stats.attendanceRate || 0}%`);
+		    safeSetWidth('myAttendanceProgress', `${stats.attendanceRate || 0}%`);
+		    
+		    // Rellenamos la media del equipo si viene en los datos
+		    if (stats.teamAverage !== undefined) {
+		        safeSetText('teamAverageRate', `${stats.teamAverage}%`);
+		        safeSetWidth('teamAverageProgress', `${stats.teamAverage}%`);
+		    }
+		}
 		
 		function showDefaultStats() {
 		    safeSetText('totalTrainings', '0');
@@ -1466,7 +1647,8 @@
 		    document.getElementById('teamAverageRate').textContent = '0%';
 		    document.getElementById('teamAverageProgress').style.width = '0%';
 		}
-		
+
+		/*
         async function loadUserHistory(teamId) {
 			try {
 		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`);
@@ -1483,12 +1665,14 @@
 		        showHistoryError();
 		    }            
         }
+		*/
 
 		/**
 		 * Dibuja la lista del historial reciente en el dashboard de la jugadora.
 		 * VERSIÓN FINAL Y COMPLETA.
 		 * @param {Array} history Un array de objetos con el historial.
 		 */
+		/*
 		function updateHistoryUI(history) {
 		    const historyList = document.getElementById('historyList');
 		    
@@ -1524,10 +1708,60 @@
 		        `;
 		    }).join('');
 		}
+  		*/
+
+		/**
+		 * Dibuja el widget del historial reciente de la jugadora.
+		 * @param {object} historyData El objeto completo con el historial recibido del backend.
+		 */
+		function updateHistoryUI(historyData) {
+		    const historyList = document.getElementById('historyList');
+		    
+		    // Comprobamos si la petición fue exitosa y si el array de historial existe y tiene contenido
+		    if (!historyData || !historyData.success || !historyData.history || historyData.history.length === 0) {
+		        historyList.innerHTML = `
+		            <div style="text-align: center; padding: 20px; color: #666;">
+		                <p>Aún no tienes entrenamientos registrados.</p>
+		            </div>
+		        `;
+		        return;
+		    }
+		
+		    const history = historyData.history;
+		
+		    // Construimos el HTML para cada item del historial
+		    historyList.innerHTML = history.map(item => {
+		        let formattedDate = "Fecha inválida";
+		        if (item.date) {
+		            // Creamos la fecha de forma segura para evitar errores de formato y zona horaria
+		            const date = new Date(item.date);
+		            if (!isNaN(date.getTime())) { // Verificamos si la fecha es válida
+		                formattedDate = date.toLocaleDateString('es-ES', {
+		                    weekday: 'long',
+		                    day: 'numeric',
+		                    month: 'short'
+		                });
+		            }
+		        }
+		        
+		        const statusClass = item.completed ? 'status-completed' : 'status-missed';
+		        const statusText = item.completed ? 'Asistió' : 'No Asistió';
+		        
+		        return `
+		            <div class="history-item">
+		                <div class="history-date">${formattedDate}</div>
+		                <div class="history-status ${statusClass}">
+		                    ${statusText}
+		                </div>
+		            </div>
+		        `;
+		    }).join('');
+		}
 		
 		/**
 		 * Muestra un mensaje de error en el widget del historial.
 		 */
+		/*
 		function showHistoryError() {
 		    const historyList = document.getElementById('historyList');
 		    historyList.innerHTML = `
@@ -1537,11 +1771,27 @@
 		        </div>
 		    `;
 		}
+  		*/
+
+		/**
+		 * Muestra un mensaje de error en el widget del historial.
+		 */
+		function showHistoryError() {
+		    const historyList = document.getElementById('historyList');
+		    historyList.innerHTML = `
+		        <div style="text-align: center; padding: 20px; color: #666;">
+		            <p>Error al cargar el historial.</p>
+		            <!-- El botón ahora llama a la función de carga principal -->
+		            <button onclick="initializePlayerPanel(currentUser.teams[0])" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Reintentar</button>
+		        </div>
+		    `;
+		}
 
 		/**
 		 * Carga el estado de la jugadora y renderiza la VISTA DIARIA.
 		 * @param {string} teamId El ID del equipo de la jugadora.
 		 */
+		/*
 		async function loadPlayerFormState(teamId) {
 		  const container = document.getElementById('player-day-view-container');
 		  container.innerHTML = '<div class="spinner"></div><p style="text-align: center;">Cargando información del día...</p>';
@@ -1601,6 +1851,7 @@
 		    container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		  }
 		}
+  		*/
 
         async function loadTodaysForm(teamId) {
 			try {
@@ -2560,6 +2811,7 @@
 		 * Se activa cuando el usuario vuelve a la pestaña de la app.
 		 * Refresca los datos de la vista activa.
 		 */
+		/*
 		async function handleVisibilityChange() {
 		    if (document.hidden === false && currentUser) {
 		        if (document.getElementById('player-dashboard').style.display === 'block') {
@@ -2577,7 +2829,32 @@
 		            }
 		        }
 		    }
-		}  
+		} 
+  		*/
+
+		/**
+		 * Se activa cuando el usuario vuelve a la pestaña de la app.
+		 * Refresca los datos de la vista activa.
+		 */
+		async function handleVisibilityChange() {
+		    if (document.hidden === false && currentUser) {
+		        
+		        if (document.getElementById('player-dashboard').style.display === 'block') {
+		            console.log("Pestaña visible: Refrescando datos de la jugadora...");
+		            const playerTeamId = currentUser.teams[0];
+		            if (playerTeamId) {
+		                // --- LLAMADA A LA NUEVA FUNCIÓN MAESTRA ---
+		                await initializePlayerPanel(playerTeamId);
+		            }
+		        } else if (document.getElementById('admin-panel').style.display === 'block') {
+		            console.log("Pestaña visible: Panel de admin activo, refrescando datos del equipo...");
+		            const selectedTeamId = document.getElementById('team-selector').value;
+		            if (selectedTeamId) {
+		                await initializeAdminPanel(selectedTeamId);
+		            }
+		        }
+		    }
+		}
 
 		/**
 		 * Asigna texto a un elemento de forma segura. Si el elemento no existe, no hace nada.
