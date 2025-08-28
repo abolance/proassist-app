@@ -1176,7 +1176,7 @@
                 }
                 const accessData = await response.json();
                 if (accessData.status === 'granted') {
-                    currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams, teamMap: accessData.teamMap };
+                    currentUser = { ...userInfo, role: accessData.role, teams: accessData.teams, teamMap: accessData.teamMap, name: accessData.name };
                     sessionStorage.setItem('proassist_user', JSON.stringify(currentUser));
                     updateGreeting();
 
