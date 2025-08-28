@@ -1357,6 +1357,21 @@
         // ========================
         // LÓGICA DASHBOARD JUGADORA
         // ========================
+		/**
+		 * Muestra el saludo de bienvenida usando el DisplayName recibido del backend.
+		 */
+		function updateGreeting() {
+		    if (!currentUser || !currentUser.name) return; // Verificamos que tengamos un usuario y un nombre
+		
+		    const now = new Date();
+		    const hour = now.getHours();
+		    let greetingText = (hour < 12) ? '🌅 Buenos días' : (hour < 18) ? '☀️ Buenas tardes' : '🌙 Buenas noches';
+		    const displayName = currentUser.name; 
+		    
+		    document.getElementById('greeting').textContent = `${greetingText}, ${displayName}!`;
+		}
+		
+		/*
         function updateGreeting() {
             if (!currentUser) return;
             const now = new Date();
@@ -1365,6 +1380,7 @@
             const firstName = currentUser.name ? currentUser.name.split(' ')[0] : 'Jugadora';
             document.getElementById('greeting').textContent = `${greeting}, ${firstName}!`;
         }
+		*/
 
 		/**
 		 * Carga TODOS los datos del panel de la jugadora en PARALELO para una experiencia más rápida.
