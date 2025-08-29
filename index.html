@@ -2373,31 +2373,32 @@
 		
 		    // --- 3. LÓGICA DE VISIBILIDAD (TU CÓDIGO) ---
 		    trainingForm.style.display = 'block';
-		    buttonContainer.style.display = 'block';
+		    buttonContainer.style.display = 'block'; // Mostramos el contenedor general
 		    if (filePickerButton) filePickerButton.style.display = 'block';
 		    formInputs.forEach(input => input.disabled = false);
 		
+		    // Ocultamos los botones de acción específicos por defecto
+		    prepareBtn.style.display = 'none';
+		    startBtn.style.display = 'none';
+		
+		    // Ahora, si hay entreno, mostramos el botón correcto
+		    if (hasTraining) {
+		        if (status === 'Planificado') {
+		            prepareBtn.style.display = 'block';
+		        } else if (status === 'Preparado') {
+		            startBtn.style.display = 'block';
+		        }
+		    }
+		    
+		    // Y AHORA, aplicamos tu lógica de fechas pasadas, que sobreescribe lo anterior si es necesario
 		    if (isPastDate && !hasTraining) {
 		        trainingForm.style.display = 'none';
 		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
 		    } else if (isPastDate && hasTraining) {
-		        buttonContainer.style.display = 'none';
+		        buttonContainer.style.display = 'none'; // Esto oculta TODOS los botones de acción
 		        if (filePickerButton) filePickerButton.style.display = 'none';
 		        formInputs.forEach(input => input.disabled = true);
 		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
-		    }
-		
-		    // --- ¡AQUÍ ESTÁ LA NUEVA LÓGICA PARA LOS BOTONES DE ACCIÓN! ---
-		    // Basado en el estado, mostramos un botón u otro.
-		    if (status === 'Planificado') {
-		        prepareBtn.style.display = 'block';
-		        startBtn.style.display = 'none';
-		    } else if (status === 'Preparado') {
-		        prepareBtn.style.display = 'none';
-		        startBtn.style.display = 'block';
-		    } else { // 'Iniciado', 'Finalizado' o cualquier otro estado
-		        prepareBtn.style.display = 'none';
-		        startBtn.style.display = 'none';
 		    }
 		    
 		    // --- 4. RELLENAR LOS DATOS DEL FORMULARIO (TU CÓDIGO) ---
