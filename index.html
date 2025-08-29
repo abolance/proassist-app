@@ -2477,8 +2477,15 @@
 		            prepareBtn.style.display = 'block';
 		        } else if (status === 'Preparado') {
 		            startBtn.style.display = 'block';
+		        } else if (status === 'Iniciado') {
+		            if (filePickerButton) filePickerButton.style.display = 'none';
+		        } else if (status === 'Finalizado') {
+		            if (filePickerButton) filePickerButton.style.display = 'none';
 		        }
-		    }						
+		    }
+			else {
+				if (filePickerButton) filePickerButton.style.display = 'none';
+			}
 		    
 		    // Y AHORA, aplicamos tu lógica de fechas pasadas, que sobreescribe lo anterior si es necesario
 		    if (isPastDate && !hasTraining) {
@@ -2645,6 +2652,7 @@
 		    }
 		}
 
+		/*
         async function prepareForm() {
             if (!selectedDate || !trainings[selectedDate]) return showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
             const trainingDetails = trainings[selectedDate];
@@ -2675,6 +2683,61 @@
                 prepareButton.innerHTML = '📋 Preparar Formulario de Asistencia';
             }
         }
+		*/
+
+		async function prepareForm() {
+		    if (!selectedDate || !trainings[selectedDate]) {
+		        return showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
+		    }
+		
+		    // --- CONSTRUCCIÓN ROBUSTA DE trainingDetails ---
+		    // Nos aseguramos de que el objeto que enviamos esté completo
+		    const trainingDetails = {
+		        fecha: selectedDate,
+		        start: trainings[selectedDate].start || document.getElementById('start-time').value,
+		        end: trainings[selectedDate].end || document.getElementById('end-time').value,
+		        location: trainings[selectedDate].location || document.getElementById('location').value,
+		        notes: trainings[selectedDate].notes || document.getElementById('notes').value
+		    };
+		
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		    const prepareButton = event.currentTarget;
+		    
+		    prepareButton.disabled = true;
+		    prepareButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Preparando...';
+		    
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'prepareForm');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', selectedTeamId);
+		        
+		        // --- DEBUG: Vemos exactamente qué estamos enviando ---
+		        console.log("Enviando a prepareForm los siguientes detalles:", trainingDetails);
+		        url.searchParams.append('details', JSON.stringify(trainingDetails));
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.result.success) {
+		            // --- ACTUALIZACIÓN DEL ESTADO LOCAL ---
+		            // Si el backend tuvo éxito, actualizamos nuestro objeto 'trainings' en el frontend
+		            trainings[selectedDate].status = 'Preparado';
+		            // Y volvemos a cargar el sidebar para que muestre el nuevo botón "Iniciar Entreno"
+		            loadTrainingData(selectedDate);
+		            
+		            showAlert(data.result.message, 'success');
+		        } else {
+		            throw new Error(data.error || data.result.error);
+		        }
+		    } catch (error) {
+		        console.error('Error de conexión al preparar formulario:', error);
+		        showAlert('Error al preparar el formulario: ' + error.message, 'warning');
+		    } finally {
+		        prepareButton.disabled = false;
+		        prepareButton.innerHTML = '📋 Preparar Formulario de Asistencia';
+		    }
+		}
 
 		async function loadAdminStats(teamId) {
 		    if (!teamId) return;
