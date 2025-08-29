@@ -844,7 +844,7 @@
 									<div id="action-buttons-container" style="margin-top: 1.5rem; border-top: 1px solid #ddd; padding-top: 1.5rem;">
 									    <!-- Usaremos Flexbox con envoltura para una máxima adaptabilidad -->
 									    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-											<button id="start-training-btn" class="btn btn-warning" onclick="startTraining()" style="display: none;">▶️ Iniciar Entreno</button>
+											<button id="start-training-btn" class="btn" onclick="startTraining()" style="display: none; background-color: #f39c12; color: white;">▶️ Iniciar Entreno</button>											
 											<button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="flex-grow: 2; min-width: 180px;">📋 Preparar Formulario</button>
 									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()" style="flex-grow: 1;">✅ Guardar</button>									        
 									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()" style="flex-grow: 1;">🗑️ Eliminar</button>
@@ -2286,6 +2286,7 @@
 		 * botones de acción y el selector de archivos para fechas pasadas.
 		 * @param {string} dateString La fecha seleccionada en formato 'YYYY--MM-DD'.
 		 */
+		/*
 		function loadTrainingData(dateString) {
 		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
 		    const trainingForm = document.getElementById('training-details-form');
@@ -2348,7 +2349,80 @@
 		    } else {
 		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
 		    }			
-		}		
+		}
+  		*/
+
+		/**
+		 * Carga los datos del entreno y gestiona la visibilidad de TODOS los botones
+		 * basándose en el estado del entrenamiento.
+		 */
+		function loadTrainingData(dateString) {
+		    // --- 1. REFERENCIAS A TODOS LOS BOTONES ---
+		    const trainingForm = document.getElementById('training-details-form');
+		    const prepareBtn = document.getElementById('create-form-btn');
+		    const startBtn = document.getElementById('start-training-btn');
+		    const saveBtn = document.getElementById('save-training-btn');
+		    const deleteBtn = document.getElementById('delete-training-btn');
+		    const filePickerBtn = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+		
+		    // --- 2. CÁLCULO DE ESTADOS ---
+		    const today = toYYYYMMDD(new Date());
+		    const isPastDate = dateString && dateString < today;
+		    const training = trainings[dateString] || {};
+		    const status = training.status || 'Planificado';
+		
+		    // --- 3. LÓGICA DE VISIBILIDAD Y HABILITACIÓN ---
+		    
+		    // Primero, ocultamos todos los botones de acción para empezar de cero
+		    prepareBtn.style.display = 'none';
+		    startBtn.style.display = 'none';
+		    
+		    // Mostramos/ocultamos Guardar y Eliminar según si la fecha es pasada
+		    const canEdit = !isPastDate || currentUser.role === 'ADMIN' || currentUser.role === 'COACH';
+		    saveBtn.style.display = canEdit ? 'block' : 'none';
+		    deleteBtn.style.display = canEdit ? 'block' : 'none';
+		    if (filePickerBtn) filePickerBtn.style.display = canEdit ? 'block' : 'none';
+		    formInputs.forEach(input => input.disabled = !canEdit);
+		
+		    // AHORA, mostramos el botón de acción correcto según el estado
+		    if (canEdit) {
+		        switch (status) {
+		            case 'Planificado':
+		                prepareBtn.style.display = 'block'; // Mostramos "Preparar Formulario"
+		                break;
+		            case 'Preparado':
+		                startBtn.style.display = 'block'; // Mostramos "Iniciar Entreno"
+		                break;
+		            case 'Iniciado':
+		                // No se muestra ningún botón de acción principal, la acción ahora está en la pestaña "Asistencia"
+		                showAlert("El entreno está en curso. Ve a la pestaña 'Asistencia' para pasar lista.", "success");
+		                break;
+		            case 'Finalizado':
+		                 showAlert("Este entrenamiento ya ha finalizado.", "success");
+		                break;
+		        }
+		    }
+		    
+		    // --- 4. RELLENAR DATOS ---
+		    let displayDate = 'dd/mm/aaaa';
+		    if (dateString) {
+		        const parts = dateString.split('-');
+		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+		    }
+		    document.getElementById('selected-date').value = displayDate;
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		    
+		    // Rellenamos el estado del PDF
+		    if (training.pdfId) {
+		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
+		    } else {
+		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
+		    }	
+		}
 
 		async function saveTraining() {
 		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
