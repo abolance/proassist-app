@@ -2351,6 +2351,95 @@
 		    }
 		}
 		*/
+		
+		/*
+		function loadTrainingData(dateString) {
+		    console.log(`--- loadTrainingData: Cargando fecha ${dateString} ---`);
+		
+		    // --- 1. REFERENCIAS A ELEMENTOS ---
+		    const trainingForm = document.getElementById('training-details-form');
+		    const saveBtn = document.getElementById('save-training-btn');
+		    const deleteBtn = document.getElementById('delete-training-btn');
+		    const filePickerBtn = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		    const prepareBtn = document.getElementById('create-form-btn');
+		    const startBtn = document.getElementById('start-training-btn');
+		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+		
+		    // --- 2. CÁLCULO DE ESTADOS ---
+		    const today = toYYYYMMDD(new Date());
+		    const isPastDate = dateString && dateString < today;
+		    const hasTraining = dateString && trainings[dateString];
+		    const training = trainings[dateString] || {};
+		    const status = training.status || 'Planificado';
+		    
+		    console.log(`[LOGS] Fecha pasada: ${isPastDate}, Hay entreno: ${hasTraining}, Estado: ${status}`);
+		
+		    // --- 3. LÓGICA DE VISIBILIDAD ---
+		    
+		    // Primero, reseteamos todo a un estado base (visible y editable)
+		    trainingForm.style.display = 'block';
+		    saveBtn.style.display = 'block';
+		    deleteBtn.style.display = 'block';
+		    if (filePickerBtn) filePickerBtn.style.display = 'block';
+		    prepareBtn.style.display = 'none'; // Oculto por defecto
+		    startBtn.style.display = 'none';   // Oculto por defecto
+		    formInputs.forEach(input => input.disabled = false);
+		
+		    if (isPastDate) {
+		        console.log("[LOGS] Es una fecha pasada.");
+		        // Si es pasada, deshabilitamos la edición siempre
+		        formInputs.forEach(input => input.disabled = true);
+		        if (filePickerBtn) filePickerBtn.style.display = 'none'; // Ocultamos selector de archivo
+		        
+		        if (hasTraining) {
+		            console.log("[LOGS]   -> Había entreno. Ocultando botones de acción.");
+		            // Si había entreno, solo ocultamos los botones de acción
+		            saveBtn.style.display = 'none';
+		            deleteBtn.style.display = 'none';
+		            prepareBtn.style.display = 'none';
+		            startBtn.style.display = 'none';
+		        } else {
+		            console.log("[LOGS]   -> No había entreno. Ocultando todo el formulario.");
+		            // Si no había entreno, ocultamos el formulario entero
+		            trainingForm.style.display = 'none';
+		            showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
+		        }
+		    } else {
+		        // Si es HOY o FUTURO
+		        console.log("[LOGS] Es una fecha de hoy o futura.");
+		        if (!hasTraining) {
+		            console.log("[LOGS]   -> No hay entreno. Mostrando solo Guardar/Eliminar.");
+		            // Si no hay entreno, solo se puede Guardar (para crear) o Eliminar (no hace nada)
+		            prepareBtn.style.display = 'none';
+		            startBtn.style.display = 'none';
+		        } else {
+		            // Si SÍ hay entreno, mostramos el botón de acción correcto
+		            console.log(`[LOGS]   -> Hay entreno con estado: ${status}.`);
+		            if (status === 'Planificado') {
+		                prepareBtn.style.display = 'block';
+		            } else if (status === 'Preparado') {
+		                startBtn.style.display = 'block';
+		            }
+		        }
+		    }
+		    
+		    // --- 4. RELLENAR DATOS ---
+		    // (Esta parte de tu código ya es perfecta y no necesita cambios)
+		    let displayDate = dateString ? `${dateString.split('-')[2]}/${dateString.split('-')[1]}/${dateString.split('-')[0]}` : 'dd/mm/aaaa';
+		    document.getElementById('selected-date').value = displayDate;
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';		    
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		    
+		    // Rellenamos el estado del PDF			
+			if (!training.pdfId || training.pdfId === 'null') {
+				pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;		        
+		    } else {
+		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
+		    }
+		}
+  		*/
 
 		function loadTrainingData(dateString) {
 		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
@@ -2379,20 +2468,21 @@
 		
 		    // Ocultamos los botones de acción específicos por defecto
 		    prepareBtn.style.display = 'none';
-		    startBtn.style.display = 'none';
+		    startBtn.style.display = 'none';			
 		
 		    // Ahora, si hay entreno, mostramos el botón correcto
 		    if (hasTraining) {
 		        if (status === 'Planificado') {
+					if (filePickerButton) filePickerButton.style.display = 'none';
 		            prepareBtn.style.display = 'block';
 		        } else if (status === 'Preparado') {
 		            startBtn.style.display = 'block';
 		        }
-		    }
+		    }						
 		    
 		    // Y AHORA, aplicamos tu lógica de fechas pasadas, que sobreescribe lo anterior si es necesario
 		    if (isPastDate && !hasTraining) {
-		        trainingForm.style.display = 'none';
+		        trainingForm.style.display = 'none';				
 		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
 		    } else if (isPastDate && hasTraining) {
 		        buttonContainer.style.display = 'none'; // Esto oculta TODOS los botones de acción
