@@ -2354,16 +2354,17 @@
 
 		/**
 		 * Carga los datos del entreno y gestiona la visibilidad de TODOS los botones
-		 * basándose en el estado del entrenamiento.
+		 * basándose en el estado del entrenamiento. VERSIÓN CORREGIDA.
 		 */
 		function loadTrainingData(dateString) {
-		    // --- 1. REFERENCIAS A TODOS LOS BOTONES ---
+		    // --- 1. REFERENCIAS A TODOS LOS ELEMENTOS ---
 		    const trainingForm = document.getElementById('training-details-form');
 		    const prepareBtn = document.getElementById('create-form-btn');
 		    const startBtn = document.getElementById('start-training-btn');
 		    const saveBtn = document.getElementById('save-training-btn');
 		    const deleteBtn = document.getElementById('delete-training-btn');
 		    const filePickerBtn = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		    const pdfStatusContainer = document.getElementById('pdf-status-container'); // <-- ¡LA LÍNEA QUE FALTABA!
 		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
 		
 		    // --- 2. CÁLCULO DE ESTADOS ---
@@ -2373,55 +2374,53 @@
 		    const status = training.status || 'Planificado';
 		
 		    // --- 3. LÓGICA DE VISIBILIDAD Y HABILITACIÓN ---
-		    
-		    // Primero, ocultamos todos los botones de acción para empezar de cero
-		    prepareBtn.style.display = 'none';
-		    startBtn.style.display = 'none';
-		    
-		    // Mostramos/ocultamos Guardar y Eliminar según si la fecha es pasada
 		    const canEdit = !isPastDate || currentUser.role === 'ADMIN' || currentUser.role === 'COACH';
+		    
+		    trainingForm.style.display = 'block';
 		    saveBtn.style.display = canEdit ? 'block' : 'none';
 		    deleteBtn.style.display = canEdit ? 'block' : 'none';
 		    if (filePickerBtn) filePickerBtn.style.display = canEdit ? 'block' : 'none';
 		    formInputs.forEach(input => input.disabled = !canEdit);
+		    
+		    // Ocultamos los botones de acción para empezar de cero
+		    prepareBtn.style.display = 'none';
+		    startBtn.style.display = 'none';
 		
-		    // AHORA, mostramos el botón de acción correcto según el estado
 		    if (canEdit) {
 		        switch (status) {
 		            case 'Planificado':
-		                prepareBtn.style.display = 'block'; // Mostramos "Preparar Formulario"
+		                prepareBtn.style.display = 'block';
 		                break;
 		            case 'Preparado':
-		                startBtn.style.display = 'block'; // Mostramos "Iniciar Entreno"
+		                startBtn.style.display = 'block';
 		                break;
 		            case 'Iniciado':
-		                // No se muestra ningún botón de acción principal, la acción ahora está en la pestaña "Asistencia"
-		                showAlert("El entreno está en curso. Ve a la pestaña 'Asistencia' para pasar lista.", "success");
+		                showAlert("El entreno está en curso. Ve a 'Asistencia' para pasar lista.", "success");
 		                break;
 		            case 'Finalizado':
-		                 showAlert("Este entrenamiento ya ha finalizado.", "success");
+		                showAlert("Este entrenamiento ya ha finalizado.", "success");
 		                break;
 		        }
+		    } else if (hasTraining) {
+		         showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
+		    } else {
+		         trainingForm.style.display = 'none';
+		         showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
 		    }
 		    
 		    // --- 4. RELLENAR DATOS ---
-		    let displayDate = 'dd/mm/aaaa';
-		    if (dateString) {
-		        const parts = dateString.split('-');
-		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-		    }
+		    let displayDate = dateString ? `${dateString.split('-')[2]}/${dateString.split('-')[1]}/${dateString.split('-')[0]}` : 'dd/mm/aaaa';
 		    document.getElementById('selected-date').value = displayDate;
 		    document.getElementById('start-time').value = training.start || '20:45';
 		    document.getElementById('end-time').value = training.end || '22:30';
 		    document.getElementById('location').value = training.location || '';
 		    document.getElementById('notes').value = training.notes || '';
 		    
-		    // Rellenamos el estado del PDF
 		    if (training.pdfId) {
 		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
 		    } else {
 		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
-		    }	
+		    }
 		}
 
 		async function saveTraining() {
