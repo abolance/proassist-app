@@ -2286,6 +2286,7 @@
 		 * botones de acción y el selector de archivos para fechas pasadas.
 		 * @param {string} dateString La fecha seleccionada en formato 'YYYY--MM-DD'.
 		 */
+		/*
 		function loadTrainingData(dateString) {
 		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
 		    const trainingForm = document.getElementById('training-details-form');
@@ -2342,20 +2343,81 @@
 		    document.getElementById('location').value = training.location || '';
 		    document.getElementById('notes').value = training.notes || '';
 		    
-		    // Rellenamos el estado del PDF
-			/*
-		    if (training.pdfId) {
-		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
-		    } else {
-		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
-		    }	
-	  		*/
+		    // Rellenamos el estado del PDF			
 			if (!training.pdfId || training.pdfId === 'null') {
 				pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;		        
 		    } else {
 		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
 		    }
-		}		
+		}
+		*/
+
+		function loadTrainingData(dateString) {
+		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
+		    const trainingForm = document.getElementById('training-details-form');
+		    const buttonContainer = document.getElementById('action-buttons-container');
+		    const pdfStatusContainer = document.getElementById('pdf-status-container');
+		    const filePickerButton = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+		    
+		    // --- AÑADIMOS REFERENCIAS A LOS BOTONES DE ACCIÓN ---
+		    const prepareBtn = document.getElementById('create-form-btn');
+		    const startBtn = document.getElementById('start-training-btn');
+		    
+		    // --- 2. CÁLCULO DE ESTADOS ---
+		    const today = toYYYYMMDD(new Date());
+		    const isPastDate = dateString && dateString < today;
+		    const hasTraining = dateString && trainings[dateString];
+		    const training = trainings[dateString] || {};
+		    const status = training.status || 'Planificado'; // Obtenemos el estado
+		
+		    // --- 3. LÓGICA DE VISIBILIDAD (TU CÓDIGO) ---
+		    trainingForm.style.display = 'block';
+		    buttonContainer.style.display = 'block';
+		    if (filePickerButton) filePickerButton.style.display = 'block';
+		    formInputs.forEach(input => input.disabled = false);
+		
+		    if (isPastDate && !hasTraining) {
+		        trainingForm.style.display = 'none';
+		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
+		    } else if (isPastDate && hasTraining) {
+		        buttonContainer.style.display = 'none';
+		        if (filePickerButton) filePickerButton.style.display = 'none';
+		        formInputs.forEach(input => input.disabled = true);
+		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
+		    }
+		
+		    // --- ¡AQUÍ ESTÁ LA NUEVA LÓGICA PARA LOS BOTONES DE ACCIÓN! ---
+		    // Basado en el estado, mostramos un botón u otro.
+		    if (status === 'Planificado') {
+		        prepareBtn.style.display = 'block';
+		        startBtn.style.display = 'none';
+		    } else if (status === 'Preparado') {
+		        prepareBtn.style.display = 'none';
+		        startBtn.style.display = 'block';
+		    } else { // 'Iniciado', 'Finalizado' o cualquier otro estado
+		        prepareBtn.style.display = 'none';
+		        startBtn.style.display = 'none';
+		    }
+		    
+		    // --- 4. RELLENAR LOS DATOS DEL FORMULARIO (TU CÓDIGO) ---
+		    let displayDate = 'dd/mm/aaaa';
+		    if (dateString) {
+		        const parts = dateString.split('-');
+		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+		    }
+		    document.getElementById('selected-date').value = displayDate;
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		    
+		    if (!training.pdfId || training.pdfId === 'null') {
+		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
+		    } else {
+		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
+		    }
+		}
 
 		async function saveTraining() {
 		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
