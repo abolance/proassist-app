@@ -844,8 +844,9 @@
 									<div id="action-buttons-container" style="margin-top: 1.5rem; border-top: 1px solid #ddd; padding-top: 1.5rem;">
 									    <!-- Usaremos Flexbox con envoltura para una máxima adaptabilidad -->
 									    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()" style="flex-grow: 1;">✅ Guardar</button>
-									        <button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="flex-grow: 2; min-width: 180px;">📋 Preparar Formulario</button>
+											<button id="start-training-btn" class="btn btn-warning" onclick="startTraining()" style="display: none;">▶️ Iniciar Entreno</button>
+											<button id="create-form-btn" class="btn btn-primary" onclick="prepareForm()" style="flex-grow: 2; min-width: 180px;">📋 Preparar Formulario</button>
+									        <button id="save-training-btn" class="btn btn-success" onclick="saveTraining()" style="flex-grow: 1;">✅ Guardar</button>									        
 									        <button id="delete-training-btn" class="btn btn-danger" onclick="deleteTraining()" style="flex-grow: 1;">🗑️ Eliminar</button>
 									    </div>
 									</div>
@@ -2298,6 +2299,20 @@
 		    const isPastDate = dateString && dateString < today;
 		    const hasTraining = dateString && trainings[dateString];
 		    const training = trainings[dateString] || {};
+			const status = training.status || 'Planificado';
+
+			const prepareBtn = document.getElementById('create-form-btn');
+			const startBtn = document.getElementById('start-training-btn');
+			const attendanceBtn = document.querySelector('button[onclick="submitAttendance()"]');
+
+			// Lógica de visibilidad de botones en el sidebar
+			prepareBtn.style.display = (status === 'Planificado') ? 'block' : 'none';
+			startBtn.style.display = (status === 'Preparado') ? 'block' : 'none';
+			
+			// Lógica de visibilidad del botón en la pestaña de asistencia
+			if (attendanceBtn) {
+			  attendanceBtn.style.display = (status === 'Iniciado') ? 'block' : 'none';
+			}
 		
 		    // --- 3. LÓGICA DE VISIBILIDAD ---
 		    trainingForm.style.display = 'block';
@@ -2332,7 +2347,7 @@
 		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
 		    } else {
 		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
-		    }
+		    }			
 		}		
 
 		async function saveTraining() {
@@ -2417,6 +2432,58 @@
                 }
             }
         }
+
+		/**
+		 * Inicia un entrenamiento. Llama al backend para cambiar el estado
+		 * y actualiza la interfaz del entrenador.
+		 */
+		async function startTraining() {
+		    if (!selectedDate || !trainings[selectedDate]) {
+		        return showAlert('Por favor, selecciona un entrenamiento primero.', 'warning');
+		    }
+		
+		    if (!confirm(`¿Estás seguro de que quieres iniciar el entreno del ${selectedDate}? \n\nEsta acción bloqueará el formulario para las jugadoras.`)) {
+		        return;
+		    }
+		
+		    const selectedTeamId = document.getElementById('team-selector').value;
+		    const startButton = event.currentTarget;
+		
+		    // Mostramos estado de carga
+		    startButton.disabled = true;
+		    startButton.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px; margin: 0;"></div> Iniciando...';
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'startTraining');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', selectedTeamId);
+		        url.searchParams.append('fecha', selectedDate);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.result.success) {
+		            // 1. Actualizamos el estado en nuestro objeto local
+		            trainings[selectedDate].status = 'Iniciado';
+		            
+		            // 2. Volvemos a cargar los datos en el sidebar.
+		            //    Esto hará que el botón 'Iniciar Entreno' desaparezca
+		            //    y se prepare la UI para el siguiente estado.
+		            loadTrainingData(selectedDate);
+		            
+		            showAlert(data.result.message, 'success');
+		        } else {
+		            throw new Error(data.error || data.result.error);
+		        }
+		    } catch (error) {
+		        showAlert(`Error al iniciar el entreno: ${error.message}`, 'warning');
+		    } finally {
+		        // Restauramos el botón (aunque debería desaparecer, es una buena práctica)
+		        startButton.disabled = false;
+		        startButton.innerHTML = '▶️ Iniciar Entreno';
+		    }
+		}
 
         async function prepareForm() {
             if (!selectedDate || !trainings[selectedDate]) return showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
