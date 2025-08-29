@@ -2343,11 +2343,18 @@
 		    document.getElementById('notes').value = training.notes || '';
 		    
 		    // Rellenamos el estado del PDF
+			/*
 		    if (training.pdfId) {
 		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
 		    } else {
 		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
-		    }			
+		    }	
+	  		*/
+			if (!training.pdfId || training.pdfId === 'null') {
+				pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;		        
+		    } else {
+		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
+		    }
 		}		
 
 		async function saveTraining() {
