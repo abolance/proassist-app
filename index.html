@@ -625,6 +625,22 @@
 		.attendance-history span.question {
 		    color: #3498db !important; /* Azul */
 		}
+
+		#player-history-table {
+		    width: 100%;
+		    border-collapse: collapse;
+		}
+		#player-history-table th, #player-history-table td {
+		    padding: 10px 12px;
+		    border-bottom: 1px solid #eee;
+		    text-align: left;
+		    vertical-align: middle;
+		}
+		#player-history-table th {
+		    background-color: #f8f9fa;
+		    font-size: 0.85em;
+		    text-transform: uppercase;
+		}
 	</style>
 </head>
 <body>
@@ -3353,35 +3369,43 @@
 		}
 		
 		/**
-		 * Dibuja la tabla dentro del modal de historial.
+		 * Dibuja la tabla de historial en el modal, usando una configuración de columnas.
+		 * @param {Array} historyData El array de respuestas de la jugadora.
 		 */
 		function renderHistoryTable(historyData) {
 		    const container = document.getElementById('history-table-container');
 		    if (!historyData || historyData.length === 0) {
-		        container.innerHTML = '<p>No hay historial para mostrar.</p>';
+		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay historial para mostrar.</p>';
 		        return;
 		    }
 		
-		    const headers = Object.keys(historyData[0]);
-		    let tableHtml = '<table><thead><tr>';
-		    headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
+		    // --- 1. CONSTRUIMOS LOS ENCABEZADOS ---
+		    let tableHtml = '<table id="player-history-table"><thead><tr>';
+		    historyTableColumns.forEach(col => {
+		        tableHtml += `<th>${col.title}</th>`;
+		    });
 		    tableHtml += '</tr></thead><tbody>';
 		
+		    // --- 2. CONSTRUIMOS LAS FILAS ---
 		    historyData.forEach(row => {
 		        tableHtml += '<tr>';
-		        headers.forEach(h => {
-		            let value = row[h];
-		            // Formateamos las fechas
-		            if (h.toLowerCase().includes('fecha') || h.toLowerCase().includes('timestamp')) {
-		                value = new Date(value).toLocaleDateString('es-ES');
+		        historyTableColumns.forEach(col => {
+		            let cellValue = row[col.key] || '-'; // Obtenemos el valor usando la 'key'
+		            
+		            // Aplicamos el formateador si corresponde
+		            if (col.key === 'fecha') {
+		                cellValue = historyFormatters.date(cellValue);
+		            } else if (col.key === 'asistencia_confirmada') {
+		                cellValue = historyFormatters.boolean(cellValue);
 		            }
-		            tableHtml += `<td>${value}</td>`;
+		            
+		            tableHtml += `<td>${cellValue}</td>`;
 		        });
 		        tableHtml += '</tr>';
 		    });
 		
 		    tableHtml += '</tbody></table>';
-		    container.innerHTML = tableHtml;
+		    container.innerHTML = `<div style="overflow-x:auto;">${tableHtml}</div>`;
 		}
 		
 		/**
@@ -3412,5 +3436,29 @@
 		function closeHistoryModal() {
 		    document.getElementById('history-modal').style.display = 'none';
 		}
+
+		// Define las columnas que queremos mostrar y en qué orden
+		const historyTableColumns = [
+		    { key: 'fecha', title: 'Fecha' },
+		    { key: 'asistencia_confirmada', title: 'Asistencia' },
+		    { key: '¿puedes asistir?', title: 'Respuesta Previa' },
+		    { key: 'físico', title: 'Estado Físico' },
+		    { key: 'cansancio', title: 'Cansancio' },
+		    { key: 'observaciones', title: 'Observaciones' }
+		];
+		
+		// Define funciones para formatear datos específicos
+		const historyFormatters = {
+		    date: (value) => {
+		        if (!value) return 'N/A';
+		        const date = new Date(value);
+		        return !isNaN(date.getTime()) ? date.toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'}) : 'Fecha Inválida';
+		    },
+		    boolean: (value) => {
+		        if (value === true) return '<span class="symbol-box symbol-check">✔️</span>';
+		        if (value === false) return '<span class="symbol-box symbol-cross">❌</span>';
+		        return '<span class="symbol-box symbol-question">❓</span>';
+		    }
+		};
     </script>
 </body>
