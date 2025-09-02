@@ -1540,8 +1540,8 @@
 		                <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
 		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
 		            </div>`;
-		        break;
-		
+		        break;			
+		  
 		      default:
 		         contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">${stateData.error || 'No hay formulario disponible para el próximo entreno.'}</p></div>`;
 		    }		    
@@ -1599,6 +1599,25 @@
 		                    <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
 		                </div>`;
 		            break;
+
+				case 'listo_para_feedback':
+				    title.innerHTML = `📝 Feedback Post-Entreno: ${displayDate}`;
+				    contentHtml += `
+				        <div style="text-align: center; background-color: #e9f5fd; border-radius: 15px; padding: 1.5rem;">
+				            <h3 style="margin-bottom: 10px; color: #2980b9;">¡Buen trabajo!</h3>
+				            <p style="color: #666; margin-bottom: 25px;">Por favor, danos tu feedback sobre el entreno de hoy.</p>
+				            <a href="${formUrl}" target="_blank" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.2em;">📝 Abrir Feedback</a>
+				        </div>`;
+				    break;
+				
+				case 'feedback_respondido':
+				    title.innerHTML = `📝 Feedback Registrado`;
+				    contentHtml += `
+				        <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
+				            <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Feedback recibido!</h3>
+				            <p style="color: #666;">Gracias por ayudarnos a mejorar.</p>
+				        </div>`;
+				    break;
 		
 		        case 'entreno_futuro':
 		            const futureDate = new Date(trainingInfo.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -3062,6 +3081,24 @@
 		        } else {
 		            throw new Error(data.error || data.result.error);
 		        }
+
+				// Una vez guardada la asistencia, llamamos a finalizar el entreno
+				const finalizeUrl = new URL(CONFIG.SCRIPT_URL);
+				finalizeUrl.searchParams.append('action', 'finalizeTraining');
+				finalizeUrl.searchParams.append('userEmail', currentUser.email);
+				finalizeUrl.searchParams.append('teamId', selectedTeamId);
+				finalizeUrl.searchParams.append('fecha', trainingDate);
+				
+				// Hacemos la llamada para finalizar
+				const finalizeResponse = await fetch(finalizeUrl);
+				const finalizeData = await finalizeResponse.json();
+				
+				if (finalizeData.success && finalizeData.result.success) {
+				    trainings[trainingDate].status = 'Finalizado'; // Actualizamos estado local
+				    showAlert(finalizeData.result.message, 'success');
+				} else {
+				    throw new Error(finalizeData.error || finalizeData.result.error);
+				}
 		    } catch (error) {
 		        showAlert(`Error al guardar la asistencia: ${error.message}`, 'warning');
 		    } finally {
