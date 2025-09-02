@@ -1012,12 +1012,30 @@
 			</div>
 	    </div>
     </div>	
-
-    <!-- INDICADOR DE AUTO-REFRESH -->
-    <div id="refreshIndicator" class="refresh-indicator hidden">
-        🔄
-    </div>
-
+	<!-- MODAL PARA EL HISTORIAL COMPLETO DE LA JUGADORA -->
+	<div id="history-modal" class="modal-overlay" style="display:none;">
+	    <div class="modal-content" style="max-width: 900px;">
+	        <div class="modal-header">
+	            <h3 id="history-modal-title">Historial de Jugadora</h3>
+	            <button class="close-btn" onclick="closeHistoryModal()">&times;</button>
+	        </div>
+	        <div class="modal-body">
+	            <!-- Filtros del Historial -->
+	            <div id="history-filters" style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+	                <input type="date" id="history-date-filter" onchange="filterHistory()">
+	                <select id="history-attendance-filter" onchange="filterHistory()">
+	                    <option value="all">Toda la Asistencia</option>
+	                    <option value="attended">Solo Asistencias</option>
+	                    <option value="absent">Solo Ausencias</option>
+	                </select>
+	            </div>
+	            <!-- Tabla del Historial -->
+	            <div id="history-table-container" style="overflow-x: auto;">
+	                <!-- La tabla se generará aquí -->
+	            </div>
+	        </div>
+	    </div>
+	</div>
     <script>
         // ========================
         // CONFIGURACIÓN Y GLOBALES
@@ -2819,6 +2837,9 @@
 		
 		    playersData.forEach(player => {
 		        const row = tableBody.insertRow();
+				row.dataset.playerEmail = player.email;
+				row.style.cursor = 'pointer';
+				row.onclick = () => openHistoryModal(player.email, player.name);
 		        row.innerHTML = `
 		            <td><strong>${player.name}</strong></td>
 		            <td>${player.position || 'N/A'}</td>
@@ -3192,6 +3213,10 @@
 		    }
 		}
 
+		// ========================
+        // FUNCIONES LISTADO RESPUESTAS JUGADORAS
+        // ========================
+		
 		let selectedFileId = null; // Variable global temporal para guardar el ID seleccionado
 
 		async function openFilePicker() {
@@ -3268,6 +3293,105 @@
 		        // Devolvemos una promesa rechazada para que el 'catch' en openFilePicker la maneje
 		        return Promise.reject(error);
 		    }
+		}
+
+		
+		let fullPlayerHistory = []; // Variable global para guardar el historial y poder filtrarlo
+
+		/**
+		 * Abre el modal y carga el historial completo de una jugadora.
+		 */
+		async function openHistoryModal(playerEmail, playerName) {
+		    const modal = document.getElementById('history-modal');
+		    const title = document.getElementById('history-modal-title');
+		    const tableContainer = document.getElementById('history-table-container');
+		
+		    title.textContent = `Historial Completo de ${playerName}`;
+		    modal.style.display = 'flex';
+		    tableContainer.innerHTML = '<div class="spinner"></div>';
+		
+		    const teamId = document.getElementById('team-selector').value;
+		
+		    try {
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getFullPlayerHistory');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('playerEmail', playerEmail);
+		        url.searchParams.append('teamId', teamId);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		
+		        if (data.success && data.data.success) {
+		            fullPlayerHistory = data.data.history; // Guardamos los datos
+		            renderHistoryTable(fullPlayerHistory); // Dibujamos la tabla inicial
+		        } else {
+		            throw new Error(data.error || data.data.error);
+		        }
+		    } catch (error) {
+		        tableContainer.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+		    }
+		}
+		
+		/**
+		 * Dibuja la tabla dentro del modal de historial.
+		 */
+		function renderHistoryTable(historyData) {
+		    const container = document.getElementById('history-table-container');
+		    if (!historyData || historyData.length === 0) {
+		        container.innerHTML = '<p>No hay historial para mostrar.</p>';
+		        return;
+		    }
+		
+		    const headers = Object.keys(historyData[0]);
+		    let tableHtml = '<table><thead><tr>';
+		    headers.forEach(h => tableHtml += `<th>${h.replace(/_/g, ' ')}</th>`);
+		    tableHtml += '</tr></thead><tbody>';
+		
+		    historyData.forEach(row => {
+		        tableHtml += '<tr>';
+		        headers.forEach(h => {
+		            let value = row[h];
+		            // Formateamos las fechas
+		            if (h.toLowerCase().includes('fecha') || h.toLowerCase().includes('timestamp')) {
+		                value = new Date(value).toLocaleDateString('es-ES');
+		            }
+		            tableHtml += `<td>${value}</td>`;
+		        });
+		        tableHtml += '</tr>';
+		    });
+		
+		    tableHtml += '</tbody></table>';
+		    container.innerHTML = tableHtml;
+		}
+		
+		/**
+		 * Filtra los datos del historial según los controles y vuelve a dibujar la tabla.
+		 */
+		function filterHistory() {
+		    const dateFilter = document.getElementById('history-date-filter').value;
+		    const attendanceFilter = document.getElementById('history-attendance-filter').value;
+		
+		    let filteredData = fullPlayerHistory;
+		
+		    if (dateFilter) {
+		        filteredData = filteredData.filter(row => {
+		            const rowDate = new Date(row.fecha).toISOString().split('T')[0];
+		            return rowDate === dateFilter;
+		        });
+		    }
+		
+		    if (attendanceFilter === 'attended') {
+		        filteredData = filteredData.filter(row => row.asistencia_confirmada === true);
+		    } else if (attendanceFilter === 'absent') {
+		        filteredData = filteredData.filter(row => row.asistencia_confirmada !== true);
+		    }
+		
+		    renderHistoryTable(filteredData);
+		}
+		
+		function closeHistoryModal() {
+		    document.getElementById('history-modal').style.display = 'none';
 		}
     </script>
 </body>
