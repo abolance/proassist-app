@@ -3302,15 +3302,22 @@
 		 * Abre el modal y carga el historial completo de una jugadora.
 		 */
 		async function openHistoryModal(playerEmail, playerName) {
+		    console.log(`[HISTORIAL] Abriendo modal para: ${playerName} (${playerEmail})`);
+		    
 		    const modal = document.getElementById('history-modal');
 		    const title = document.getElementById('history-modal-title');
 		    const tableContainer = document.getElementById('history-table-container');
 		
 		    title.textContent = `Historial Completo de ${playerName}`;
 		    modal.style.display = 'flex';
-		    tableContainer.innerHTML = '<div class="spinner"></div>';
+		    tableContainer.innerHTML = '<div class="spinner"></div><p style="text-align:center;">Cargando historial...</p>';
 		
 		    const teamId = document.getElementById('team-selector').value;
+		    if (!teamId) {
+		        tableContainer.innerHTML = '<div class="alert alert-warning">No hay un equipo seleccionado.</div>';
+		        return;
+		    }
+		    console.log(`[HISTORIAL] Pidiendo historial para el equipo: ${teamId}`);
 		
 		    try {
 		        const url = new URL(CONFIG.SCRIPT_URL);
@@ -3318,17 +3325,29 @@
 		        url.searchParams.append('userEmail', currentUser.email);
 		        url.searchParams.append('playerEmail', playerEmail);
 		        url.searchParams.append('teamId', teamId);
-		
+		        
+		        console.log("[HISTORIAL] Llamando a la URL:", url.toString());
 		        const response = await fetch(url);
+		        
+		        console.log("[HISTORIAL] Respuesta del fetch recibida:", response);
+		        if (!response.ok) {
+		            throw new Error(`Error de red: ${response.status} ${response.statusText}`);
+		        }
+		        
 		        const data = await response.json();
+		        console.log("[HISTORIAL] Datos JSON recibidos:", data);
 		
-		        if (data.success && data.data.success) {
-		            fullPlayerHistory = data.data.history; // Guardamos los datos
-		            renderHistoryTable(fullPlayerHistory); // Dibujamos la tabla inicial
+		        // Corregimos la lectura de la respuesta anidada
+		        if (data.success && data.data && data.data.success) {
+		            fullPlayerHistory = data.data.history;
+		            console.log(`[HISTORIAL] Éxito. Se encontraron ${fullPlayerHistory.length} registros.`);
+		            renderHistoryTable(fullPlayerHistory);
 		        } else {
-		            throw new Error(data.error || data.data.error);
+		            // Lanzamos el error que nos devuelve el backend
+		            throw new Error(data.error || data.data.error || "La respuesta del backend no fue exitosa.");
 		        }
 		    } catch (error) {
+		        console.error("[HISTORIAL] Error en el bloque catch:", error);
 		        tableContainer.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
 		    }
 		}
