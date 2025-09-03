@@ -2568,6 +2568,18 @@
 		    } else {
 		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
 		    }
+
+			// Preparamos la pestaña de asistencia según el estado
+			const attendanceTitle = document.getElementById('attendance-title');
+			const attendanceContainer = document.getElementById('attendance-table-container');
+			
+			if (status === 'Iniciado' || status === 'Finalizado') {
+			    loadAttendanceTable(); // Si el entreno ha empezado, cargamos la lista
+			} else {
+			    // Si no ha empezado, mostramos un mensaje
+			    attendanceTitle.textContent = "Asistencia de Entreno";
+			    attendanceContainer.innerHTML = `<p style="text-align:center; padding:1.5rem;">Inicia el entrenamiento desde la pestaña "Calendario" para pasar lista.</p>`;
+			}
 		}
 
 		async function saveTraining() {
@@ -2969,6 +2981,7 @@
 		 * @param {Array} responses El array de datos de jugadoras.
 		 * @param {HTMLElement} container El div donde se dibujará la tabla.
 		 */
+		/*
 		function renderPlayerResponsesTable(responses, container) {
 		    if (!responses || responses.length === 0) {
 		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay jugadoras en este equipo.</p>';
@@ -3032,7 +3045,129 @@
 			}		    
 		    
 		    container.innerHTML = tableHtml;
-		}				
+		}
+  		*/
+
+		/**
+		 * Dibuja la tabla de asistencia en la pestaña "Asistencia", incluyendo los
+		 * checkboxes interactivos y los botones de acción correctos.
+		 * @param {Array} responses El array de datos de jugadoras recibido del backend.
+		 * @param {HTMLElement} container El div donde se dibujará la tabla.
+		 */
+		function renderPlayerResponsesTable(responses, container) {
+		    if (!responses || responses.length === 0) {
+		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay jugadoras en este equipo para mostrar.</p>';
+		        return;
+		    }
+		    
+		    // --- 1. DEFINIMOS EL ORDEN Y TÍTULOS DE NUESTRAS COLUMNAS ---
+		    const columns = [
+		        { key: 'Jugadora', title: 'Jugadora' },
+		        { key: 'Respuesta Previa', title: 'Respuesta Previa' },
+		        { key: 'Asistencia', title: 'Asist.' },
+		        { key: 'Estado Físico', title: 'Estado Físico' },
+		        { key: 'Notas', title: 'Notas' }
+		    ];
+		
+		    // --- 2. CONSTRUIMOS EL HTML DE LA TABLA ---
+		    let tableHtml = '<div style="overflow-x:auto;"><table id="player-attendance-table"><thead><tr>';
+		    
+		    // Creamos los encabezados a partir de nuestra configuración
+		    columns.forEach(col => {
+		        tableHtml += `<th>${col.title}</th>`;
+		    });
+		    tableHtml += '</tr></thead><tbody>';
+		
+		    // Comprobamos si el entreno es una fecha pasada
+		    const isPastDate = selectedDate && selectedDate < toYYYYMMDD(new Date());
+		    
+		    // Creamos las filas de la tabla
+		    responses.forEach(playerData => {
+		        tableHtml += '<tr>';
+		        columns.forEach(col => {
+		            if (col.key === 'Asistencia') {
+		                // Caso especial para el checkbox de asistencia confirmada
+		                const isChecked = playerData['Asistencia_Confirmada'] === true ? 'checked' : '';
+		                // Deshabilitamos el check para el ASSISTANT en fechas pasadas
+		                const isDisabled = isPastDate && currentUser.role === 'ASSISTANT' ? 'disabled' : '';
+		                tableHtml += `<td><input type="checkbox" data-email="${playerData['Email']}" ${isChecked} ${isDisabled}></td>`;
+		            } else {
+		                // Para el resto de columnas, simplemente añadimos el dato
+		                tableHtml += `<td>${playerData[col.key] || '-'}</td>`;
+		            }
+		        });
+		        tableHtml += '</tr>';
+		    });
+		
+		    tableHtml += '</tbody></table></div>';
+		    
+		    // --- 3. LÓGICA DE VISIBILIDAD DE LOS BOTONES DE ACCIÓN ---
+		    const training = trainings[selectedDate] || {};
+		    const status = training.status || 'Planificado';
+		    let buttonsHtml = '';
+		
+		    if (status === 'Finalizado') {
+		        buttonsHtml = `<div class="alert alert-success" style="text-align:center; margin-top:1.5rem;">✅ Entrenamiento Finalizado</div>`;
+		    } else {
+		        const canEditAttendance = !(isPastDate && currentUser.role === 'ASSISTANT');
+		        if (canEditAttendance) {
+		            // El botón de Guardar siempre está visible si se puede editar
+		            buttonsHtml += `<button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button>`;
+		            
+		            // El botón de Finalizar solo aparece si el entreno está 'Iniciado'
+		            if (status === 'Iniciado') {
+		                buttonsHtml += `<button class="btn btn-danger" onclick="finalizeTrainingPrompt()" style="margin-left: 10px;">Finalizar Entreno</button>`;
+		            }
+		        }
+		    }
+		    
+		    // Añadimos el contenedor de botones al final de la tabla
+		    tableHtml += `<div style="text-align: right; margin-top: 1.5rem;">${buttonsHtml}</div>`;
+		    
+		    container.innerHTML = tableHtml;
+		}
+
+		/**
+		 * Pregunta al usuario si quiere finalizar el entreno y, si es así,
+		 * llama al backend y actualiza la UI.
+		 */
+		async function finalizeTrainingPrompt() {
+		    if (!selectedDate) return;
+		
+		    if (confirm("¿Estás seguro de que quieres finalizar este entrenamiento?\n\nEsta acción es definitiva y activará el formulario de feedback para las jugadoras.")) {
+		        
+		        const finalizeButton = event.currentTarget;
+		        finalizeButton.disabled = true;
+		        finalizeButton.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px; margin: 0;"></div> Finalizando...';
+		
+		        const selectedTeamId = document.getElementById('team-selector').value;
+		        try {
+		            const url = new URL(CONFIG.SCRIPT_URL);
+		            url.searchParams.append('action', 'finalizeTraining');
+		            url.searchParams.append('userEmail', currentUser.email);
+		            url.searchParams.append('teamId', selectedTeamId);
+		            url.searchParams.append('fecha', selectedDate);
+		            
+		            const response = await fetch(url);
+		            const data = await response.json();
+		
+		            if (data.success && data.result.success) {
+		                // Actualizamos el estado local
+		                trainings[selectedDate].status = 'Finalizado';
+		                // Volvemos a dibujar la tabla de asistencia, que ahora mostrará el mensaje "Entreno Finalizado"
+		                loadAttendanceTable(); 
+		                showAlert(data.result.message, 'success');
+		            } else {
+		                throw new Error(data.error || data.result.error);
+		            }
+		
+		        } catch (error) {
+		            showAlert(`Error al finalizar: ${error.message}`, 'warning');
+		            finalizeButton.disabled = false;
+		            finalizeButton.textContent = 'Finalizar Entreno';
+		        }
+		    }
+		}
 
 		/**
 		 * Recopila los datos de los checkboxes de asistencia y los envía al backend.
@@ -3083,6 +3218,7 @@
 		        }
 
 				// Una vez guardada la asistencia, llamamos a finalizar el entreno
+				/*
 				const finalizeUrl = new URL(CONFIG.SCRIPT_URL);
 				finalizeUrl.searchParams.append('action', 'finalizeTraining');
 				finalizeUrl.searchParams.append('userEmail', currentUser.email);
@@ -3099,6 +3235,7 @@
 				} else {
 				    throw new Error(finalizeData.error || finalizeData.result.error);
 				}
+				*/
 		    } catch (error) {
 		        showAlert(`Error al guardar la asistencia: ${error.message}`, 'warning');
 		    } finally {
