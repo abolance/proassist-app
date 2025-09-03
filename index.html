@@ -2980,8 +2980,7 @@
 		 * Dibuja la tabla de asistencia de forma robusta y en el orden correcto.
 		 * @param {Array} responses El array de datos de jugadoras.
 		 * @param {HTMLElement} container El div donde se dibujará la tabla.
-		 */
-		
+		 */		
 		function renderPlayerResponsesTable(responses, container) {
 		    if (!responses || responses.length === 0) {
 		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay jugadoras en este equipo.</p>';
@@ -3028,26 +3027,32 @@
 		
 		    tableHtml += '</tbody></table></div>';
 		    
-		    // --- 3. AÑADIMOS EL BOTÓN DE GUARDAR SI ES NECESARIO ---
-			let showSaveButton = true; // Por defecto, mostramos el botón
-
-			if (isPastDate && currentUser.role === 'ASSISTANT') {
-			    // Si el entreno ha pasado Y el usuario es un Ayudante, OCULTAMOS el botón
-			    showSaveButton = false;
+			// --- 3. LÓGICA DE BOTONES DE ACCIÓN ---
+			const training = trainings[selectedDate] || {};
+			const status = training.status || 'Planificado';
+			let buttonsHtml = '';
+			
+			if (status === 'Finalizado') {
+			    buttonsHtml = `<div class="alert alert-success" style="text-align:center; margin-top:1.5rem;">✅ Entrenamiento Finalizado</div>`;
+			} else {
+			    const canEditAttendance = !(isPastDate && currentUser.role === 'ASSISTANT');
+			    if (canEditAttendance) {
+			        // El botón de Guardar siempre está visible si se puede editar
+			        buttonsHtml += `<button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button>`;
+			        
+			        // El botón de Finalizar solo aparece si el entreno está 'Iniciado'
+			        if (status === 'Iniciado') {
+			            buttonsHtml += `<button class="btn btn-danger" onclick="finalizeTrainingPrompt()" style="margin-left: 10px;">Finalizar Entreno</button>`;
+			        }
+			    }
 			}
 			
-			if (showSaveButton) {
-			    tableHtml += `
-			        <div style="text-align: right; margin-top: 1.5rem;">
-			            <button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button>
-			        </div>
-			    `;
-			}		    
+			// Añadimos el contenedor de botones al final de la tabla
+			tableHtml += `<div style="text-align: right; margin-top: 1.5rem;">${buttonsHtml}</div>`;		    
 		    
 		    container.innerHTML = tableHtml;
 		}
   		
-
 		/**
 		 * Dibuja la tabla de asistencia en la pestaña "Asistencia", incluyendo los
 		 * checkboxes interactivos y los botones de acción correctos.
