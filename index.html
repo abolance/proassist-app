@@ -695,7 +695,11 @@
 			
 			    <!-- 1. TARJETA DEL PRÓXIMO ENTRENAMIENTO -->
 			    <div id="player-day-view-container" class="card">
-					<!-- El JS llenará esta parte -->
+					<h3 id="player-view-title" style="margin-bottom: 1rem;">Cargando información...</h3>
+				    <!-- Contenedor para el resto de la información (detalles y formulario) -->
+				    <div id="player-view-content">
+				        <!-- El JS llenará esta parte -->
+				    </div>
 			    </div>
 			
 			    <!-- 2. REJILLA DE ESTADÍSTICAS -->
@@ -1660,7 +1664,7 @@
 		        titleContainer.textContent = "Error";
 		        contentContainer.innerHTML = `<div class="alert alert-warning">${formStateData.error || 'Error al cargar la información del día.'}</div>`;
 		        return;
-		    }
+		    }			
 		
 		    const { state, trainingInfo, formUrl } = formStateData;
 		    
@@ -1736,7 +1740,8 @@
 		        default:
 		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
 		    }			
-		    container.innerHTML = contentHtml;
+		   	titleContainer.innerHTML = titleText;
+    		contentContainer.innerHTML = contentHtml;
 		}
 
 		/*
