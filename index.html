@@ -695,7 +695,11 @@
 			
 			    <!-- 1. TARJETA DEL PRÓXIMO ENTRENAMIENTO -->
 			    <div id="player-day-view-container" class="card">
-			        <!-- El contenido se generará con JavaScript aquí dentro -->
+			        <h3 id="player-view-title" style="margin-bottom: 1rem;">Cargando información...</h3>
+				    <!-- Contenedor para el resto de la información (detalles y formulario) -->
+				    <div id="player-view-content">
+				        <!-- El JS llenará esta parte -->
+				    </div>
 			    </div>
 			
 			    <!-- 2. REJILLA DE ESTADÍSTICAS -->
@@ -1555,6 +1559,7 @@
 		 * Dibuja la sección principal del dashboard de la jugadora (próximo entreno y formulario).
 		 * @param {object} formStateData El objeto de estado del formulario recibido del backend.
 		 */
+		/*
 		function renderPlayerFormState(formStateData) {
 		    const container = document.getElementById('player-day-view-container');
 			const title = document.getElementById('formTitle'); // Buscamos el elemento del título
@@ -1646,6 +1651,97 @@
 		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
 		    }
 		    
+		    container.innerHTML = contentHtml;
+		}
+  		*/
+
+		function renderPlayerFormState(formStateData) {
+		    // Obtenemos referencias a los nuevos contenedores
+		    const titleContainer = document.getElementById('player-view-title');
+		    const contentContainer = document.getElementById('player-view-content');
+		    
+		    if (!formStateData || !formStateData.success) {
+		        titleContainer.textContent = "Error";
+		        contentContainer.innerHTML = `<div class="alert alert-warning">${formStateData.error || 'Error al cargar la información del día.'}</div>`;
+		        return;
+		    }
+		
+		    const { state, trainingInfo, formUrl } = formStateData;
+		    
+		    let contentHtml = '';
+		    let titleText = 'Próximo Entrenamiento';
+		
+		    // --- Mostramos los detalles del entreno (si existe) ---
+		    if (trainingInfo) {
+		        const date = new Date(trainingInfo.fecha + 'T12:00:00');
+		        const displayDate = date.toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
+		        titleText = `Próximo Entrenamiento: ${displayDate}`;
+		        
+		        contentHtml += `
+		            <div class="details" style="padding-top: 1rem; border-top: 1px solid #eee;">
+		                <p class="detail-item"><strong>🕒 Horario:</strong> ${trainingInfo.start} - ${trainingInfo.end}</p>
+		                <p class="detail-item"><strong>📍 Ubicación:</strong> ${trainingInfo.location || 'No especificada'}</p>
+		                <p class="detail-item"><strong>📝 Notas:</strong> ${trainingInfo.notes || 'Sin notas'}</p>
+		            </div>
+		            <hr style="margin: 2rem 0;">
+		        `;
+		    }
+		
+		    // --- Mostramos el estado del formulario ---
+		    switch (state) {
+		        case 'listo_para_responder':
+		            contentHtml += `
+		                <div style="text-align: center;">
+		                    <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
+		                    <a href="${formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
+		                </div>`;
+		            break;
+		            
+		        case 'ya_respondido':
+		            contentHtml += `
+		                <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
+		                    <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
+		                    <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
+		                </div>`;
+		            break;
+
+				case 'listo_para_feedback':
+					titleText = `📝 Feedback del Entreno: ${new Date(trainingInfo.fecha + 'T12:00:00').toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
+				    contentHtml += `
+				        <div style="text-align: center; background-color: #e9f5fd; border-radius: 15px; padding: 1.5rem;">
+				            <h3 style="margin-bottom: 10px; color: #2980b9;">¡Buen trabajo!</h3>
+				            <p style="color: #666; margin-bottom: 25px;">Por favor, danos tu feedback sobre el entreno de hoy.</p>
+				            <a href="${formUrl}" target="_blank" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.2em;">📝 Abrir Feedback</a>
+				        </div>`;
+				    break;
+				
+				case 'feedback_respondido':					 
+				    titleText = `📝 Feedback Registrado`;
+				    contentHtml += `
+				        <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
+				            <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Feedback recibido!</h3>
+				            <p style="color: #666;">Gracias por ayudarnos a mejorar.</p>
+				        </div>`;
+				    break;
+		
+		        case 'entreno_futuro':
+		            const futureDate = new Date(trainingInfo.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+		            contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">El formulario para el entreno del ${futureDate} se activará ese mismo día.</p></div>`;
+		            break;
+		
+		        case 'form_no_preparado':
+		            contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">👨‍🏫<p style="margin-top:1rem;">El entrenador aún no ha preparado el formulario para el próximo entreno.</p></div>`;
+		            break;
+		
+		        case 'sin_entrenos':
+		            contentHtml = `<div style="text-align: center; padding: 20px; color: #666;">😴<p style="margin-top:1rem;">No hay próximos entrenamientos programados.</p></div>`;
+		            break;
+		
+		        default:
+		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
+		    }
+
+			titleContainer.innerHTML = titleText;
 		    container.innerHTML = contentHtml;
 		}
 
