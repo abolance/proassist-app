@@ -1566,12 +1566,20 @@
 		    }
 		
 		    const { state, trainingInfo, formUrl } = formStateData;
+
+			// Declaramos y calculamos displayDate aquí arriba para que esté disponible para todos.
+		    let displayDate = '';
+		    if (trainingInfo && trainingInfo.fecha) {
+		        const date = new Date(trainingInfo.fecha + 'T12:00:00');
+		        displayDate = date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+		    }
+			
 		    let contentHtml = '';
 		    
 		    // --- Parte 1: Mostrar siempre los detalles del próximo entreno (si existe) ---
 		    if (trainingInfo) {
-		        const date = new Date(trainingInfo.fecha + 'T12:00:00');
-		        const displayDate = date.toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
+		        //const date = new Date(trainingInfo.fecha + 'T12:00:00');
+		        //const displayDate = date.toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
 		        
 		        contentHtml += `
 		            <h3 style="margin-bottom: 1rem;">Próximo Entrenamiento: ${displayDate}</h3>
