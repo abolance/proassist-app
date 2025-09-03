@@ -2494,6 +2494,7 @@
 		}
   		*/
 
+		/*
 		function loadTrainingData(dateString) {
 		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
 		    const trainingForm = document.getElementById('training-details-form');
@@ -2552,6 +2553,94 @@
 		    }
 		    
 		    // --- 4. RELLENAR LOS DATOS DEL FORMULARIO (TU CÓDIGO) ---
+		    let displayDate = 'dd/mm/aaaa';
+		    if (dateString) {
+		        const parts = dateString.split('-');
+		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+		    }
+		    document.getElementById('selected-date').value = displayDate;
+		    document.getElementById('start-time').value = training.start || '20:45';
+		    document.getElementById('end-time').value = training.end || '22:30';
+		    document.getElementById('location').value = training.location || '';
+		    document.getElementById('notes').value = training.notes || '';
+		    
+		    if (!training.pdfId || training.pdfId === 'null') {
+		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
+		    } else {
+		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
+		    }
+
+			// Preparamos la pestaña de asistencia según el estado
+			const attendanceTitle = document.getElementById('attendance-title');
+			const attendanceContainer = document.getElementById('attendance-table-container');
+			
+			if (status === 'Iniciado' || status === 'Finalizado') {
+			    loadAttendanceTable(); // Si el entreno ha empezado, cargamos la lista
+			} else {
+			    // Si no ha empezado, mostramos un mensaje
+			    attendanceTitle.textContent = "Asistencia de Entreno";
+			    attendanceContainer.innerHTML = `<p style="text-align:center; padding:1.5rem;">Inicia el entrenamiento desde la pestaña "Calendario" para pasar lista.</p>`;
+			}
+		}
+  		*/
+
+		/**
+		 * Carga los datos del entreno y gestiona la visibilidad de TODOS los botones
+		 * y campos basándose en la fecha Y en el estado del entrenamiento.
+		 */
+		function loadTrainingData(dateString) {
+		    // --- 1. REFERENCIAS A ELEMENTOS ---
+		    const trainingForm = document.getElementById('training-details-form');
+		    const saveBtn = document.getElementById('save-training-btn');
+		    const deleteBtn = document.getElementById('delete-training-btn');
+		    const filePickerBtn = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
+		    const prepareBtn = document.getElementById('create-form-btn');
+		    const startBtn = document.getElementById('start-training-btn');
+		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
+		
+		    // --- 2. CÁLCULO DE ESTADOS ---
+		    const today = toYYYYMMDD(new Date());
+		    const isPastDate = dateString && dateString < today;
+		    const hasTraining = dateString && trainings[dateString];
+		    const training = trainings[dateString] || {};
+		    const status = training.status || 'Planificado';
+		    
+		    // --- ¡NUEVA CONDICIÓN DE BLOQUEO! ---
+		    // El entreno se considera "bloqueado" si ya ha empezado, ha finalizado, o es una fecha pasada.
+		    const isLocked = isPastDate || status === 'Iniciado' || status === 'Finalizado';
+		    
+		    // --- 3. LÓGICA DE VISIBILIDAD UNIFICADA ---
+		    
+		    // Reseteamos todo a un estado base
+		    trainingForm.style.display = 'block';
+		    formInputs.forEach(input => input.disabled = false);
+		    saveBtn.style.display = 'block';
+		    deleteBtn.style.display = 'block';
+		    if (filePickerBtn) filePickerBtn.style.display = 'block';
+		    prepareBtn.style.display = 'none';
+		    startBtn.style.display = 'none';
+		
+		    if (isPastDate && !hasTraining) {
+		        trainingForm.style.display = 'none';
+		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
+		    } else if (isLocked) {
+		        // Si el entreno está bloqueado, deshabilitamos la edición
+		        formInputs.forEach(input => input.disabled = true);
+		        saveBtn.style.display = 'none';
+		        deleteBtn.style.display = 'none';
+		        if (filePickerBtn) filePickerBtn.style.display = 'none';
+		    }
+		
+		    // Mostramos el botón de acción correcto solo si el entreno NO está bloqueado
+		    if (!isLocked && hasTraining) {
+		        if (status === 'Planificado') {
+		            prepareBtn.style.display = 'block';
+		        } else if (status === 'Preparado') {
+		            startBtn.style.display = 'block';
+		        }
+		    }
+		    
+		    // --- 4. RELLENAR DATOS ---
 		    let displayDate = 'dd/mm/aaaa';
 		    if (dateString) {
 		        const parts = dateString.split('-');
