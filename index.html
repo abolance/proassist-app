@@ -3177,7 +3177,7 @@
 			        buttonsHtml += `<button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button>`;
 			        
 			        // El botón de Finalizar solo aparece si el entreno está 'Iniciado'
-			        if (status === 'Iniciado') {
+			        if (status === 'Iniciado' && currentUser.role !== 'ASSISTANT') {
 			            buttonsHtml += `<button class="btn btn-danger" onclick="finalizeTrainingPrompt()" style="margin-left: 10px;">Finalizar Entreno</button>`;
 			        }
 			    }
