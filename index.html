@@ -1499,12 +1499,12 @@
 		        const statsData = await statsResponse.json();
 		        const historyData = await historyResponse.json();
 		        const formStateData = await formStateResponse.json();
+
+				renderPlayerFormState(formStateData);
 		
 		        // Una vez que TODAS las respuestas han llegado, actualizamos la UI
 		        updateStatsUI(statsData);
-		        updateHistoryUI(historyData);
-		        renderPlayerFormState(formStateData);
-		
+		        updateHistoryUI(historyData);		        
 		    } catch (error) {
 		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
 		        showError('Error al cargar los datos. Revisa la consola.');
@@ -1557,6 +1557,7 @@
 		 */
 		function renderPlayerFormState(formStateData) {
 		    const container = document.getElementById('player-day-view-container');
+			const title = document.getElementById('formTitle'); // Buscamos el elemento del título
 		    
 		    // Verificamos si la petición fue exitosa
 		    if (!formStateData || !formStateData.success) {
