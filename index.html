@@ -1260,6 +1260,7 @@
         // ========================
         // ROUTER Y NAVEGACIÓN
         // ========================
+		/*
 		async function showDashboardBasedOnRole(role) {
 		    // 1. Ocultamos todos los dashboards para un estado limpio
 		    document.getElementById('loginScreen').style.display = 'none';
@@ -1350,6 +1351,7 @@
 		        } else if (currentUser.teams && currentUser.teams.length > 0) {
 		            teamSelectorHeader.style.display = 'none';
 		            await initializeAdminPanel(currentUser.teams[0]);
+					
 		        } else {
 		            showAlert('No tienes equipos asignados.', 'warning');
 		        }
@@ -1366,7 +1368,32 @@
 		            showError("No estás asignada a ningún equipo.");
 		        }
 		    }
-		}		      
+		}
+  		*/
+
+		async function showDashboardBasedOnRole(role) {
+		    // Ocultamos todos los dashboards
+		    document.getElementById('loginScreen').style.display = 'none';
+		    document.getElementById('player-dashboard').style.display = 'none';
+		    document.getElementById('admin-panel').style.display = 'none';
+		    document.getElementById('assistant-dashboard').style.display = 'none';
+		
+		    if (role === 'ADMIN' || role === 'COACH') {
+		        // --- Lógica para ADMIN y COACH ---
+		        document.getElementById('admin-panel').style.display = 'block';
+		        await initializeAdminPanel(); // Llama a su propia función de inicialización
+		
+		    } else if (role === 'ASSISTANT') {
+		        // --- Lógica para ASSISTANT ---
+		        document.getElementById('assistant-dashboard').style.display = 'block';
+		        await initializeAssistantPanel(); // Llama a SU PROPIA función de inicialización
+		
+		    } else if (role === 'PLAYER') {
+		        // --- Lógica para PLAYER ---
+		        document.getElementById('player-dashboard').style.display = 'block';
+		        await initializePlayerPanel(); // Llama a su propia función de inicialización
+		    }
+		}
 
         function showLoginScreen() {
             document.getElementById('loginScreen').style.display = 'flex';
@@ -2041,6 +2068,7 @@
         // ========================
         // LÓGICA PANEL ADMIN/COACH
         // ========================
+		/*
         async function initializeAdminPanel(teamId) {
             if (!teamId) {
                 console.error("initializeAdminPanel fue llamado sin un teamId.");
@@ -2067,7 +2095,78 @@
                 showAlert('Error de conexión. No se pudieron cargar los datos.', 'warning');
             }
             loadConfiguration();
-        }		
+        }
+		*/
+
+		async function initializeAdminPanel() {
+		    // --- Personalización de la UI para ADMIN vs COACH ---
+		    document.getElementById('config-tab-button').style.display = currentUser.role === 'ADMIN' ? 'flex' : 'none';
+		    document.getElementById('role-badge').textContent = currentUser.role;
+		    document.getElementById('role-badge').style.backgroundColor = currentUser.role === 'COACH' ? '#3498db' : '#e74c3c';
+		    
+		    // --- Lógica de carga de datos y selector de equipos ---
+		    const teamSelectorHeader = document.getElementById('team-selector-header');
+		    const teamSelector = document.getElementById('team-selector');
+		    teamSelector.innerHTML = '';
+		    
+		    if (currentUser.teams && currentUser.teams.length > 1) {
+		        teamSelectorHeader.style.display = 'flex';
+		        currentUser.teams.forEach(teamId => { /* ... código para rellenar opciones ... */ });
+		        teamSelector.onchange = () => loadAdminCalendarData(teamSelector.value); // Renombramos la función de carga
+		        await loadAdminCalendarData(currentUser.teams[0]);
+		    } else if (currentUser.teams && currentUser.teams.length > 0) {
+		        teamSelectorHeader.style.display = 'none';
+		        await loadAdminCalendarData(currentUser.teams[0]);
+		    } else {
+		        showAlert('No tienes equipos asignados.', 'warning');
+		    }
+		}
+
+		/**
+		 * Función maestra que inicializa y carga TODOS los datos para el dashboard del Ayudante.
+		 * @param {string} teamId El ID del equipo a cargar.
+		 */
+		async function initializeAssistantPanel(teamId) {
+		    if (!teamId) return;
+		    console.log(`[ASSISTANT] Iniciando carga para equipo: ${teamId}`);
+		
+		    const dailyViewContainer = document.getElementById('assistant-daily-view-tab');
+		    const responsesContainer = document.getElementById('assistant-player-responses-tab');
+		    dailyViewContainer.innerHTML = '<div class="spinner"></div>';
+		    responsesContainer.innerHTML = '<div class="spinner"></div>';
+		
+		    try {
+		        // --- 1. LLAMAMOS AL ENDPOINT CORRECTO Y EXCLUSIVO DEL AYUDANTE ---
+		        const url = new URL(CONFIG.SCRIPT_URL);
+		        url.searchParams.append('action', 'getAssistantState');
+		        url.searchParams.append('userEmail', currentUser.email);
+		        url.searchParams.append('teamId', teamId);
+		
+		        const response = await fetch(url);
+		        const data = await response.json();
+		        
+		        if (!data.success) throw new Error(data.error);
+		
+		        // Guardamos el próximo entreno en la variable global
+		        nextTrainingForAssistant = data.trainingInfo;
+		        
+		        // 2. Renderizamos la vista del próximo entreno
+		        renderAssistantDailyView();
+		
+		        // 3. DECISIÓN LÓGICA: ¿Hay entreno hoy?
+		        if (nextTrainingForAssistant && nextTrainingForAssistant.fecha === toYYYYMMDD(new Date())) {
+		            await loadAttendanceTable(); // Usamos la función que ya existe
+		            showAssistantTab('player_responses');
+		        } else {
+		            responsesContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay entrenamiento hoy para mostrar respuestas.</p>';
+		            showAssistantTab('daily_view');
+		        }
+		    } catch (error) {
+		        console.error("[ASSISTANT] Error CATASTRÓFICO:", error);
+		        const errorMessage = error.message || "Error de conexión o al procesar la respuesta.";
+		        dailyViewContainer.innerHTML = `<div class="alert alert-warning">${errorMessage}</div>`;
+		    }
+		}
         
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
