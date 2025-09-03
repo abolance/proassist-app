@@ -694,12 +694,8 @@
 			<div style="display: grid; gap: 1.5rem;">
 			
 			    <!-- 1. TARJETA DEL PRÓXIMO ENTRENAMIENTO -->
-			    <div id="player-day-view-container" class="card">
-					<h3 id="player-view-title" style="margin-bottom: 1rem;">Cargando información...</h3>
-				    <!-- Contenedor para el resto de la información (detalles y formulario) -->
-				    <div id="player-view-content">
-				        <!-- El JS llenará esta parte -->
-				    </div>
+			    <div id="player-day-view-container" class="card">					
+					<!-- El JS llenará esta parte -->				    
 			    </div>
 			
 			    <!-- 2. REJILLA DE ESTADÍSTICAS -->
@@ -1559,7 +1555,6 @@
 		 * Dibuja la sección principal del dashboard de la jugadora (próximo entreno y formulario).
 		 * @param {object} formStateData El objeto de estado del formulario recibido del backend.
 		 */
-		/*
 		function renderPlayerFormState(formStateData) {
 		    const container = document.getElementById('player-day-view-container');
 			const title = document.getElementById('formTitle'); // Buscamos el elemento del título
@@ -1583,9 +1578,6 @@
 		    
 		    // --- Parte 1: Mostrar siempre los detalles del próximo entreno (si existe) ---
 		    if (trainingInfo) {
-		        //const date = new Date(trainingInfo.fecha + 'T12:00:00');
-		        //const displayDate = date.toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
-		        
 		        contentHtml += `
 		            <h3 style="margin-bottom: 1rem;">Próximo Entrenamiento: ${displayDate}</h3>
 		            <div class="details">
@@ -1616,17 +1608,15 @@
 		            break;
 
 				case 'listo_para_feedback':
-				    title.innerHTML = `📝 Feedback Post-Entreno: ${displayDate}`;
 				    contentHtml += `
 				        <div style="text-align: center; background-color: #e9f5fd; border-radius: 15px; padding: 1.5rem;">
-				            <h3 style="margin-bottom: 10px; color: #2980b9;">¡Buen trabajo!</h3>
+				            <h3 style="margin-bottom: 10px; color: #2980b9;">📝 Feedback Post-Entreno</h3>
 				            <p style="color: #666; margin-bottom: 25px;">Por favor, danos tu feedback sobre el entreno de hoy.</p>
 				            <a href="${formUrl}" target="_blank" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.2em;">📝 Abrir Feedback</a>
 				        </div>`;
 				    break;
 				
 				case 'feedback_respondido':
-				    title.innerHTML = `📝 Feedback Registrado`;
 				    contentHtml += `
 				        <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
 				            <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Feedback recibido!</h3>
@@ -1650,11 +1640,10 @@
 		        default:
 		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
 		    }
-		    
 		    container.innerHTML = contentHtml;
 		}
-  		*/
 
+		/*
 		function renderPlayerFormState(formStateData) {
 		    // Obtenemos referencias a los nuevos contenedores
 		    const titleContainer = document.getElementById('player-view-title');
@@ -1743,6 +1732,7 @@
 		   	titleContainer.innerHTML = titleText;
     		contentContainer.innerHTML = contentHtml;
 		}
+  		*/
 
 		/*
         async function loadUserStats(teamId) {
