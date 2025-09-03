@@ -695,11 +695,7 @@
 			
 			    <!-- 1. TARJETA DEL PRÓXIMO ENTRENAMIENTO -->
 			    <div id="player-day-view-container" class="card">
-			        <h3 id="player-view-title" style="margin-bottom: 1rem;">Cargando información...</h3>
-				    <!-- Contenedor para el resto de la información (detalles y formulario) -->
-				    <div id="player-view-content">
-				        <!-- El JS llenará esta parte -->
-				    </div>
+					<!-- El JS llenará esta parte -->
 			    </div>
 			
 			    <!-- 2. REJILLA DE ESTADÍSTICAS -->
@@ -1739,9 +1735,7 @@
 		
 		        default:
 		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
-		    }
-
-			titleContainer.innerHTML = titleText;
+		    }			
 		    container.innerHTML = contentHtml;
 		}
 
