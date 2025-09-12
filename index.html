@@ -1406,72 +1406,6 @@
 		    
 		    document.getElementById('greeting').textContent = `${greetingText}, ${displayName}!`;
 		}
-		
-		/*
-        function updateGreeting() {
-            if (!currentUser) return;
-            const now = new Date();
-            const hour = now.getHours();
-            let greeting = (hour < 12) ? '🌅 Buenos días' : (hour < 18) ? '☀️ Buenas tardes' : '🌙 Buenas noches';
-            const firstName = currentUser.name ? currentUser.name.split(' ')[0] : 'Jugadora';
-            document.getElementById('greeting').textContent = `${greeting}, ${firstName}!`;
-        }
-		*/
-
-		/**
-		 * Carga TODOS los datos del panel de la jugadora en PARALELO para una experiencia más rápida.
-		 * @param {string} teamId El ID del equipo de la jugadora.
-		 */
-		/*
-		async function initializePlayerPanel(teamId) {
-		    if (!currentUser || !currentUser.email) {
-		        return showError('No hay información de usuario disponible');
-		    }
-		    
-		    // --- Mostramos los spinners de carga en TODOS los widgets ---
-		    document.getElementById('totalTrainings').textContent = '...';
-		    document.getElementById('historyList').innerHTML = '<div class="spinner"></div>';
-		    document.getElementById('player-day-view-container').innerHTML = '<div class="spinner"></div>';
-		
-		    try {
-		        // --- ¡AQUÍ ESTÁ LA MAGIA! ---
-		        // Lanzamos las tres llamadas al backend al mismo tiempo.
-		        const [statsData, historyData, formStateData] = await Promise.all([
-		            fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`).then(res => res.json()),
-		            fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`).then(res => res.json()),
-		            fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`).then(res => res.json())
-		        ]);
-		
-		        // --- Una vez que TODAS las respuestas han llegado, actualizamos la UI ---
-		        
-		        // 1. Actualizar Estadísticas
-		        if (statsData.success) {
-		            updateStatsUI(statsData); // La función ahora recibirá el objeto completo
-		        } else {
-		            showDefaultStats();
-		        }
-		
-		        // 2. Actualizar Historial
-		        if (historyData.success) {
-		            updateHistoryUI(historyData.history);
-		        } else {
-		            showHistoryError();
-		        }
-		
-		        // 3. Actualizar Sección del Formulario
-		        if (formStateData.success) {
-		            // Creamos una función nueva y dedicada para dibujar esta parte
-		            renderPlayerFormState(formStateData);
-		        } else {
-		            document.getElementById('player-day-view-container').innerHTML = `<div class="alert alert-warning">${formStateData.error}</div>`;
-		        }
-		
-		    } catch (error) {
-		        console.error('Error CATASTRÓFICO cargando datos de la jugadora:', error);
-		        showError('Error al cargar los datos. Revisa la consola.');
-		    }
-		}
-  		*/
 
 		/**
 		 * Carga TODOS los datos del panel de la jugadora en PARALELO.
@@ -1513,43 +1447,6 @@
 		        showHistoryError();
 		    }
 		}
-
-		/**
-		 * Dibuja la sección del formulario del día basándose en el estado recibido.
-		 */
-		/*
-		function renderPlayerFormState(data) {
-		    const container = document.getElementById('player-day-view-container');
-		    const state = data.state;
-		    const info = data.trainingInfo;
-		    const formUrl = data.formUrl;
-		    
-		    let contentHtml = '';
-		
-		    switch (stateData.state) {
-		      case 'listo_para_responder':
-		        contentHtml += `
-		            <div style="text-align: center;">
-		                <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
-		                <a href="${stateData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
-		            </div>`;
-		        break;
-		        
-		      case 'ya_respondido':
-		        contentHtml += `
-		            <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
-		                <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
-		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
-		            </div>`;
-		        break;			
-		  
-		      default:
-		         contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">${stateData.error || 'No hay formulario disponible para el próximo entreno.'}</p></div>`;
-		    }		    
-	
-		    container.innerHTML = contentHtml;
-		}
-  		*/
 
 		/**
 		 * Dibuja la sección principal del dashboard de la jugadora (próximo entreno y formulario).
@@ -1643,139 +1540,6 @@
 		    container.innerHTML = contentHtml;
 		}
 
-		/*
-		function renderPlayerFormState(formStateData) {
-		    // Obtenemos referencias a los nuevos contenedores
-		    const titleContainer = document.getElementById('player-view-title');
-		    const contentContainer = document.getElementById('player-view-content');
-		    
-		    if (!formStateData || !formStateData.success) {
-		        titleContainer.textContent = "Error";
-		        contentContainer.innerHTML = `<div class="alert alert-warning">${formStateData.error || 'Error al cargar la información del día.'}</div>`;
-		        return;
-		    }			
-		
-		    const { state, trainingInfo, formUrl } = formStateData;
-		    
-		    let contentHtml = '';
-		    let titleText = 'Próximo Entrenamiento';
-		
-		    // --- Mostramos los detalles del entreno (si existe) ---
-		    if (trainingInfo) {
-		        const date = new Date(trainingInfo.fecha + 'T12:00:00');
-		        const displayDate = date.toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
-		        titleText = `Próximo Entrenamiento: ${displayDate}`;
-		        
-		        contentHtml += `
-		            <div class="details" style="padding-top: 1rem; border-top: 1px solid #eee;">
-		                <p class="detail-item"><strong>🕒 Horario:</strong> ${trainingInfo.start} - ${trainingInfo.end}</p>
-		                <p class="detail-item"><strong>📍 Ubicación:</strong> ${trainingInfo.location || 'No especificada'}</p>
-		                <p class="detail-item"><strong>📝 Notas:</strong> ${trainingInfo.notes || 'Sin notas'}</p>
-		            </div>
-		            <hr style="margin: 2rem 0;">
-		        `;
-		    }
-		
-		    // --- Mostramos el estado del formulario ---
-		    switch (state) {
-		        case 'listo_para_responder':
-		            contentHtml += `
-		                <div style="text-align: center;">
-		                    <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
-		                    <a href="${formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
-		                </div>`;
-		            break;
-		            
-		        case 'ya_respondido':
-		            contentHtml += `
-		                <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
-		                    <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
-		                    <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
-		                </div>`;
-		            break;
-
-				case 'listo_para_feedback':
-					titleText = `📝 Feedback del Entreno: ${new Date(trainingInfo.fecha + 'T12:00:00').toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
-				    contentHtml += `
-				        <div style="text-align: center; background-color: #e9f5fd; border-radius: 15px; padding: 1.5rem;">
-				            <h3 style="margin-bottom: 10px; color: #2980b9;">¡Buen trabajo!</h3>
-				            <p style="color: #666; margin-bottom: 25px;">Por favor, danos tu feedback sobre el entreno de hoy.</p>
-				            <a href="${formUrl}" target="_blank" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.2em;">📝 Abrir Feedback</a>
-				        </div>`;
-				    break;
-				
-				case 'feedback_respondido':					 
-				    titleText = `📝 Feedback Registrado`;
-				    contentHtml += `
-				        <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
-				            <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Feedback recibido!</h3>
-				            <p style="color: #666;">Gracias por ayudarnos a mejorar.</p>
-				        </div>`;
-				    break;
-		
-		        case 'entreno_futuro':
-		            const futureDate = new Date(trainingInfo.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-		            contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">El formulario para el entreno del ${futureDate} se activará ese mismo día.</p></div>`;
-		            break;
-		
-		        case 'form_no_preparado':
-		            contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">👨‍🏫<p style="margin-top:1rem;">El entrenador aún no ha preparado el formulario para el próximo entreno.</p></div>`;
-		            break;
-		
-		        case 'sin_entrenos':
-		            contentHtml = `<div style="text-align: center; padding: 20px; color: #666;">😴<p style="margin-top:1rem;">No hay próximos entrenamientos programados.</p></div>`;
-		            break;
-		
-		        default:
-		            contentHtml = `<div class="alert alert-warning">Ha ocurrido un estado desconocido.</div>`;
-		    }			
-		   	titleContainer.innerHTML = titleText;
-    		contentContainer.innerHTML = contentHtml;
-		}
-  		*/
-
-		/*
-        async function loadUserStats(teamId) {
-            try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserStats&email=${currentUser.email}&teamId=${teamId}`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
-                if (data.success) {
-                    updateStatsUI(data.stats);
-                } else {
-                    showDefaultStats();
-                }
-            } catch (error) {
-                console.error('Error cargando estadísticas:', error);
-                showDefaultStats();
-            }
-        }
-		*/
-
-		/*
-		function updateStatsUI(stats) {
-		    const attendance = stats.attendanceRate || 0;
-		    safeSetText('totalTrainings', stats.totalTrainings || 0);
-		    safeSetText('attendanceRate', `${attendance}%`);
-		    safeSetWidth('attendanceProgress', `${attendance}%`);
-		    safeSetText('monthlyProgress', `${stats.monthlyTrainings || 0}/${stats.monthlyGoal || 0}`);
-		    safeSetWidth('monthlyProgressBar', `${(stats.monthlyTrainings / (stats.monthlyGoal || 1)) * 100}%`);
-		    
-		    // Widget de Comparación (ahora también es seguro)
-		    safeSetText('myAttendanceRate', `${attendance}%`);
-		    safeSetWidth('myAttendanceProgress', `${attendance}%`);
-
-			// Rellenamos los campos del widget "Comparación con Equipo"
-		    document.getElementById('myAttendanceRate').textContent = `${stats.attendanceRate || 0}%`;
-		    document.getElementById('myAttendanceProgress').style.width = `${stats.attendanceRate || 0}%`;
-		    
-		    // Rellenamos la media del equipo con el nuevo dato del backend
-		    const teamAverage = stats.teamAverage || 0;
-		    document.getElementById('teamAverageRate').textContent = `${teamAverage}%`;
-		    document.getElementById('teamAverageProgress').style.width = `${teamAverage}%`;
-		}
-  		*/
-
 		/**
 		 * Dibuja el widget de estadísticas de la jugadora.
 		 * @param {object} statsData El objeto de estadísticas recibido del backend.
@@ -1820,68 +1584,6 @@
 		    document.getElementById('teamAverageRate').textContent = '0%';
 		    document.getElementById('teamAverageProgress').style.width = '0%';
 		}
-
-		/*
-        async function loadUserHistory(teamId) {
-			try {
-		        const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getUserHistory&email=${currentUser.email}&teamId=${teamId}`);
-		        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-		        
-		        const data = await response.json();
-		        if (data.success) {
-		            updateHistoryUI(data.history); // Llamamos a la función que dibuja el historial
-		        } else {
-		            showHistoryError();
-		        }
-		    } catch (error) {
-		        console.error('Error cargando historial:', error);
-		        showHistoryError();
-		    }            
-        }
-		*/
-
-		/**
-		 * Dibuja la lista del historial reciente en el dashboard de la jugadora.
-		 * VERSIÓN FINAL Y COMPLETA.
-		 * @param {Array} history Un array de objetos con el historial.
-		 */
-		/*
-		function updateHistoryUI(history) {
-		    const historyList = document.getElementById('historyList');
-		    
-		    if (!history || history.length === 0) {
-		        historyList.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;"><p>Aún no tienes entrenamientos registrados.</p></div>`;
-		        return;
-		    }
-		
-		    historyList.innerHTML = history.map(item => {
-		        let formattedDate = "Fecha inválida";
-		        if (item.date) {
-		            // El backend nos envía un objeto Date, lo formateamos directamente.
-		            const date = new Date(item.date);
-		            if (!isNaN(date.getTime())) { // Verificamos si la fecha es válida
-		                formattedDate = date.toLocaleDateString('es-ES', {
-		                    weekday: 'long',
-		                    day: 'numeric',
-		                    month: 'short'
-		                });
-		            }
-		        }
-		        
-		        const statusClass = item.completed ? 'status-completed' : 'status-missed';
-		        const statusText = item.completed ? 'Asistió' : 'No Asistió';
-		        
-		        return `
-		            <div class="history-item">
-		                <div class="history-date">${formattedDate}</div>
-		                <div class="history-status ${statusClass}">
-		                    ${statusText}
-		                </div>
-		            </div>
-		        `;
-		    }).join('');
-		}
-  		*/
 
 		/**
 		 * Dibuja el widget del historial reciente de la jugadora.
@@ -1934,21 +1636,6 @@
 		/**
 		 * Muestra un mensaje de error en el widget del historial.
 		 */
-		/*
-		function showHistoryError() {
-		    const historyList = document.getElementById('historyList');
-		    historyList.innerHTML = `
-		        <div style="text-align: center; padding: 20px; color: #666;">
-		            <p>Error al cargar el historial.</p>
-		            <button onclick="loadUserHistory(currentUser.teams[0])" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Reintentar</button>
-		        </div>
-		    `;
-		}
-  		*/
-
-		/**
-		 * Muestra un mensaje de error en el widget del historial.
-		 */
 		function showHistoryError() {
 		    const historyList = document.getElementById('historyList');
 		    historyList.innerHTML = `
@@ -1959,72 +1646,6 @@
 		        </div>
 		    `;
 		}
-
-		/**
-		 * Carga el estado de la jugadora y renderiza la VISTA DIARIA.
-		 * @param {string} teamId El ID del equipo de la jugadora.
-		 */
-		/*
-		async function loadPlayerFormState(teamId) {
-		  const container = document.getElementById('player-day-view-container');
-		  container.innerHTML = '<div class="spinner"></div><p style="text-align: center;">Cargando información del día...</p>';
-		  
-		  try {
-		    const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getPlayerState&email=${currentUser.email}&teamId=${teamId}`);
-		    const data = await response.json();
-		
-		    if (!data.success || !data.playerState.success) {
-		      throw new Error(data.error || data.playerState.error);
-		    }
-		
-		    const stateData = data.playerState;
-		    const info = stateData.trainingInfo;
-		    
-		    let contentHtml = '';
-
-			if (info) {
-			    // El contenedor ya es un .card, así que inyectamos el contenido directamente
-			    contentHtml += `
-			        <h3 style="margin-bottom: 1rem;">Próximo Entrenamiento: ${new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'})}</h3>
-			        <div class="details">
-			            <p class="detail-item"><strong>🕒 Horario:</strong> ${info.start} - ${info.end}</p>
-			            <p class="detail-item"><strong>📍 Ubicación:</strong> ${info.location || 'No especificada'}</p>
-			            <p class="detail-item"><strong>📝 Notas:</strong> ${info.notes || 'Sin notas'}</p>
-			        </div>
-			        <hr style="margin: 2rem 0;">
-			    `;
-			}		    
-		
-		    // Añadimos la sección del formulario basándonos en el estado
-		    switch (stateData.state) {
-		      case 'listo_para_responder':
-		        contentHtml += `
-		            <div style="text-align: center;">
-		                <h3 style="margin-bottom: 10px;">¡Confirma tu asistencia!</h3>
-		                <a href="${stateData.formUrl}" target="_blank" class="btn btn-success" style="padding: 15px 30px; font-size: 1.2em;">📋 Abrir Formulario</a>
-		            </div>`;
-		        break;
-		        
-		      case 'ya_respondido':
-		        contentHtml += `
-		            <div style="text-align: center; background-color: #e8f5e8; border-radius: 15px; padding: 1.5rem;">
-		                <h3 style="margin-bottom: 10px; color: #155724;">✅ ¡Gracias por responder!</h3>
-		                <p style="color: #666;">Tu respuesta para el entreno de hoy ha sido registrada.</p>
-		            </div>`;
-		        break;
-		
-		      default:
-		         contentHtml += `<div style="text-align: center; padding: 20px; color: #666;">🗓️<p style="margin-top:1rem;">${stateData.error || 'No hay formulario disponible para el próximo entreno.'}</p></div>`;
-		    }
-		    
-		    container.innerHTML = contentHtml;
-		
-		  } catch (error) {
-		    console.error('Error cargando el estado del formulario:', error);
-		    container.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
-		  }
-		}
-  		*/
 
         async function loadTodaysForm(teamId) {
 			try {
@@ -2475,166 +2096,6 @@
 		    grid.innerHTML = `<div class="day-view-container">${contentHtml}</div>`;
 		}
 
-		/**
-		 * Carga los datos de un entrenamiento seleccionado en el sidebar, OCULTANDO los
-		 * botones de acción y el selector de archivos para fechas pasadas.
-		 * @param {string} dateString La fecha seleccionada en formato 'YYYY--MM-DD'.
-		 */
-		/*
-		function loadTrainingData(dateString) {
-		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
-		    const trainingForm = document.getElementById('training-details-form');
-		    const buttonContainer = document.getElementById('action-buttons-container');
-		    const pdfStatusContainer = document.getElementById('pdf-status-container');
-		    const filePickerButton = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
-		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
-		
-		    // --- 2. CÁLCULO DE ESTADOS ---
-		    const today = toYYYYMMDD(new Date());
-		    const isPastDate = dateString && dateString < today;
-		    const hasTraining = dateString && trainings[dateString];
-		    const training = trainings[dateString] || {};
-			const status = training.status || 'Planificado';
-
-			const prepareBtn = document.getElementById('create-form-btn');
-			const startBtn = document.getElementById('start-training-btn');
-			const attendanceBtn = document.querySelector('button[onclick="submitAttendance()"]');
-
-			// Lógica de visibilidad de botones en el sidebar
-			prepareBtn.style.display = (status === 'Planificado') ? 'block' : 'none';
-			startBtn.style.display = (status === 'Preparado') ? 'block' : 'none';
-			
-			// Lógica de visibilidad del botón en la pestaña de asistencia
-			if (attendanceBtn) {
-			  attendanceBtn.style.display = (status === 'Iniciado') ? 'block' : 'none';
-			}
-		
-		    // --- 3. LÓGICA DE VISIBILIDAD ---
-		    trainingForm.style.display = 'block';
-		    buttonContainer.style.display = 'block';
-		    if (filePickerButton) filePickerButton.style.display = 'block'; // Mostramos el botón por defecto
-		    formInputs.forEach(input => input.disabled = false);
-		
-		    if (isPastDate && !hasTraining) {
-		        trainingForm.style.display = 'none';
-		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
-		    } else if (isPastDate && hasTraining) {
-		        buttonContainer.style.display = 'none'; // Ocultamos Guardar/Eliminar/Preparar
-		        if (filePickerButton) filePickerButton.style.display = 'none'; // <-- OCULTAMOS EL BOTÓN
-		        formInputs.forEach(input => input.disabled = true);
-		        showAlert('Estás viendo un entrenamiento pasado. La edición está deshabilitada.', 'warning');
-		    }
-		
-		    // --- 4. RELLENAR LOS DATOS DEL FORMULARIO ---
-		    let displayDate = 'dd/mm/aaaa';
-		    if (dateString) {
-		        const parts = dateString.split('-');
-		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-		    }
-		    document.getElementById('selected-date').value = displayDate;
-		    document.getElementById('start-time').value = training.start || '20:45';
-		    document.getElementById('end-time').value = training.end || '22:30';
-		    document.getElementById('location').value = training.location || '';
-		    document.getElementById('notes').value = training.notes || '';
-		    
-		    // Rellenamos el estado del PDF			
-			if (!training.pdfId || training.pdfId === 'null') {
-				pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;		        
-		    } else {
-		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
-		    }
-		}
-		*/
-		
-		/*
-		function loadTrainingData(dateString) {
-		    console.log(`--- loadTrainingData: Cargando fecha ${dateString} ---`);
-		
-		    // --- 1. REFERENCIAS A ELEMENTOS ---
-		    const trainingForm = document.getElementById('training-details-form');
-		    const saveBtn = document.getElementById('save-training-btn');
-		    const deleteBtn = document.getElementById('delete-training-btn');
-		    const filePickerBtn = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
-		    const prepareBtn = document.getElementById('create-form-btn');
-		    const startBtn = document.getElementById('start-training-btn');
-		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
-		
-		    // --- 2. CÁLCULO DE ESTADOS ---
-		    const today = toYYYYMMDD(new Date());
-		    const isPastDate = dateString && dateString < today;
-		    const hasTraining = dateString && trainings[dateString];
-		    const training = trainings[dateString] || {};
-		    const status = training.status || 'Planificado';
-		    
-		    console.log(`[LOGS] Fecha pasada: ${isPastDate}, Hay entreno: ${hasTraining}, Estado: ${status}`);
-		
-		    // --- 3. LÓGICA DE VISIBILIDAD ---
-		    
-		    // Primero, reseteamos todo a un estado base (visible y editable)
-		    trainingForm.style.display = 'block';
-		    saveBtn.style.display = 'block';
-		    deleteBtn.style.display = 'block';
-		    if (filePickerBtn) filePickerBtn.style.display = 'block';
-		    prepareBtn.style.display = 'none'; // Oculto por defecto
-		    startBtn.style.display = 'none';   // Oculto por defecto
-		    formInputs.forEach(input => input.disabled = false);
-		
-		    if (isPastDate) {
-		        console.log("[LOGS] Es una fecha pasada.");
-		        // Si es pasada, deshabilitamos la edición siempre
-		        formInputs.forEach(input => input.disabled = true);
-		        if (filePickerBtn) filePickerBtn.style.display = 'none'; // Ocultamos selector de archivo
-		        
-		        if (hasTraining) {
-		            console.log("[LOGS]   -> Había entreno. Ocultando botones de acción.");
-		            // Si había entreno, solo ocultamos los botones de acción
-		            saveBtn.style.display = 'none';
-		            deleteBtn.style.display = 'none';
-		            prepareBtn.style.display = 'none';
-		            startBtn.style.display = 'none';
-		        } else {
-		            console.log("[LOGS]   -> No había entreno. Ocultando todo el formulario.");
-		            // Si no había entreno, ocultamos el formulario entero
-		            trainingForm.style.display = 'none';
-		            showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
-		        }
-		    } else {
-		        // Si es HOY o FUTURO
-		        console.log("[LOGS] Es una fecha de hoy o futura.");
-		        if (!hasTraining) {
-		            console.log("[LOGS]   -> No hay entreno. Mostrando solo Guardar/Eliminar.");
-		            // Si no hay entreno, solo se puede Guardar (para crear) o Eliminar (no hace nada)
-		            prepareBtn.style.display = 'none';
-		            startBtn.style.display = 'none';
-		        } else {
-		            // Si SÍ hay entreno, mostramos el botón de acción correcto
-		            console.log(`[LOGS]   -> Hay entreno con estado: ${status}.`);
-		            if (status === 'Planificado') {
-		                prepareBtn.style.display = 'block';
-		            } else if (status === 'Preparado') {
-		                startBtn.style.display = 'block';
-		            }
-		        }
-		    }
-		    
-		    // --- 4. RELLENAR DATOS ---
-		    // (Esta parte de tu código ya es perfecta y no necesita cambios)
-		    let displayDate = dateString ? `${dateString.split('-')[2]}/${dateString.split('-')[1]}/${dateString.split('-')[0]}` : 'dd/mm/aaaa';
-		    document.getElementById('selected-date').value = displayDate;
-		    document.getElementById('start-time').value = training.start || '20:45';
-		    document.getElementById('end-time').value = training.end || '22:30';		    
-		    document.getElementById('location').value = training.location || '';
-		    document.getElementById('notes').value = training.notes || '';
-		    
-		    // Rellenamos el estado del PDF			
-			if (!training.pdfId || training.pdfId === 'null') {
-				pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;		        
-		    } else {
-		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
-		    }
-		}
-  		*/
-
 		function loadTrainingData(dateString) {
 		    // --- 1. REFERENCIAS A ELEMENTOS HTML ---
 		    const trainingForm = document.getElementById('training-details-form');
@@ -2722,95 +2183,6 @@
 			    attendanceContainer.innerHTML = `<p style="text-align:center; padding:1.5rem;">Inicia el entrenamiento desde la pestaña "Calendario" para pasar lista.</p>`;
 			}
 		}
-
-		/**
-		 * Carga los datos del entreno y gestiona la visibilidad de TODOS los botones
-		 * y campos basándose en la fecha Y en el estado del entrenamiento.
-		 */
-		/*
-		function loadTrainingData(dateString) {
-		    // --- 1. REFERENCIAS A ELEMENTOS ---
-		    const trainingForm = document.getElementById('training-details-form');
-		    const saveBtn = document.getElementById('save-training-btn');
-		    const deleteBtn = document.getElementById('delete-training-btn');
-		    const filePickerBtn = document.querySelector('#training-details-form button[onclick="openFilePicker()"]');
-		    const prepareBtn = document.getElementById('create-form-btn');
-		    const startBtn = document.getElementById('start-training-btn');
-		    const formInputs = document.querySelectorAll('#training-details-form input, #training-details-form textarea');
-		
-		    // --- 2. CÁLCULO DE ESTADOS ---
-		    const today = toYYYYMMDD(new Date());
-		    const isPastDate = dateString && dateString < today;
-		    const hasTraining = dateString && trainings[dateString];
-		    const training = trainings[dateString] || {};
-		    const status = training.status || 'Planificado';
-		    
-		    // --- ¡NUEVA CONDICIÓN DE BLOQUEO! ---
-		    // El entreno se considera "bloqueado" si ya ha empezado, ha finalizado, o es una fecha pasada.
-		    const isLocked = isPastDate || status === 'Iniciado' || status === 'Finalizado';
-		    
-		    // --- 3. LÓGICA DE VISIBILIDAD UNIFICADA ---
-		    
-		    // Reseteamos todo a un estado base
-		    trainingForm.style.display = 'block';
-		    formInputs.forEach(input => input.disabled = false);
-		    saveBtn.style.display = 'block';
-		    deleteBtn.style.display = 'block';
-		    if (filePickerBtn) filePickerBtn.style.display = 'block';
-		    prepareBtn.style.display = 'none';
-		    startBtn.style.display = 'none';
-		
-		    if (isPastDate && !hasTraining) {
-		        trainingForm.style.display = 'none';
-		        showAlert('Fecha pasada sin entrenamiento registrado.', 'warning');
-		    } else if (isLocked) {
-		        // Si el entreno está bloqueado, deshabilitamos la edición
-		        formInputs.forEach(input => input.disabled = true);
-		        saveBtn.style.display = 'none';
-		        deleteBtn.style.display = 'none';
-		        if (filePickerBtn) filePickerBtn.style.display = 'none';
-		    }
-		
-		    // Mostramos el botón de acción correcto solo si el entreno NO está bloqueado
-		    if (!isLocked && hasTraining) {
-		        if (status === 'Planificado') {
-		            prepareBtn.style.display = 'block';
-		        } else if (status === 'Preparado') {
-		            startBtn.style.display = 'block';
-		        }
-		    }
-		    
-		    // --- 4. RELLENAR DATOS ---
-		    let displayDate = 'dd/mm/aaaa';
-		    if (dateString) {
-		        const parts = dateString.split('-');
-		        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-		    }
-		    document.getElementById('selected-date').value = displayDate;
-		    document.getElementById('start-time').value = training.start || '20:45';
-		    document.getElementById('end-time').value = training.end || '22:30';
-		    document.getElementById('location').value = training.location || '';
-		    document.getElementById('notes').value = training.notes || '';
-		    
-		    if (!training.pdfId || training.pdfId === 'null') {
-		        pdfStatusContainer.innerHTML = `<p style="color: #7f8c8d; text-align: center; font-size: 0.9em;">No hay ninguna sesión adjunta.</p>`;
-		    } else {
-		        pdfStatusContainer.innerHTML = `<a href="https://drive.google.com/file/d/${training.pdfId}/view" target="_blank" class="btn btn-secondary" style="width: 100%;">📄 Ver Sesión Adjunta</a>`;
-		    }
-
-			// Preparamos la pestaña de asistencia según el estado
-			const attendanceTitle = document.getElementById('attendance-title');
-			const attendanceContainer = document.getElementById('attendance-table-container');
-			
-			if (status === 'Iniciado' || status === 'Finalizado') {
-			    loadAttendanceTable(); // Si el entreno ha empezado, cargamos la lista
-			} else {
-			    // Si no ha empezado, mostramos un mensaje
-			    attendanceTitle.textContent = "Asistencia de Entreno";
-			    attendanceContainer.innerHTML = `<p style="text-align:center; padding:1.5rem;">Inicia el entrenamiento desde la pestaña "Calendario" para pasar lista.</p>`;
-			}
-		}
-  		*/
 
 		async function saveTraining() {
 		    if (!selectedDate) return showAlert('Por favor, selecciona una fecha.', 'warning');
@@ -2946,39 +2318,6 @@
 		        startButton.innerHTML = '▶️ Iniciar Entreno';
 		    }
 		}
-
-		/*
-        async function prepareForm() {
-            if (!selectedDate || !trainings[selectedDate]) return showAlert('Primero debes seleccionar y guardar un entrenamiento.', 'warning');
-            const trainingDetails = trainings[selectedDate];
-			trainingDetails.fecha = selectedDate;
-            const selectedTeamId = document.getElementById('team-selector').value;
-            const prepareButton = event.currentTarget;
-            prepareButton.disabled = true;
-            prepareButton.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Preparando...';
-            try {
-                const url = new URL(CONFIG.SCRIPT_URL);
-                url.searchParams.append('action', 'prepareForm');
-                url.searchParams.append('userEmail', currentUser.email);
-                url.searchParams.append('teamId', selectedTeamId);
-                url.searchParams.append('details', JSON.stringify(trainingDetails));
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.success && data.result.success) {
-                    showAlert(data.result.message, 'success');
-                } else {
-                    const errorMessage = data.error || data.result?.error || "Error desconocido.";
-                    showAlert('Error al preparar el formulario: ' + errorMessage, 'warning');
-                }
-            } catch (error) {
-                console.error('Error de conexión al preparar formulario:', error);
-                showAlert('Error de conexión. No se pudo preparar el formulario.', 'warning');
-            } finally {
-                prepareButton.disabled = false;
-                prepareButton.innerHTML = '📋 Preparar Formulario de Asistencia';
-            }
-        }
-		*/
 
 		async function prepareForm() {
 		    if (!selectedDate || !trainings[selectedDate]) {
@@ -3282,87 +2621,6 @@
 		    
 		    container.innerHTML = tableHtml;
 		}
-  		
-		/**
-		 * Dibuja la tabla de asistencia en la pestaña "Asistencia", incluyendo los
-		 * checkboxes interactivos y los botones de acción correctos.
-		 * @param {Array} responses El array de datos de jugadoras recibido del backend.
-		 * @param {HTMLElement} container El div donde se dibujará la tabla.
-		 */
-		/*
-		function renderPlayerResponsesTable(responses, container) {
-		    if (!responses || responses.length === 0) {
-		        container.innerHTML = '<p style="text-align:center; padding: 2rem;">No hay jugadoras en este equipo para mostrar.</p>';
-		        return;
-		    }
-		    
-		    // --- 1. DEFINIMOS EL ORDEN Y TÍTULOS DE NUESTRAS COLUMNAS ---
-		    const columns = [
-		        { key: 'Jugadora', title: 'Jugadora' },
-		        { key: 'Respuesta Previa', title: 'Respuesta Previa' },
-		        { key: 'Asistencia', title: 'Asist.' },
-		        { key: 'Estado Físico', title: 'Estado Físico' },
-		        { key: 'Notas', title: 'Notas' }
-		    ];
-		
-		    // --- 2. CONSTRUIMOS EL HTML DE LA TABLA ---
-		    let tableHtml = '<div style="overflow-x:auto;"><table id="player-attendance-table"><thead><tr>';
-		    
-		    // Creamos los encabezados a partir de nuestra configuración
-		    columns.forEach(col => {
-		        tableHtml += `<th>${col.title}</th>`;
-		    });
-		    tableHtml += '</tr></thead><tbody>';
-		
-		    // Comprobamos si el entreno es una fecha pasada
-		    const isPastDate = selectedDate && selectedDate < toYYYYMMDD(new Date());
-		    
-		    // Creamos las filas de la tabla
-		    responses.forEach(playerData => {
-		        tableHtml += '<tr>';
-		        columns.forEach(col => {
-		            if (col.key === 'Asistencia') {
-		                // Caso especial para el checkbox de asistencia confirmada
-		                const isChecked = playerData['Asistencia_Confirmada'] === true ? 'checked' : '';
-		                // Deshabilitamos el check para el ASSISTANT en fechas pasadas
-		                const isDisabled = isPastDate && currentUser.role === 'ASSISTANT' ? 'disabled' : '';
-		                tableHtml += `<td><input type="checkbox" data-email="${playerData['Email']}" ${isChecked} ${isDisabled}></td>`;
-		            } else {
-		                // Para el resto de columnas, simplemente añadimos el dato
-		                tableHtml += `<td>${playerData[col.key] || '-'}</td>`;
-		            }
-		        });
-		        tableHtml += '</tr>';
-		    });
-		
-		    tableHtml += '</tbody></table></div>';
-		    
-		    // --- 3. LÓGICA DE VISIBILIDAD DE LOS BOTONES DE ACCIÓN ---
-		    const training = trainings[selectedDate] || {};
-		    const status = training.status || 'Planificado';
-		    let buttonsHtml = '';
-		
-		    if (status === 'Finalizado') {
-		        buttonsHtml = `<div class="alert alert-success" style="text-align:center; margin-top:1.5rem;">✅ Entrenamiento Finalizado</div>`;
-		    } else {
-		        const canEditAttendance = !(isPastDate && currentUser.role === 'ASSISTANT');
-		        if (canEditAttendance) {
-		            // El botón de Guardar siempre está visible si se puede editar
-		            buttonsHtml += `<button class="btn btn-success" onclick="submitAttendance()">Guardar Asistencia</button>`;
-		            
-		            // El botón de Finalizar solo aparece si el entreno está 'Iniciado'
-		            if (status === 'Iniciado') {
-		                buttonsHtml += `<button class="btn btn-danger" onclick="finalizeTrainingPrompt()" style="margin-left: 10px;">Finalizar Entreno</button>`;
-		            }
-		        }
-		    }
-		    
-		    // Añadimos el contenedor de botones al final de la tabla
-		    tableHtml += `<div style="text-align: right; margin-top: 1.5rem;">${buttonsHtml}</div>`;
-		    
-		    container.innerHTML = tableHtml;
-		}
-  		*/
 
 		/**
 		 * Pregunta al usuario si quiere finalizar el entreno y, si es así,
@@ -3504,43 +2762,6 @@
             showAlert('💾 Configuración guardada localmente', 'success');
         }
 
-		/*
-		function startAutoRefresh() {
-		    stopAutoRefresh();
-		    refreshInterval = setInterval(async () => {
-		        showRefreshIndicator();
-				        
-				if (document.getElementById('player-dashboard').style.display === 'block') {
-				    const playerTeamId = currentUser.teams[0];
-				    if (playerTeamId) {
-				        await loadPlayerFormState(playerTeamId); // <-- Llamada corregida
-				    }
-				}
-				else if (document.getElementById('admin-panel').style.display === 'block') {
-		            // En el futuro, podríamos refrescar los datos del admin también
-		            console.log("Auto-refresh: Panel de admin activo, no se hace nada por ahora.");
-		            // const selectedTeamId = document.getElementById('team-selector').value;
-		            // await initializeAdminPanel(selectedTeamId); // <-- Esto lo activaremos si lo necesitamos
-		        }
-		
-		    }, CONFIG.AUTO_REFRESH_INTERVAL);
-		}
-  		*/
-
-		/*
-        function stopAutoRefresh() {
-            if (refreshInterval) clearInterval(refreshInterval);
-        }
-		*/
-
-		/*
-        function showRefreshIndicator() {
-            const indicator = document.getElementById('refreshIndicator');
-            indicator.classList.remove('hidden');
-            setTimeout(() => indicator.classList.add('hidden'), 2000);
-        }
-		*/
-
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
@@ -3566,31 +2787,6 @@
 		    document.body.appendChild(alert);
 		    setTimeout(() => alert.remove(), 4000); // Duración un poco más corta
 		}
-
-		/**
-		 * Se activa cuando el usuario vuelve a la pestaña de la app.
-		 * Refresca los datos de la vista activa.
-		 */
-		/*
-		async function handleVisibilityChange() {
-		    if (document.hidden === false && currentUser) {
-		        if (document.getElementById('player-dashboard').style.display === 'block') {
-		            const playerTeamId = currentUser.teams[0];
-		            if (playerTeamId) {
-		                // Refrescamos toda la info de la jugadora
-		                await loadPlayerFormState(playerTeamId);
-		                await loadUserStats(playerTeamId);
-		                await loadUserHistory(playerTeamId);
-		            }
-		        } else if (document.getElementById('admin-panel').style.display === 'block') {
-		            const selectedTeamId = document.getElementById('team-selector').value;
-		            if (selectedTeamId) {
-		                await initializeAdminPanel(selectedTeamId);
-		            }
-		        }
-		    }
-		} 
-  		*/
 
 		/**
 		 * Se activa cuando el usuario vuelve a la pestaña de la app.
@@ -3722,7 +2918,6 @@
 		    }
 		}
 
-		
 		let fullPlayerHistory = []; // Variable global para guardar el historial y poder filtrarlo
 
 		/**
