@@ -1056,9 +1056,21 @@
         // ========================
         // CONFIGURACIÓN Y GLOBALES
         // ========================
+		// Objeto de configuración principal
+		const APP_CONFIG = {
+		    // Elige tu entorno: 'development' o 'production'
+		    // ¡¡¡IMPORTANTE!!! Poner 'production' antes de subir a la rama 'main'
+		    ENVIRONMENT: 'development',
+		
+		    API_URLS: {
+		        production: 'https://script.google.com/macros/s/AKfycbxTQZTe9yJvZS0pK-ptjCQTpIbs3iFOjSuQ2mbDn02R5VaUs7aVsb4DAEHHJuQtwHMqGA/exec',
+		        development: 'https://script.google.com/macros/s/AKfycbw65HFkr44HXJoQWAR7WKT3HqSfHp4C_mtBbPW9kGWRZsTfwTLopx2CEAnHuvkXdUWI/exec'
+		    }
+		};
+		
         const CONFIG = {
             CLIENT_ID: '231457973375-lu8n54s56es213oqg5r3c5huas7golbb.apps.googleusercontent.com',
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxTQZTe9yJvZS0pK-ptjCQTpIbs3iFOjSuQ2mbDn02R5VaUs7aVsb4DAEHHJuQtwHMqGA/exec',
+            SCRIPT_URL: APP_CONFIG.API_URLS[APP_CONFIG.ENVIRONMENT],
             SCOPES: 'email profile',
             AUTO_REFRESH_INTERVAL: 300000,
         };
