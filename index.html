@@ -1004,7 +1004,8 @@
 					                <thead>
 					                    <tr>
 					                        <th>Nombre</th>
-					                        <th>Posición</th>
+					                        <th>Físico</th>
+											<th>% Lesión</th>
 					                        <th>Asistencia</th>
 					                        <th>Últimos 5 Entrenos</th>
 					                        <th>Última Menstruación</th>
@@ -2470,9 +2471,8 @@
 				row.onclick = () => openHistoryModal(player.email, player.name);
 		        row.innerHTML = `
 		            <td><strong>${player.name}</strong></td>
-		            <td>${player.position || 'N/A'}</td>
-					<td>${player.estadoForma || 'N/A'}</td>
-					<td>${player.riesgoLesion || 'N/A'}</td>
+		            <td>${player.estadoForma}</td>
+					<td><strong>${player.riesgoLesion}%</strong></td>
 		            <td>
 		                <div class="attendance-bar-container">
 		                    <span>${player.attendanceRate}%</span>
