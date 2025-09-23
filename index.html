@@ -1003,9 +1003,7 @@
 					            <table id="player-stats-table">
 					                <thead>
 					                    <tr>
-					                        <th>Nombre</th>
-					                        <th>% Est.Forma</th>
-											<th>Riesgo</th>
+					                        <th>Nombre</th>					                        
 					                        <th>Asistencia</th>
 					                        <th>Últimos 5 Entrenos</th>
 					                        <th>Última Menstruación</th>
@@ -2470,9 +2468,7 @@
 				row.style.cursor = 'pointer';
 				row.onclick = () => openHistoryModal(player.email, player.name);
 		        row.innerHTML = `
-		            <td><strong>${player.name}</strong></td>
-		            <td>${player.estadoForma}</td>
-					<td><strong>${player.riesgoLesion}</strong></td>
+		            <td><strong>${player.name}</strong></td>		            
 		            <td>
 		                <div class="attendance-bar-container">
 		                    <span>${player.attendanceRate}%</span>
