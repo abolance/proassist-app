@@ -710,6 +710,17 @@
 			                <div class="progress-bar">
 			                    <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
 			                </div>
+							<!-- === Estado de forma y riesgo de lesión === -->
+							<div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
+							    <div style="margin-bottom: 15px;">
+							        <span>📈 Estado de Forma</span>
+							        <span id="playerEstadoForma" style="float: right; font-weight: bold; color: #3498db;">-</span>
+							    </div>
+							    <div>
+							        <span>⚠️ Riesgo de Lesión</span>
+							        <span id="playerRiesgoLesion" style="float: right; font-weight: bold; color: #e74c3c;">-</span>
+							    </div>
+							</div>
 			            </div>
 			        </div>
 			        <div class="card">
@@ -1572,6 +1583,11 @@
 		    
 		    safeSetText('myAttendanceRate', `${stats.attendanceRate || 0}%`);
 		    safeSetWidth('myAttendanceProgress', `${stats.attendanceRate || 0}%`);
+
+			// === Estado de forma y riesgo de lesión ===
+		    safeSetText('playerEstadoForma', (stats.estadoForma !== 'N/A' ? stats.estadoForma + ' %' : 'N/A'));
+		    safeSetText('playerRiesgoLesion', stats.riesgoLesion || 'N/A');
+		    // ========================
 		    
 		    // Rellenamos la media del equipo si viene en los datos
 		    if (stats.teamAverage !== undefined) {
@@ -1589,6 +1605,11 @@
 		
 		    safeSetText('myAttendanceRate', '0%');
 		    safeSetWidth('myAttendanceProgress', '0%');
+
+			// === Estado de forma y riesgo de lesión ===
+		    safeSetText('playerEstadoForma', '-');
+		    safeSetText('playerRiesgoLesion', '-');
+		    // ========================
 
 			document.getElementById('myAttendanceRate').textContent = '0%';
 		    document.getElementById('myAttendanceProgress').style.width = '0%';
