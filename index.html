@@ -652,6 +652,55 @@
 		.trend-up { background-color: #27ae60; } /* Verde */
 		.trend-down { background-color: #e74c3c; } /* Rojo */
 		.trend-stable { background-color: #95a5a6; } /* Gris */
+
+		/* Estilos para el nuevo bloque de estadísticas del jugador */
+		.player-extra-stats {
+		    border-top: 1px solid #eee;
+		    margin-top: 20px;
+		    padding-top: 20px;
+		    display: flex;
+		    flex-direction: column;
+		    gap: 15px; /* Espacio entre las filas */
+		}
+		
+		.stat-item-row {
+		    display: flex;
+		    justify-content: space-between; /* Alinea los elementos a los extremos */
+		    align-items: center;
+		}
+		
+		.stat-label {
+		    display: flex;
+		    align-items: center;
+		    gap: 8px; /* Espacio entre el icono y el texto */
+		    font-weight: 500;
+		    color: #555;
+		}
+		
+		.stat-value-container {
+		    display: flex;
+		    align-items: center;
+		    gap: 8px;
+		}
+		
+		.stat-value-main {
+		    font-weight: bold;
+		    font-size: 1.2em;
+		    color: #3498db;
+		}
+		
+		/* Insignia para el Riesgo de Lesión */
+		.riesgo-badge {
+		    padding: 4px 12px;
+		    border-radius: 15px;
+		    font-weight: bold;
+		    font-size: 0.9em;
+		    color: white;
+		}
+		.riesgo-bajo { background-color: #27ae60; } /* Verde */
+		.riesgo-medio { background-color: #f39c12; } /* Naranja */
+		.riesgo-alto { background-color: #e74c3c; } /* Rojo */
+		.riesgo-na { background-color: #95a5a6; } /* Gris */
 	</style>
 </head>
 <body>
@@ -721,18 +770,28 @@
 			                <div class="progress-bar">
 			                    <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
 			                </div>
-							<!-- === Estado de forma y riesgo de lesión === -->
-							<div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
-							    <div style="margin-bottom: 15px;">							        
-									<div style="display: flex; align-items: center; gap: 8px;">
-									    <span>📈 Estado de Forma</span>
-									    <span id="playerEstadoFormaTrendIcon"></span> <!-- Icono de tendencia -->
-									</div>
-									<span id="playerEstadoForma" style="float: right; font-weight: bold; color: #3498db;">-</span>
+							<!-- === Estado de forma y riesgo de lesión === -->							
+							<div class="player-extra-stats">
+							    <!-- Fila para Estado de Forma -->
+							    <div class="stat-item-row">
+							        <div class="stat-label">
+							            <span>📈</span>
+							            <span>Estado de Forma</span>
+							        </div>
+							        <div class="stat-value-container" id="playerEstadoFormaContainer">
+							            <!-- El JS llenará esto -->
+							        </div>
 							    </div>
-							    <div>
-							        <span>⚠️ Riesgo de Lesión</span>
-							        <span id="playerRiesgoLesion" style="float: right; font-weight: bold; color: #e74c3c;">-</span>
+							
+							    <!-- Fila para Riesgo de Lesión -->
+							    <div class="stat-item-row">
+							        <div class="stat-label">
+							            <span>⚠️</span>
+							            <span>Riesgo de Lesión</span>
+							        </div>
+							        <div class="stat-value-container" id="playerRiesgoLesionContainer">
+							            <!-- El JS llenará esto -->
+							        </div>
 							    </div>
 							</div>
 			            </div>
@@ -1589,8 +1648,8 @@
 		    }
 		    const stats = statsData.stats; // Los datos están dentro de la clave 'stats'
 
-			console.log("Datos de estadísticas recibidos del backend:", stats);
-    		console.log("Valor de estadoFormaTrend:", stats.estadoFormaTrend, "Tipo:", typeof stats.estadoFormaTrend);
+			//console.log("Datos de estadísticas recibidos del backend:", stats);
+    		//console.log("Valor de estadoFormaTrend:", stats.estadoFormaTrend, "Tipo:", typeof stats.estadoFormaTrend);
 		    
 		    safeSetText('totalTrainings', stats.totalTrainings || 0);
 		    safeSetText('attendanceRate', `${stats.attendanceRate || 0}%`);
@@ -1602,6 +1661,7 @@
 		    safeSetWidth('myAttendanceProgress', `${stats.attendanceRate || 0}%`);
 
 			// === Estado de forma y riesgo de lesión ===
+			/*
 			const estadoFormaValue = stats.estadoForma;
 		    const estadoFormaTrend = stats.estadoFormaTrend;
 		    const trendIconEl = document.getElementById('playerEstadoFormaTrendIcon');
@@ -1628,6 +1688,34 @@
 		    }
 		    
 		    safeSetText('playerRiesgoLesion', stats.riesgoLesion || 'N/A');
+			*/
+
+			const estadoFormaContainer = document.getElementById('playerEstadoFormaContainer');
+			const riesgoLesionContainer = document.getElementById('playerRiesgoLesionContainer');
+			
+			// Rellenar Estado de Forma
+			if (stats.estadoForma !== 'N/A') {
+			    let trendIconHtml = '';
+			    if (stats.estadoFormaTrend > 0) {
+			        trendIconHtml = `<span class="trend-icon trend-up">▲ +${stats.estadoFormaTrend}</span>`;
+			    } else if (stats.estadoFormaTrend < 0) {
+			        trendIconHtml = `<span class="trend-icon trend-down">▼ ${stats.estadoFormaTrend}</span>`;
+			    } else {
+			        trendIconHtml = `<span class="trend-icon trend-stable">▬</span>`;
+			    }
+			    estadoFormaContainer.innerHTML = `<span class="stat-value-main">${stats.estadoForma}%</span>${trendIconHtml}`;
+			} else {
+			    estadoFormaContainer.innerHTML = `<span class="stat-value-main">N/A</span>`;
+			}
+			
+			// Rellenar Riesgo de Lesión
+			const riesgo = (stats.riesgoLesion || 'N/A').toLowerCase();
+			let riesgoClass = 'riesgo-na';
+			if (riesgo === 'bajo') riesgoClass = 'riesgo-bajo';
+			if (riesgo === 'medio') riesgoClass = 'riesgo-medio';
+			if (riesgo === 'alto') riesgoClass = 'riesgo-alto';
+			
+			riesgoLesionContainer.innerHTML = `<span class="riesgo-badge ${riesgoClass}">${stats.riesgoLesion || 'N/A'}</span>`;
 		    // ========================
 		    
 		    // Rellenamos la media del equipo si viene en los datos
@@ -1648,8 +1736,13 @@
 		    safeSetWidth('myAttendanceProgress', '0%');
 
 			// === Estado de forma y riesgo de lesión ===
-		    safeSetText('playerEstadoForma', '-');
+		    /*
+			safeSetText('playerEstadoForma', '-');
 		    safeSetText('playerRiesgoLesion', '-');
+			*/
+
+			document.getElementById('playerEstadoFormaContainer').innerHTML = `<span class="stat-value-main">-</span>`;
+			document.getElementById('playerRiesgoLesionContainer').innerHTML = `<span class="riesgo-badge riesgo-na">-</span>`;
 		    // ========================
 
 			document.getElementById('myAttendanceRate').textContent = '0%';
@@ -2531,6 +2624,19 @@
 				row.dataset.playerEmail = player.email;
 				row.style.cursor = 'pointer';
 				row.onclick = () => openHistoryModal(player.email, player.name);
+
+				let estadoFormaHtml = '<td>N/A</td>'; // Valor por defecto
+				if (player.estadoForma !== 'N/A' && typeof player.estadoFormaTrend === 'number') {
+					let trendIconHtml = '';
+					if (player.estadoFormaTrend > 0) {
+						trendIconHtml = `<span class="trend-icon trend-up" style="margin-left: 8px;">▲ +${player.estadoFormaTrend}</span>`;
+					} else if (player.estadoFormaTrend < 0) {
+						trendIconHtml = `<span class="trend-icon trend-down" style="margin-left: 8px;">▼ ${player.estadoFormaTrend}</span>`;
+					}
+					
+					estadoFormaHtml = `<td>${player.estadoForma} % ${trendIconHtml}</td>`;
+				}
+				
 		        row.innerHTML = `
 		            <td><strong>${player.name}</strong></td>		            
 		            <td>
@@ -2540,8 +2646,8 @@
 		                        <div class="bar-fill" style="width: ${player.attendanceRate}%;"></div>
 		                    </div>
 		                </div>
-		            </td>
-					<td>${player.estadoForma}</td>
+		            </td>										
+					<td>${estadoFormaHtml}</td>
 					<td><strong>${player.riesgoLesion}</strong></td>
 			  		<td>
 					    <div class="attendance-history">
