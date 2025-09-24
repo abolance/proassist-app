@@ -1588,6 +1588,9 @@
 		        return;
 		    }
 		    const stats = statsData.stats; // Los datos están dentro de la clave 'stats'
+
+			console.log("Datos de estadísticas recibidos del backend:", stats);
+    		console.log("Valor de estadoFormaTrend:", stats.estadoFormaTrend, "Tipo:", typeof stats.estadoFormaTrend);
 		    
 		    safeSetText('totalTrainings', stats.totalTrainings || 0);
 		    safeSetText('attendanceRate', `${stats.attendanceRate || 0}%`);
