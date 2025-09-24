@@ -1005,6 +1005,8 @@
 					                    <tr>
 					                        <th>Nombre</th>					                        
 					                        <th>Asistencia</th>
+											<th>% Est.Forma</th>
+											<th>Riesgo</th>
 					                        <th>Últimos 5 Entrenos</th>
 					                        <th>Última Menstruación</th>
 					                    </tr>
@@ -2477,6 +2479,8 @@
 		                    </div>
 		                </div>
 		            </td>
+					<td>${player.estadoForma}</td>
+					<td><strong>${player.riesgoLesion}</strong></td>
 			  		<td>
 					    <div class="attendance-history">
 					        ${player.lastFive.map(item => `<span class="${item.class}">${item.symbol}</span>`).join('')}
