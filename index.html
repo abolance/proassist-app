@@ -641,6 +641,17 @@
 		    font-size: 0.85em;
 		    text-transform: uppercase;
 		}
+
+		.trend-icon {
+			font-weight: bold;
+			padding: 2px 6px;
+			border-radius: 5px;
+			color: white;
+			font-size: 0.8em;
+		}
+		.trend-up { background-color: #27ae60; } /* Verde */
+		.trend-down { background-color: #e74c3c; } /* Rojo */
+		.trend-stable { background-color: #95a5a6; } /* Gris */
 	</style>
 </head>
 <body>
@@ -710,6 +721,20 @@
 			                <div class="progress-bar">
 			                    <div id="attendanceProgress" class="progress-fill" style="width: 0%"></div>
 			                </div>
+							<!-- === Estado de forma y riesgo de lesión === -->
+							<div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
+							    <div style="margin-bottom: 15px;">							        
+									<div style="display: flex; align-items: center; gap: 8px;">
+									    <span>📈 Estado de Forma</span>
+									    <span id="playerEstadoFormaTrendIcon"></span> <!-- Icono de tendencia -->
+									</div>
+									<span id="playerEstadoForma" style="float: right; font-weight: bold; color: #3498db;">-</span>
+							    </div>
+							    <div>
+							        <span>⚠️ Riesgo de Lesión</span>
+							        <span id="playerRiesgoLesion" style="float: right; font-weight: bold; color: #e74c3c;">-</span>
+							    </div>
+							</div>
 			            </div>
 			        </div>
 			        <div class="card">
@@ -1003,9 +1028,10 @@
 					            <table id="player-stats-table">
 					                <thead>
 					                    <tr>
-					                        <th>Nombre</th>
-					                        <th>Posición</th>
+					                        <th>Nombre</th>					                        
 					                        <th>Asistencia</th>
+											<th>% Est.Forma</th>
+											<th>Riesgo</th>
 					                        <th>Últimos 5 Entrenos</th>
 					                        <th>Última Menstruación</th>
 					                    </tr>
@@ -1056,9 +1082,21 @@
         // ========================
         // CONFIGURACIÓN Y GLOBALES
         // ========================
+		// Objeto de configuración principal
+		const APP_CONFIG = {
+		    // Elige tu entorno: 'development' o 'production'
+		    // ¡¡¡IMPORTANTE!!! Poner 'production' antes de subir a la rama 'main'
+		    ENVIRONMENT: 'development',
+		
+		    API_URLS: {
+		        production: 'https://script.google.com/macros/s/AKfycbyogODys8NvFWU0nBKT8FCNq1oQlLXDbQJZKQmK4LVgkGe1riHN7MCzL78_HYyPmPvkJw/exec',
+		        development: 'https://script.google.com/macros/s/AKfycbyYQRlg1nXx4RxEg5Z43pC9ggZaA09feqq9DlXT4N_5Ab5DAv8cmu9FoBhlkZyGkUoYlQ/exec'
+		    }
+		};
+		
         const CONFIG = {
             CLIENT_ID: '231457973375-lu8n54s56es213oqg5r3c5huas7golbb.apps.googleusercontent.com',
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxTQZTe9yJvZS0pK-ptjCQTpIbs3iFOjSuQ2mbDn02R5VaUs7aVsb4DAEHHJuQtwHMqGA/exec',
+            SCRIPT_URL: APP_CONFIG.API_URLS[APP_CONFIG.ENVIRONMENT],
             SCOPES: 'email profile',
             AUTO_REFRESH_INTERVAL: 300000,
         };
@@ -1559,6 +1597,35 @@
 		    
 		    safeSetText('myAttendanceRate', `${stats.attendanceRate || 0}%`);
 		    safeSetWidth('myAttendanceProgress', `${stats.attendanceRate || 0}%`);
+
+			// === Estado de forma y riesgo de lesión ===
+			const estadoFormaValue = stats.estadoForma;
+		    const estadoFormaTrend = stats.estadoFormaTrend;
+		    const trendIconEl = document.getElementById('playerEstadoFormaTrendIcon');
+		
+		    // Mostramos el valor principal
+		    safeSetText('playerEstadoForma', (estadoFormaValue !== 'N/A' ? estadoFormaValue + ' %' : 'N/A'));
+		    
+		    // Reseteamos el icono
+		    trendIconEl.innerHTML = '';
+		    trendIconEl.className = '';
+		
+		    if (estadoFormaValue !== 'N/A') {
+		        if (estadoFormaTrend > 0) {
+		            trendIconEl.innerHTML = `▲ +${estadoFormaTrend}`;
+		            trendIconEl.className = 'trend-icon trend-up';
+		        } else if (estadoFormaTrend < 0) {
+		            trendIconEl.innerHTML = `▼ ${estadoFormaTrend}`; // El negativo ya está en el número
+		            trendIconEl.className = 'trend-icon trend-down';
+		        } else {
+		            // Opcional: mostrar un icono estable si la tendencia es 0
+		            trendIconEl.innerHTML = `▬`;
+		            trendIconEl.className = 'trend-icon trend-stable';
+		        }
+		    }
+		    
+		    safeSetText('playerRiesgoLesion', stats.riesgoLesion || 'N/A');
+		    // ========================
 		    
 		    // Rellenamos la media del equipo si viene en los datos
 		    if (stats.teamAverage !== undefined) {
@@ -1576,6 +1643,11 @@
 		
 		    safeSetText('myAttendanceRate', '0%');
 		    safeSetWidth('myAttendanceProgress', '0%');
+
+			// === Estado de forma y riesgo de lesión ===
+		    safeSetText('playerEstadoForma', '-');
+		    safeSetText('playerRiesgoLesion', '-');
+		    // ========================
 
 			document.getElementById('myAttendanceRate').textContent = '0%';
 		    document.getElementById('myAttendanceProgress').style.width = '0%';
@@ -2457,8 +2529,7 @@
 				row.style.cursor = 'pointer';
 				row.onclick = () => openHistoryModal(player.email, player.name);
 		        row.innerHTML = `
-		            <td><strong>${player.name}</strong></td>
-		            <td>${player.position || 'N/A'}</td>
+		            <td><strong>${player.name}</strong></td>		            
 		            <td>
 		                <div class="attendance-bar-container">
 		                    <span>${player.attendanceRate}%</span>
@@ -2467,6 +2538,8 @@
 		                    </div>
 		                </div>
 		            </td>
+					<td>${player.estadoForma}</td>
+					<td><strong>${player.riesgoLesion}</strong></td>
 			  		<td>
 					    <div class="attendance-history">
 					        ${player.lastFive.map(item => `<span class="${item.class}">${item.symbol}</span>`).join('')}
