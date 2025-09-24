@@ -641,6 +641,17 @@
 		    font-size: 0.85em;
 		    text-transform: uppercase;
 		}
+
+		.trend-icon {
+			font-weight: bold;
+			padding: 2px 6px;
+			border-radius: 5px;
+			color: white;
+			font-size: 0.8em;
+		}
+		.trend-up { background-color: #27ae60; } /* Verde */
+		.trend-down { background-color: #e74c3c; } /* Rojo */
+		.trend-stable { background-color: #95a5a6; } /* Gris */
 	</style>
 </head>
 <body>
@@ -712,9 +723,12 @@
 			                </div>
 							<!-- === Estado de forma y riesgo de lesión === -->
 							<div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
-							    <div style="margin-bottom: 15px;">
-							        <span>📈 Estado de Forma</span>
-							        <span id="playerEstadoForma" style="float: right; font-weight: bold; color: #3498db;">-</span>
+							    <div style="margin-bottom: 15px;">							        
+									<div style="display: flex; align-items: center; gap: 8px;">
+									    <span>📈 Estado de Forma</span>
+									    <span id="playerEstadoFormaTrendIcon"></span> <!-- Icono de tendencia -->
+									</div>
+									<span id="playerEstadoForma" style="float: right; font-weight: bold; color: #3498db;">-</span>
 							    </div>
 							    <div>
 							        <span>⚠️ Riesgo de Lesión</span>
@@ -1585,7 +1599,31 @@
 		    safeSetWidth('myAttendanceProgress', `${stats.attendanceRate || 0}%`);
 
 			// === Estado de forma y riesgo de lesión ===
-		    safeSetText('playerEstadoForma', (stats.estadoForma !== 'N/A' ? stats.estadoForma + ' %' : 'N/A'));
+			const estadoFormaValue = stats.estadoForma;
+		    const estadoFormaTrend = stats.estadoFormaTrend;
+		    const trendIconEl = document.getElementById('playerEstadoFormaTrendIcon');
+		
+		    // Mostramos el valor principal
+		    safeSetText('playerEstadoForma', (estadoFormaValue !== 'N/A' ? estadoFormaValue + ' %' : 'N/A'));
+		    
+		    // Reseteamos el icono
+		    trendIconEl.innerHTML = '';
+		    trendIconEl.className = '';
+		
+		    if (estadoFormaValue !== 'N/A') {
+		        if (estadoFormaTrend > 0) {
+		            trendIconEl.innerHTML = `▲ +${estadoFormaTrend}`;
+		            trendIconEl.className = 'trend-icon trend-up';
+		        } else if (estadoFormaTrend < 0) {
+		            trendIconEl.innerHTML = `▼ ${estadoFormaTrend}`; // El negativo ya está en el número
+		            trendIconEl.className = 'trend-icon trend-down';
+		        } else {
+		            // Opcional: mostrar un icono estable si la tendencia es 0
+		            trendIconEl.innerHTML = `▬`;
+		            trendIconEl.className = 'trend-icon trend-stable';
+		        }
+		    }
+		    
 		    safeSetText('playerRiesgoLesion', stats.riesgoLesion || 'N/A');
 		    // ========================
 		    
