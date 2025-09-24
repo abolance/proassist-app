@@ -2636,26 +2636,25 @@
 					
 					estadoFormaHtml = `<td>${player.estadoForma} % ${trendIconHtml}</td>`;
 				}
-				
-		        row.innerHTML = `
-		            <td><strong>${player.name}</strong></td>		            
-		            <td>
-		                <div class="attendance-bar-container">
-		                    <span>${player.attendanceRate}%</span>
-		                    <div class="bar">
-		                        <div class="bar-fill" style="width: ${player.attendanceRate}%;"></div>
-		                    </div>
-		                </div>
-		            </td>										
-					<td>${estadoFormaHtml}</td>
-					<td><strong>${player.riesgoLesion}</strong></td>
-			  		<td>
-					    <div class="attendance-history">
-					        ${player.lastFive.map(item => `<span class="${item.class}">${item.symbol}</span>`).join('')}
-					    </div>
-					</td>	 				
-		            <td>${player.lastMenstruation}</td>
-		        `;
+				row.innerHTML = `
+			        <td><strong>${player.name}</strong></td>
+			        <td>
+			            <div class="attendance-bar-container">
+			                <span>${player.attendanceRate}%</span>
+			                <div class="bar">
+			                    <div class="bar-fill" style="width: ${player.attendanceRate}%;"></div>
+			                </div>
+			            </div>
+			        </td>
+			        ${estadoFormaHtml}
+			        <td>${player.riesgoLesion}</td>
+			        <td>
+			            <div class="attendance-history">
+			                ${player.lastFive.map(item => `<span class="${item.class}">${item.symbol}</span>`).join('')}
+			            </div>
+			        </td>
+			        <td>${player.lastMenstruation}</td>
+			    `;					
 		    });
 		}
 
